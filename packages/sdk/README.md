@@ -1,7 +1,3 @@
-# @brdrwanda/observability
-
-Structured logging, distributed tracing, and Prometheus metrics for NestJS services. Drop-in module — takes about 10 minutes to integrate.
-
 ## Table of Contents
 
 - [Why this SDK](#why-this-sdk)
@@ -44,7 +40,11 @@ Structured logging, distributed tracing, and Prometheus metrics for NestJS servi
   - [Standalone mode (pure Node.js / Express / Fastify)](#standalone-mode-pure-nodejs--express--fastify)
   - [Signal correlation](#signal-correlation-metrics--logs--traces)
   - [Local development sandbox](#local-development-sandbox)
-    
+
+# @brdrwanda/observability
+
+Structured logging, distributed tracing, and Prometheus metrics for NestJS services. Drop-in module — takes about 10 minutes to integrate.
+
 ## Why this SDK
 
 BRD microservices historically used a mix of `console.log`, Winston via `LoggerService`, Morgan, and the built-in NestJS `Logger` each with different formats, no trace correlation, and no structured metadata. Debugging production issues meant SSH-ing into servers and grepping raw text logs across multiple services with no way to follow a request end-to-end.
