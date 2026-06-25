@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Guide — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+      <a href="architecture.html" id="nav-architecture">Architecture</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="migration-guide">Migration Guide</h1>
+    <p>Step-by-step guide for migrating any BRD NestJS service from the old logging stack (Winston + LoggerService + Morgan + Kafka logging) to <code>@brdrwanda/observability</code>.</p>
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#what-youre-replacing">What you're replacing</a></li>
+    <li><a href="#step-1-install-the-sdk">Step 1: Install the SDK</a></li>
+    <li><a href="#step-2-update-maints">Step 2: Update main.ts</a></li>
+    <li><a href="#step-3-update-appmodulets">Step 3: Update app.module.ts</a></li>
+    <li><a href="#step-4-update-databasemodulets">Step 4: Update database.module.ts</a></li>
+    <li><a href="#step-5-replace-loggerservice-in-controllers">Step 5: Replace LoggerService in controllers</a></li>
+    <li><a href="#step-6-replace-loggerservice-in-services">Step 6: Replace LoggerService in services</a></li>
+    <li><a href="#step-7-remove-createloggingcontextwithid">Step 7: Remove createLoggingContextWithId</a></li>
+    <li><a href="#step-8-replace-consolelog">Step 8: Replace console.log</a></li>
+    <li><a href="#step-9-add-trace-propagation-to-http-clients">Step 9: Add trace propagation to HTTP clients</a></li>
+    <li><a href="#step-10-clean-up-unused-files">Step 10: Clean up unused files</a></li>
+    <li><a href="#step-11-test-and-verify">Step 11: Test and verify</a></li>
+    <li><a href="#method-mapping-reference">Method mapping reference</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <hr />
+    <h2 id="overview">Overview</h2>
+    <p>Every BRD service uses the same logging stack:</p>
+    <pre><code>LoggerService (extends NestJS Logger)
+      ├── Winston logger (JSON format, daily rotate files)
+      ├── Kafka producer (sends logs to logging.info / logging.warn topics)
+      └── Console transport
+    </code></pre>
+    <p>The SDK replaces all of this with:</p>
+    <pre><code>ObservabilityLogger (Pino)
+      ├── Structured JSON to stdout (infrastructure ships to Loki)
+      ├── Auto trace context injection (trace_id, span_id, request_id)
+      └── Auto error classification (4xx=warn, 5xx=error)
+    </code></pre>
+    <p><strong>What you gain:</strong> Trace correlation, automatic error logging, Prometheus metrics, health checks, exemplars.</p>
+    <p><strong>What you remove:</strong> Winston, Morgan, LoggerService, createLoggingContextWithId, custom HttpExceptionFilter, Kafka logging client.</p>
+    <hr />
+    <h2 id="what-youre-replacing">What you're replacing</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Old pattern</th>
+    <th>SDK replacement</th>
+    <th>Notes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>LoggerService</code> (Winston + Kafka)</td>
+    <td><code>ObservabilityLogger</code></td>
+    <td>Inject via constructor, no Kafka dependency</td>
+    </tr>
+    <tr class="even">
+    <td><code>handleInfoLog(msg, context)</code></td>
+    <td><code>logger.info(msg, metadata)</code></td>
+    <td>Context injected automatically</td>
+    </tr>
+    <tr class="odd">
+    <td><code>handlErrorLog(msg, data)</code></td>
+    <td><code>logger.error(msg, metadata)</code> or <code>logger.logCaughtError(error)</code></td>
+    <td>Stack traces auto-included for 5xx</td>
+    </tr>
+    <tr class="even">
+    <td><code>handleWarnLog(msg, context)</code></td>
+    <td><code>logger.warn(msg, metadata)</code></td>
+    <td>Same pattern</td>
+    </tr>
+    <tr class="odd">
+    <td><code>createLoggingContextWithId(traceId, spanId, ...)</code></td>
+    <td>Not needed — SDK injects trace context automatically</td>
+    <td>Delete the utility</td>
+    </tr>
+    <tr class="even">
+    <td><code>MorganMiddleware</code></td>
+    <td>Not needed — SDK logs requests automatically</td>
+    <td>Delete the middleware</td>
+    </tr>
+    <tr class="odd">
+    <td>Custom <code>HttpExceptionFilter</code></td>
+    <td>SDK's <code>ObservabilityExceptionFilter</code> (auto-registered)</td>
+    <td>Delete the filter</td>
+    </tr>
+    <tr class="even">
+    <td><code>app.useGlobalFilters(new HttpExceptionFilter())</code></td>
+    <td>Remove this line</td>
+    <td>SDK registers its own filter via APP_FILTER</td>
+    </tr>
+    <tr class="odd">
+    <td><code>console.log(...)</code></td>
+    <td><code>logger.info(...)</code> or <code>logger.debug(...)</code></td>
+    <td>Structured, searchable, traceable</td>
+    </tr>
+    <tr class="even">
+    <td>Winston daily rotate files in <code>logs/</code></td>
+    <td>stdout → Promtail/FluentBit → Loki</td>
+    <td>Infrastructure handles log shipping</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="step-1-install-the-sdk">Step 1: Install the SDK</h2>
+    <pre class="bash"><code>npm install @brdrwanda/observability
+    npm install -D pino-pretty    # pretty logs for development
+
+    # Remove old logging deps (optional — can do later)
+    npm uninstall winston nest-winston winston-daily-rotate-file morgan
+    </code></pre>
+    <p>If migrating from <code>@ivymurage-rw/observability</code>:</p>
+    <pre class="bash"><code>npm uninstall @ivymurage-rw/observability
+    npm install @brdrwanda/observability
+    </code></pre>
+    <hr />
+    <h2 id="step-2-update-maints">Step 2: Update main.ts</h2>
+    <h3 id="before-typical-brd-service">Before (typical BRD service)</h3>
+    <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
+    import helmet from &#39;helmet&#39;;
+    import AppModule from &#39;./app.module&#39;;
+    import HttpExceptionFilter from &#39;./filters/http.exception.filter&#39;;
+    import ValidationPipe from &#39;./pipe/validation.pipe&#39;;
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule);
+      app.use(helmet());
+      app.useGlobalFilters(new HttpExceptionFilter());
+      app.useGlobalPipes(new ValidationPipe());
+      const port = process.env.PORT || 3000;
+      app.listen(port, () =&gt; {
+        console.log(`App is running on port ${port}`);
+      });
+    }
+    bootstrap();
+    </code></pre>
+    <h3 id="after">After</h3>
+    <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
+    import helmet from &#39;helmet&#39;;
+    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+    import AppModule from &#39;./app.module&#39;;
+    import ValidationPipe from &#39;./pipe/validation.pipe&#39;;
+
+    setupProcessErrorHandlers({ serviceName: &#39;your-service-name&#39; });
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule, { bufferLogs: true });
+      app.useLogger(app.get(NestPinoLogger));
+      app.use(helmet());
+      app.useGlobalPipes(new ValidationPipe());
+
+      // DO NOT add app.useGlobalFilters() — SDK registers its own exception filter
+
+      const port = process.env.PORT || 3000;
+      app.listen(port);
+    }
+    bootstrap();
+    </code></pre>
+    <h3 id="what-changed">What changed</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Change</th>
+    <th>Why</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Added <code>setupProcessErrorHandlers()</code></td>
+    <td>Catches fatal errors before NestJS starts</td>
+    </tr>
+    <tr class="even">
+    <td>Added <code>{ bufferLogs: true }</code></td>
+    <td>Buffers logs until SDK logger is ready</td>
+    </tr>
+    <tr class="odd">
+    <td>Added <code>app.useLogger(app.get(NestPinoLogger))</code></td>
+    <td>Routes all NestJS internal logs through Pino</td>
+    </tr>
+    <tr class="even">
+    <td>Removed <code>HttpExceptionFilter</code> import and <code>useGlobalFilters</code></td>
+    <td>SDK handles exception logging automatically</td>
+    </tr>
+    <tr class="odd">
+    <td>Removed <code>console.log</code> in listen callback</td>
+    <td>SDK logs startup automatically</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="step-3-update-appmodulets">Step 3: Update app.module.ts</h2>
+    <h3 id="before">Before</h3>
+    <pre class="typescript"><code>import { Module, NestModule, MiddlewareConsumer } from &#39;@nestjs/common&#39;;
+    import { ConfigModule } from &#39;@nestjs/config&#39;;
+    import DatabaseModule from &#39;./database/database.module&#39;;
+    import MorganMiddleware from &#39;./middlewares/morgan.middleware&#39;;
+    import LoggerModule from &#39;./logger/logger.module&#39;;
+    import { APP_FILTER } from &#39;@nestjs/core&#39;;
+    import HttpExceptionFilter from &#39;./filters/http.exception.filter&#39;;
+
+    @Module({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        DatabaseModule,
+        LoggerModule,
+        // ... feature modules
+      ],
+      providers: [
+        { provide: APP_FILTER, useClass: HttpExceptionFilter },
+      ],
+    })
+    export class AppModule implements NestModule {
+      configure(consumer: MiddlewareConsumer) {
+        consumer.apply(MorganMiddleware).forRoutes(&#39;*&#39;);
+      }
+    }
+    </code></pre>
+    <h3 id="after-1">After</h3>
+    <pre class="typescript"><code>import { Module } from &#39;@nestjs/common&#39;;
+    import { ConfigModule } from &#39;@nestjs/config&#39;;
+    import {
+      ObservabilityModule,
+      ObservabilityHealthModule,
+      httpInstrumentation,
+      kafkaInstrumentation,       // only if service uses Kafka
+      redisInstrumentation,       // only if service uses Redis
+      sequelizeInstrumentation,   // only if service uses Sequelize
+    } from &#39;@brdrwanda/observability&#39;;
+    import DatabaseModule from &#39;./database/database.module&#39;;
+
+    @Module({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        ObservabilityModule.forRoot({
+          serviceName: &#39;your-service-name&#39;,
+          instrumentations: [
+            httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
+            kafkaInstrumentation(),         // only if needed
+            redisInstrumentation(),         // only if needed
+            sequelizeInstrumentation({ slowQueryThreshold: 500 }),
+          ],
+        }),
+        ObservabilityHealthModule,
+        DatabaseModule,
+        // ... feature modules (remove LoggerModule)
+      ],
+      // Remove APP_FILTER provider — SDK registers its own
+    })
+    export class AppModule {}
+    // Remove NestModule and MorganMiddleware — SDK handles request logging
+    </code></pre>
+    <h3 id="what-changed-1">What changed</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Change</th>
+    <th>Why</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Added <code>ObservabilityModule.forRoot()</code></td>
+    <td>Core SDK module — provides logger, tracer, metrics</td>
+    </tr>
+    <tr class="even">
+    <td>Added <code>ObservabilityHealthModule</code></td>
+    <td>Adds <code>/health</code> and <code>/metrics</code> endpoints</td>
+    </tr>
+    <tr class="odd">
+    <td>Removed <code>LoggerModule</code></td>
+    <td>SDK provides logging globally</td>
+    </tr>
+    <tr class="even">
+    <td>Removed <code>MorganMiddleware</code></td>
+    <td>SDK logs all HTTP requests automatically</td>
+    </tr>
+    <tr class="odd">
+    <td>Removed <code>APP_FILTER</code> / <code>HttpExceptionFilter</code></td>
+    <td>SDK registers its own exception filter</td>
+    </tr>
+    <tr class="even">
+    <td>Removed <code>NestModule</code> / <code>configure()</code></td>
+    <td>No middleware to configure</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="choosing-instrumentations">Choosing instrumentations</h3>
+    <p>Only include what your service uses:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Your service uses...</th>
+    <th>Add this instrumentation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>HTTP (all services)</td>
+    <td><code>httpInstrumentation()</code></td>
+    </tr>
+    <tr class="even">
+    <td>Kafka (producer or consumer)</td>
+    <td><code>kafkaInstrumentation()</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Redis cache</td>
+    <td><code>redisInstrumentation()</code></td>
+    </tr>
+    <tr class="even">
+    <td>Sequelize ORM</td>
+    <td><code>sequelizeInstrumentation()</code></td>
+    </tr>
+    <tr class="odd">
+    <td>PostgreSQL (direct)</td>
+    <td><code>pgInstrumentation()</code></td>
+    </tr>
+    <tr class="even">
+    <td>MySQL (direct)</td>
+    <td><code>mysqlInstrumentation()</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="step-4-update-databasemodulets">Step 4: Update database.module.ts</h2>
+    <p>If your service uses Sequelize with the SDK's logging integration:</p>
+    <h3 id="before-1">Before</h3>
+    <pre class="typescript"><code>useFactory: () =&gt; ({
+      dialect: &#39;mssql&#39;,
+      logging: console.log,  // or false
+      // ...
+    }),
+    </code></pre>
+    <h3 id="after-2">After</h3>
+    <pre class="typescript"><code>import { ObservabilityLogger, createSequelizeLogging } from &#39;@brdrwanda/observability&#39;;
+
+    useFactory: (logger: ObservabilityLogger) =&gt; ({
+      dialect: &#39;mssql&#39;,
+      logging: createSequelizeLogging(logger, { slowQueryThreshold: 500 }),
+      benchmark: true,
+      // ...
+    }),
+    inject: [ObservabilityLogger],
+    </code></pre>
+    <p>This gives you structured query logging with slow query warnings, replacing raw SQL output on console.</p>
+    <hr />
+    <h2 id="step-5-replace-loggerservice-in-controllers">Step 5: Replace LoggerService in controllers</h2>
+    <p>Controllers that inject <code>LoggerService</code> and call <code>handleInfoLog</code>/<code>handlErrorLog</code> need updating.</p>
+    <h3 id="pattern-a-controllers-using-loggerservice-via-constructor-with-kafka">Pattern A: Controllers using LoggerService via constructor with Kafka</h3>
+    <p><strong>Before:</strong></p>
+    <pre class="typescript"><code>import LoggerService from &#39;src/logger/logger.service&#39;;
+    import { createLoggingContextWithId } from &#39;src/utils/logging.util&#39;;
+    import { consumerGroup } from &#39;src/common/constant.common&#39;;
+
+    @Controller(&#39;api/resources&#39;)
+    class ResourceController {
+      private readonly logger: LoggerService;
+
+      constructor(
+        private readonly resourceService: ResourceService,
+        @Inject(consumerGroup[0].name) private readonly loggingClient: ClientKafka,
+      ) {
+        this.logger = new LoggerService(&#39;Resource&#39;, loggingClient);
+      }
+
+      @Get()
+      async getAll(@Res() res: Response, @Trace() traceId: string, @Span() spanId: string) {
+        const result = await this.resourceService.getAll();
+        const context = createLoggingContextWithId(traceId, spanId, result);
+        this.logger.handleInfoLog(&#39;Resources fetched&#39;, context);
+        return ResponseCommon.handleSuccess(HttpStatus.OK, &#39;Success&#39;, res, result);
+      }
+    }
+    </code></pre>
+    <p><strong>After:</strong></p>
+    <pre class="typescript"><code>import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Controller(&#39;api/resources&#39;)
+    class ResourceController {
+      constructor(
+        private readonly resourceService: ResourceService,
+        private readonly logger: ObservabilityLogger,
+        // Remove loggingClient — no more Kafka in the logger
+      ) {}
+
+      @Get()
+      async getAll(@Res() res: Response) {
+        const result = await this.resourceService.getAll();
+        this.logger.info(&#39;resources fetched&#39;);
+        // Remove @Trace(), @Span() params — SDK injects trace context automatically
+        return ResponseCommon.handleSuccess(HttpStatus.OK, &#39;Success&#39;, res, result);
+      }
+    }
+    </code></pre>
+    <h3 id="pattern-b-controllers-with-trycatch-error-handling">Pattern B: Controllers with try/catch error handling</h3>
+    <p><strong>Before:</strong></p>
+    <pre class="typescript"><code>@Post()
+    async create(@Body() dto: CreateDto, @Res() res: Response) {
+      try {
+        const result = await this.service.create(dto);
+        this.logger.handleInfoLog(&#39;Created&#39;);
+        return ResponseCommon.handleSuccess(HttpStatus.CREATED, &#39;Created&#39;, res, result);
+      } catch (error) {
+        this.logger.handlErrorLog(error.message, error.stack, errorContext);
+        return ResponseCommon.handleError(error?.getStatus() || 500, error?.message, res);
+      }
+    }
+    </code></pre>
+    <p><strong>After:</strong></p>
+    <pre class="typescript"><code>@Post()
+    async create(@Body() dto: CreateDto, @Res() res: Response) {
+      try {
+        const result = await this.service.create(dto);
+        this.logger.info(&#39;created&#39;);
+        return ResponseCommon.handleSuccess(HttpStatus.CREATED, &#39;Created&#39;, res, result);
+      } catch (error) {
+        this.logger.logCaughtError(error);
+        return ResponseCommon.handleError(error?.getStatus() || 500, error?.message, res);
+      }
+    }
+    </code></pre>
+    <hr />
+    <h2 id="step-6-replace-loggerservice-in-services">Step 6: Replace LoggerService in services</h2>
+    <p>Services that create their own <code>LoggerService</code> instance need updating.</p>
+    <h3 id="pattern-direct-instantiation">Pattern: Direct instantiation</h3>
+    <p><strong>Before:</strong></p>
+    <pre class="typescript"><code>import LoggerService from &#39;src/logger/logger.service&#39;;
+
+    @Injectable()
+    class PaymentService {
+      private readonly logger: LoggerService;
+
+      constructor(@Inject(&#39;LOGGING_MICROSERVICE&#39;) loggingClient: ClientKafka) {
+        this.logger = new LoggerService(&#39;Payment&#39;, loggingClient);
+      }
+
+      async process(data: any) {
+        this.logger.handleInfoLog(&#39;Processing payment&#39;);
+        // ...
+        this.logger.handlErrorLog(&#39;Payment failed&#39;, error.stack, context);
+      }
+    }
+    </code></pre>
+    <p><strong>After:</strong></p>
+    <pre class="typescript"><code>import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    class PaymentService {
+      constructor(private readonly logger: ObservabilityLogger) {}
+
+      async process(data: any) {
+        this.logger.info(&#39;processing payment&#39;, { amount: data.amount });
+        // ...
+        this.logger.error(&#39;payment failed&#39;, { error: error.message, stack: error.stack });
+      }
+    }
+    </code></pre>
+    <h3 id="pattern-nestjs-logger-approval-services">Pattern: NestJS Logger (approval services)</h3>
+    <p>Some services use <code>new Logger(ClassName.name)</code> (NestJS built-in). These already route through the SDK via <code>NestPinoLogger</code> — <strong>no changes needed</strong>.</p>
+    <pre class="typescript"><code>// This already works with the SDK — keep as-is
+    import { Logger } from &#39;@nestjs/common&#39;;
+
+    @Injectable()
+    class ApprovalService {
+      private readonly logger = new Logger(ApprovalService.name);
+
+      async approve(id: number) {
+        this.logger.log(&#39;Approving application&#39;);  // routed through NestPinoLogger → Pino
+      }
+    }
+    </code></pre>
+    <hr />
+    <h2 id="step-7-remove-createloggingcontextwithid">Step 7: Remove createLoggingContextWithId</h2>
+    <p>Services with <code>src/utils/logging.util.ts</code> have a <code>createLoggingContextWithId</code> function that manually builds context objects with traceId/spanId. The SDK injects this automatically — delete all usage.</p>
+    <p><strong>Before:</strong></p>
+    <pre class="typescript"><code>import { createLoggingContextWithId } from &#39;src/utils/logging.util&#39;;
+
+    const context = createLoggingContextWithId(traceId, spanId, {
+      applicationId,
+      status: &#39;approved&#39;,
+    });
+    this.logger.handleInfoLog(&#39;Application approved&#39;, context);
+    </code></pre>
+    <p><strong>After:</strong></p>
+    <pre class="typescript"><code>this.logger.info(&#39;application approved&#39;, { applicationId, status: &#39;approved&#39; });
+    </code></pre>
+    <p>The file <code>src/utils/logging.util.ts</code> can be deleted after all references are removed.</p>
+    <hr />
+    <h2 id="step-8-replace-consolelog">Step 8: Replace console.log</h2>
+    <p>Every service has <code>console.log</code> statements scattered in controllers, services, and filters. Replace with appropriate logger calls.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>console.log usage</th>
+    <th>Replacement</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>console.log(\</code>App running on port ${port}`)`</td>
+    <td>Remove — SDK logs startup</td>
+    </tr>
+    <tr class="even">
+    <td><code>console.log('Exception from Microservice', error)</code></td>
+    <td>Remove — SDK exception filter handles this</td>
+    </tr>
+    <tr class="odd">
+    <td><code>console.log('Processing event', data)</code></td>
+    <td><code>this.logger.info('processing event', { data })</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>console.log('Debug:', value)</code></td>
+    <td><code>this.logger.debug('debug', { value })</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="step-9-add-trace-propagation-to-http-clients">Step 9: Add trace propagation to HTTP clients</h2>
+    <p>If your service calls other services via HTTP (most have <code>src/axios/axios.service.ts</code>), add trace propagation:</p>
+    <pre class="typescript"><code>import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
+
+    // In your buildHeaders or request method:
+    buildHeaders(req: Request): Record&lt;string, any&gt; {
+      const headers: Record&lt;string, any&gt; = {
+        authorization: req.headers.authorization,
+      };
+      propagation.inject(otelContext.active(), headers);
+      return headers;
+    }
+    </code></pre>
+    <p>See <a href="tracing.html">Tracing Guide</a> for details.</p>
+    <hr />
+    <h2 id="step-10-clean-up-unused-files">Step 10: Clean up unused files</h2>
+    <p>After migration, delete these files (they're no longer needed):</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>File</th>
+    <th>Why it's safe to delete</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>src/logger/logger.service.ts</code></td>
+    <td>Replaced by <code>ObservabilityLogger</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>src/logger/logger.module.ts</code></td>
+    <td>SDK provides logging globally</td>
+    </tr>
+    <tr class="odd">
+    <td><code>src/filters/http.exception.filter.ts</code></td>
+    <td>SDK registers its own exception filter</td>
+    </tr>
+    <tr class="even">
+    <td><code>src/middlewares/morgan.middleware.ts</code></td>
+    <td>SDK logs HTTP requests automatically</td>
+    </tr>
+    <tr class="odd">
+    <td><code>src/utils/logging.util.ts</code></td>
+    <td><code>createLoggingContextWithId</code> no longer needed</td>
+    </tr>
+    <tr class="even">
+    <td><code>logs/</code> directory</td>
+    <td>No more local log files — stdout to Loki</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Also remove from <code>package.json</code>:</p>
+    <ul>
+    <li><code>winston</code></li>
+    <li><code>nest-winston</code></li>
+    <li><code>winston-daily-rotate-file</code></li>
+    <li><code>morgan</code></li>
+    <li><code>@types/morgan</code></li>
+    </ul>
+    <hr />
+    <h2 id="step-11-test-and-verify">Step 11: Test and verify</h2>
+    <h3 id="build">Build</h3>
+    <pre class="bash"><code>npx nest build
+    </code></pre>
+    <p>Fix any import errors — most will be leftover <code>LoggerService</code> or <code>createLoggingContextWithId</code> imports.</p>
+    <h3 id="start-the-service">Start the service</h3>
+    <pre class="bash"><code># Development (pretty logs)
+    node dist/main.js
+
+    # Production (pipe to log file for Promtail)
+    node dist/main.js 2&gt;&amp;1 | tee /tmp/observability-logs/your-service.log
+    </code></pre>
+    <h3 id="verify">Verify</h3>
+    <pre class="bash"><code># Health check
+    curl http://localhost:3000/health
+
+    # Metrics
+    curl http://localhost:3000/metrics
+
+    # Send a request and check logs
+    curl -X POST http://localhost:3000/api/your-endpoint -H &quot;Content-Type: application/json&quot; -d &#39;{}&#39;
+    </code></pre>
+    <p>You should see structured JSON logs with <code>trace_id</code>, <code>request_id</code>, <code>service_name</code>.</p>
+    <h3 id="check-grafana">Check Grafana</h3>
+    <ol>
+    <li><strong>Loki</strong> — query <code>{service_name="your-service-name"}</code> and verify logs appear</li>
+    <li><strong>Tempo</strong> — search for traces from your service</li>
+    <li><strong>Prometheus</strong> — check <code>http_requests_total{service="your-service-name"}</code></li>
+    </ol>
+    <hr />
+    <h2 id="method-mapping-reference">Method mapping reference</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Old (LoggerService)</th>
+    <th>New (ObservabilityLogger)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>logger.handleInfoLog(msg)</code></td>
+    <td><code>logger.info(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.handleInfoLog(msg, context)</code></td>
+    <td><code>logger.info(msg, { key: value })</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>logger.handlErrorLog(msg)</code></td>
+    <td><code>logger.error(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.handlErrorLog(msg, stack, context)</code></td>
+    <td><code>logger.error(msg, { stack })</code> or <code>logger.logCaughtError(error)</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>logger.handleWarnLog(msg)</code></td>
+    <td><code>logger.warn(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.handleWarning(msg, data)</code></td>
+    <td><code>logger.warn(msg, { ...data })</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>console.log(msg)</code></td>
+    <td><code>logger.info(msg)</code> or <code>logger.debug(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>new LoggerService('context')</code></td>
+    <td>Inject <code>ObservabilityLogger</code> via constructor</td>
+    </tr>
+    <tr class="odd">
+    <td><code>new LoggerService('context', kafkaClient)</code></td>
+    <td>Inject <code>ObservabilityLogger</code> via constructor (no Kafka needed)</td>
+    </tr>
+    <tr class="even">
+    <td><code>createLoggingContextWithId(traceId, spanId, data)</code></td>
+    <td>Just pass <code>data</code> as metadata — trace context is automatic</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="faq">FAQ</h2>
+    <h3 id="do-i-still-need-the-loggerservice">Do I still need the LoggerService?</h3>
+    <p>No. Delete <code>src/logger/logger.service.ts</code> and <code>src/logger/logger.module.ts</code>. The SDK's <code>ObservabilityLogger</code> replaces everything.</p>
+    <h3 id="do-i-still-need-the-kafka-logging-client">Do I still need the Kafka logging client?</h3>
+    <p>No. The SDK writes to stdout. Infrastructure (Promtail) ships logs to Loki. Remove <code>@Inject('LOGGING_MICROSERVICE')</code> and the associated <code>ClientsModule.register()</code> for the logging consumer group.</p>
+    <h3 id="do-i-still-need-trace-and-span-decorator-params">Do I still need @Trace() and @Span() decorator params?</h3>
+    <p>The <code>@Trace()</code> and <code>@Span()</code> custom decorators that extract <code>x-trace-id</code> and <code>x-span-id</code> headers are no longer needed for logging. The SDK gets trace context from OpenTelemetry automatically. You can keep them if other logic depends on the header values, but they're not needed for observability.</p>
+    <h3 id="what-about-the-logs-directory">What about the logs/ directory?</h3>
+    <p>The SDK doesn't write to local files. Winston's daily rotate files in <code>logs/</code> are no longer created. You can delete the <code>logs/</code> directory and add it to <code>.gitignore</code>.</p>
+    <h3 id="can-i-migrate-gradually">Can I migrate gradually?</h3>
+    <p>Yes. The SDK's <code>NestPinoLogger</code> captures all NestJS internal logs immediately. You can migrate controllers and services one at a time — old <code>LoggerService</code> calls still work alongside the SDK, they just won't have trace context.</p>
+    <h3 id="what-happens-to-errors-i-catch-in-trycatch">What happens to errors I catch in try/catch?</h3>
+    <p>Use <code>this.logger.logCaughtError(error)</code> — it extracts status/message, picks the right log level (warn for 4xx, error for 5xx), and includes stack traces for server errors. This replaces the old <code>handlErrorLog</code> pattern.</p>
+    <h3 id="what-about-services-that-use-loggermoduleregister">What about services that use LoggerModule.register()?</h3>
+    <p>Some services (e.g., profile-microservice) use a dynamic <code>LoggerModule.register('context')</code> pattern. Replace with the SDK — <code>ObservabilityLogger</code> is globally available without any module registration.</p>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "migration";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>
