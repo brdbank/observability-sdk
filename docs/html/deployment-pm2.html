@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+      <a href="architecture.html" id="nav-architecture">Architecture</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="pm2--bare-metal-deployment-guide">PM2 / Bare-Metal Deployment Guide</h1>
+    <h2 id="architecture">Architecture</h2>
+    <pre><code>App Server(s)                    Observability Server
+    ┌────────────────────┐          ┌─────────────────────┐
+    │ PM2                │          │ Docker Compose       │
+    │ ├── service-a      │──OTLP──→│ ├── OTel Collector   │
+    │ ├── service-b      │          │ ├── Tempo (traces)   │
+    │ └── service-c      │          │ ├── Prometheus       │
+    │                    │          │ ├── Loki (logs)      │
+    │ Promtail/Vector ───│──logs──→ │ └── Grafana          │
+    │ (log shipper)      │          └─────────────────────┘
+    └────────────────────┘
+    </code></pre>
+    <h2 id="1-sdk-configuration-each-service">1. SDK Configuration (each service)</h2>
+    <pre class="typescript"><code>// app.module.ts
+    ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      environment: &#39;production&#39;,
+      version: &#39;1.2.3&#39;,
+      tracing: {
+        exporter: {
+          type: &#39;otlp-http&#39;,
+          endpoint: &#39;http://&lt;observability-server-ip&gt;:4318&#39;,
+        },
+        sampling: { ratio: 0.1 },
+      },
+      metrics: { prefix: &#39;myservice&#39; },
+      instrumentations: [
+        httpInstrumentation(),
+        mysqlInstrumentation(),
+      ],
+    })
+    </code></pre>
+    <p>Or use environment variables:</p>
+    <pre class="bash"><code># ecosystem.config.js
+    module.exports = {
+      apps: [{
+        name: &#39;workflow-service&#39;,
+        script: &#39;dist/main.js&#39;,
+        instances: 2,
+        env_production: {
+          NODE_ENV: &#39;production&#39;,
+          OTEL_EXPORTER_OTLP_ENDPOINT: &#39;http://10.0.1.50:4318&#39;,
+        },
+      }],
+    };
+    </code></pre>
+    <h2 id="2-observability-server-setup">2. Observability Server Setup</h2>
+    <p>Run the sandbox docker-compose with production Tempo storage:</p>
+    <pre class="yaml"><code># docker-compose.prod.yml
+    services:
+      otel-collector:
+        image: otel/opentelemetry-collector-contrib:0.100.0
+        command: [&quot;--config&quot;, &quot;/etc/otel/config.yaml&quot;]
+        volumes:
+          - ./otel-collector/config.yaml:/etc/otel/config.yaml:ro
+        ports:
+          - &quot;4317:4317&quot;
+          - &quot;4318:4318&quot;
+          - &quot;8889:8889&quot;
+        restart: always
+
+      prometheus:
+        image: prom/prometheus:v2.52.0
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+          - prometheus-data:/prometheus
+        ports:
+          - &quot;9090:9090&quot;
+        restart: always
+
+      loki:
+        image: grafana/loki:2.9.6
+        volumes:
+          - loki-data:/loki
+        ports:
+          - &quot;3100:3100&quot;
+        command: -config.file=/etc/loki/local-config.yaml
+        restart: always
+
+      tempo:
+        image: grafana/tempo:2.4.1
+        command: [&quot;-config.file=/etc/tempo.yaml&quot;]
+        volumes:
+          - ./tempo-prod.yaml:/etc/tempo.yaml:ro
+          - tempo-data:/var/tempo
+        ports:
+          - &quot;3200:3200&quot;
+        restart: always
+
+      grafana:
+        image: grafana/grafana:10.4.2
+        environment:
+          - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+          - GF_SERVER_ROOT_URL=http://grafana.yourdomain.com
+        volumes:
+          - ./grafana/provisioning:/etc/grafana/provisioning:ro
+          - grafana-data:/var/lib/grafana
+        ports:
+          - &quot;3000:3000&quot;
+        restart: always
+
+    volumes:
+      prometheus-data:
+      loki-data:
+      tempo-data:
+      grafana-data:
+    </code></pre>
+    <p>Key differences from sandbox:</p>
+    <ul>
+    <li><code>restart: always</code> — survives reboots</li>
+    <li>Named volumes — data persists across container restarts</li>
+    <li>Grafana password via env var, not hardcoded</li>
+    </ul>
+    <h2 id="3-tempo-production-config">3. Tempo Production Config</h2>
+    <pre class="yaml"><code># tempo-prod.yaml
+    server:
+      http_listen_port: 3200
+
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            http:
+            grpc:
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/blocks
+        wal:
+          path: /var/tempo/wal
+        block:
+          bloom_filter_false_positive: 0.05
+
+    # Retention: auto-delete traces older than 7 days
+    compactor:
+      compaction:
+        block_retention: 168h
+    </code></pre>
+    <p>For S3 storage (if you have it):</p>
+    <pre class="yaml"><code>storage:
+      trace:
+        backend: s3
+        s3:
+          bucket: your-traces-bucket
+          endpoint: s3.amazonaws.com
+          region: us-east-1
+          access_key: ${S3_ACCESS_KEY}
+          secret_key: ${S3_SECRET_KEY}
+    </code></pre>
+    <h2 id="4-log-collection">4. Log Collection</h2>
+    <p>PM2 writes stdout to log files. Ship them to Loki with Promtail:</p>
+    <pre class="yaml"><code># promtail-config.yaml (run on app server)
+    server:
+      http_listen_port: 9080
+
+    positions:
+      filename: /var/promtail/positions.yaml
+
+    clients:
+      - url: http://&lt;observability-server-ip&gt;:3100/loki/api/v1/push
+
+    scrape_configs:
+      - job_name: pm2
+        static_configs:
+          - targets: [localhost]
+            labels:
+              __path__: /home/deploy/.pm2/logs/*.log
+              environment: production
+        pipeline_stages:
+          - json:
+              expressions:
+                level: level
+                service: service_name
+                trace_id: trace_id
+          - labels:
+              level:
+              service:
+    </code></pre>
+    <p>Install Promtail on app server:</p>
+    <pre class="bash"><code># Download and run as systemd service
+    curl -LO https://github.com/grafana/loki/releases/download/v2.9.6/promtail-linux-amd64.zip
+    unzip promtail-linux-amd64.zip
+    sudo mv promtail-linux-amd64 /usr/local/bin/promtail
+    </code></pre>
+    <h2 id="5-prometheus-scraping">5. Prometheus Scraping</h2>
+    <p>Add all your PM2 services as Prometheus targets:</p>
+    <pre class="yaml"><code># prometheus.yml
+    scrape_configs:
+      - job_name: &quot;otel-collector&quot;
+        static_configs:
+          - targets: [&quot;otel-collector:8889&quot;]
+
+      - job_name: &quot;nestjs-services&quot;
+        static_configs:
+          - targets:
+              - &quot;10.0.1.10:3001&quot;  # api-gateway
+              - &quot;10.0.1.10:3002&quot;  # workflow-service
+              - &quot;10.0.1.11:3001&quot;  # crm-service
+              - &quot;10.0.1.11:3002&quot;  # credit-service
+            labels:
+              environment: production
+    </code></pre>
+    <p>Or use file-based discovery for dynamic targets:</p>
+    <pre class="yaml"><code>  - job_name: &quot;nestjs-services&quot;
+        file_sd_configs:
+          - files: [&quot;/etc/prometheus/targets/*.json&quot;]
+            refresh_interval: 30s
+    </code></pre>
+    <h2 id="6-pm2-ecosystem-file">6. PM2 Ecosystem File</h2>
+    <pre class="javascript"><code>// ecosystem.config.js
+    module.exports = {
+      apps: [
+        {
+          name: &#39;api-gateway&#39;,
+          script: &#39;dist/main.js&#39;,
+          instances: 2,
+          exec_mode: &#39;cluster&#39;,
+          env_production: {
+            NODE_ENV: &#39;production&#39;,
+            PORT: 3001,
+            OTEL_EXPORTER_OTLP_ENDPOINT: &#39;http://10.0.1.50:4318&#39;,
+          },
+        },
+        {
+          name: &#39;workflow-service&#39;,
+          script: &#39;dist/main.js&#39;,
+          instances: 1,
+          env_production: {
+            NODE_ENV: &#39;production&#39;,
+            PORT: 3002,
+            OTEL_EXPORTER_OTLP_ENDPOINT: &#39;http://10.0.1.50:4318&#39;,
+          },
+        },
+      ],
+    };
+    </code></pre>
+    <p>Start: <code>pm2 start ecosystem.config.js --env production</code></p>
+    <h2 id="summary">Summary</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Component</th>
+    <th>Where</th>
+    <th>How</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>SDK</td>
+    <td>Each service</td>
+    <td><code>ObservabilityModule.forRoot()</code></td>
+    </tr>
+    <tr class="even">
+    <td>OTel Collector</td>
+    <td>Observability server</td>
+    <td>Docker</td>
+    </tr>
+    <tr class="odd">
+    <td>Tempo</td>
+    <td>Observability server</td>
+    <td>Docker + volume</td>
+    </tr>
+    <tr class="even">
+    <td>Prometheus</td>
+    <td>Observability server</td>
+    <td>Docker + static targets</td>
+    </tr>
+    <tr class="odd">
+    <td>Loki</td>
+    <td>Observability server</td>
+    <td>Docker + volume</td>
+    </tr>
+    <tr class="even">
+    <td>Grafana</td>
+    <td>Observability server</td>
+    <td>Docker + volume</td>
+    </tr>
+    <tr class="odd">
+    <td>Promtail</td>
+    <td>App server(s)</td>
+    <td>Systemd service</td>
+    </tr>
+    <tr class="even">
+    <td>PM2</td>
+    <td>App server(s)</td>
+    <td>Manages NestJS processes</td>
+    </tr>
+    </tbody>
+    </table>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "deployment-pm2";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

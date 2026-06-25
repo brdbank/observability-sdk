@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDK Internals — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+      <a href="architecture.html" id="nav-architecture">Architecture</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="observability-sdk--code-translated-to-plain-english">Observability SDK — Code Translated to Plain English</h1>
+    <p>This document explains every module and file in the SDK, translating the code into plain language so anyone can understand what it does and why.</p>
+    <hr />
+    <h2 id="the-big-picture">The Big Picture</h2>
+    <p>This SDK is a toolkit that you plug into any NestJS service. Once plugged in, it automatically:</p>
+    <ol>
+    <li>Writes structured log entries (JSON) to stdout with trace IDs, request IDs, and service info baked in</li>
+    <li>Creates distributed traces so you can follow a request as it hops between services</li>
+    <li>Exposes performance metrics (request count, duration, errors) that Prometheus can scrape</li>
+    <li>Redacts sensitive data (passwords, tokens, API keys) so they never appear in logs or traces</li>
+    <li>Propagates request context through async operations so every log line and span knows which request it belongs to</li>
+    </ol>
+    <p>The developer's job is one line of config. The SDK handles the rest.</p>
+    <hr />
+    <h2 id="module-by-module-breakdown">Module-by-Module Breakdown</h2>
+    <hr />
+    <h3 id="1-core--the-foundation">1. Core — The Foundation</h3>
+    <h4 id="coretypests--the-blueprint"><code>core/types.ts</code> — The Blueprint</h4>
+    <p>This file defines the shape of everything. It doesn't do anything — it just describes what things look like.</p>
+    <ul>
+    <li><p><strong>ObservabilityConfig</strong>: The object you pass to <code>ObservabilityModule.forRoot()</code>. It says: "My service is called X, I want logging at this level, tracing sent to this endpoint, metrics with this prefix, and these instrumentations enabled."</p></li>
+    <li><p><strong>ResolvedConfig</strong>: The "filled in" version of the above. If you didn't specify a log level, it fills in the default. If you didn't specify a tracing endpoint, it fills in <code>localhost:4318</code>. Every field is guaranteed to have a value — no more "maybe undefined."</p></li>
+    <li><p><strong>RequestContext</strong>: The identity card of a single request. Every request gets one. It carries: a unique request ID, a correlation ID (for tracking across services), trace and span IDs (from OpenTelemetry), the service name, environment, and version. This context follows the request everywhere — into logs, into traces, across async boundaries.</p></li>
+    <li><p><strong>InstrumentationPlugin</strong>: The contract for add-on monitoring. If you want to monitor Redis, Kafka, or MySQL, you create a plugin that matches this shape. It has a name, optionally returns an OpenTelemetry instrumentation object, and optionally has init/shutdown lifecycle hooks.</p></li>
+    </ul>
+    <h4 id="coreconstantsts--name-tags-for-dependency-injection"><code>core/constants.ts</code> — Name Tags for Dependency Injection</h4>
+    <p>NestJS uses dependency injection — you ask for things by name, and the framework gives them to you. This file creates four unique symbols (like unique name tags) so NestJS knows what you're asking for:</p>
+    <ul>
+    <li><code>OBSERVABILITY_CONFIG</code> — "give me the resolved configuration"</li>
+    <li><code>OBSERVABILITY_LOGGER</code> — "give me the logger"</li>
+    <li><code>OBSERVABILITY_TRACER</code> — "give me the tracer"</li>
+    <li><code>OBSERVABILITY_METRICS</code> — "give me the metrics service"</li>
+    </ul>
+    <p>Symbols are used instead of strings because two strings can accidentally be the same. Two symbols are always unique.</p>
+    <h4 id="coreconfigts--the-smart-defaults-engine"><code>core/config.ts</code> — The Smart Defaults Engine</h4>
+    <p>This file takes the partial config you provide and fills in everything you didn't specify with sensible defaults.</p>
+    <p>How it decides defaults:</p>
+    <ul>
+    <li><strong>Environment</strong>: Uses your explicit value, then falls back to <code>NODE_ENV</code> env var, then falls back to <code>"development"</code>.</li>
+    <li><strong>Is it production?</strong> If environment is <code>"production"</code>, it flips several defaults:
+    <ul>
+    <li>Log level: <code>info</code> (not <code>debug</code> — less noise in prod)</li>
+    <li>Pretty printing: off (JSON only — machines read prod logs)</li>
+    <li>Trace exporter: <code>otlp-http</code> (send to collector, not console)</li>
+    <li>Sampling ratio: 10% (don't trace every request — too expensive in prod)</li>
+    </ul></li>
+    <li><strong>Tracing endpoint</strong>: Checks the standard OpenTelemetry env var <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> first, then falls back to <code>localhost:4318</code>.</li>
+    <li><strong>Metrics labels</strong>: Automatically adds <code>service</code> and <code>environment</code> labels to all metrics so you can filter dashboards by service.</li>
+    <li><strong>Redaction paths</strong>: Uses your custom paths if provided, otherwise uses the built-in list of sensitive field patterns.</li>
+    </ul>
+    <p>The result is a fully-resolved config where nothing is undefined. Every downstream module can trust that all values exist.</p>
+    <h4 id="corecontextts--the-request-identity-system"><code>core/context.ts</code> — The Request Identity System</h4>
+    <p>This is the mechanism that lets every log line and every trace span know "I belong to request X."</p>
+    <p><strong>How it works:</strong></p>
+    <p>It uses Node.js's <code>AsyncLocalStorage</code> — a built-in feature that lets you store data that automatically follows async operations. Think of it as a invisible backpack attached to each request. Whenever code runs as part of that request (even through <code>await</code>, <code>setTimeout</code>, or Promise chains), the backpack comes along.</p>
+    <ul>
+    <li><p><strong><code>createRequestContext()</code></strong>: Creates a new identity card for a request. Generates a UUID for the request ID, checks if OpenTelemetry has an active trace span (to grab the trace ID), and bundles everything together.</p></li>
+    <li><p><strong><code>runWithContext(ctx, fn)</code></strong>: Runs a function with the identity card attached. Everything that function calls (and everything those calls call, etc.) can access the identity card.</p></li>
+    <li><p><strong><code>getContext()</code></strong>: Reads the identity card from the invisible backpack. If you're outside a request (like during startup), it returns undefined.</p></li>
+    <li><p><strong><code>enrichContextFromSpan()</code></strong>: After OpenTelemetry creates a trace span, this copies the trace ID and span ID into the request context so logs can include them.</p></li>
+    </ul>
+    <hr />
+    <h3 id="2-security--the-censor">2. Security — The Censor</h3>
+    <h4 id="securityredactionts--sensitive-data-protection"><code>security/redaction.ts</code> — Sensitive Data Protection</h4>
+    <p>This file does two things:</p>
+    <p><strong>1. Defines what's sensitive.</strong> The <code>DEFAULT_REDACTION_PATHS</code> list tells Pino (the logger): "If you see any of these field patterns in a log entry, replace the value with <code>[REDACTED]</code>." The patterns use wildcards:</p>
+    <ul>
+    <li><code>*.password</code> means "any object, at any depth, with a field called password"</li>
+    <li><code>req.headers.authorization</code> means "specifically the authorization header on request objects"</li>
+    </ul>
+    <p>The list covers: passwords, tokens (access, refresh, API keys), connection strings, credit cards, SSNs, and auth headers.</p>
+    <p><strong>2. Sanitizes HTTP headers.</strong> The <code>sanitizeHeaders()</code> function takes a set of HTTP headers and replaces the values of known-sensitive headers (Authorization, Cookie, API keys) with <code>[REDACTED]</code>. This is used when logging request/response headers or adding them to trace spans.</p>
+    <hr />
+    <h3 id="3-logger--the-structured-log-writer">3. Logger — The Structured Log Writer</h3>
+    <h4 id="loggerloggerservicets--the-main-logger"><code>logger/logger.service.ts</code> — The Main Logger</h4>
+    <p>This wraps Pino (the fastest Node.js JSON logger) and adds automatic context injection.</p>
+    <p><strong>Setup (constructor):</strong></p>
+    <ul>
+    <li>Creates a Pino instance configured with the service name, log level, and redaction rules.</li>
+    <li>Registers standard serializers for requests, responses, and errors (Pino knows how to extract the useful parts).</li>
+    <li>Registers a <strong>mixin function</strong> — this is the key magic. Every time Pino writes a log line, it calls the mixin to get extra fields. The mixin reads the current request context (from AsyncLocalStorage) and the current trace span (from OpenTelemetry) and returns them. This means every log line automatically includes <code>service_name</code>, <code>environment</code>, <code>version</code>, <code>request_id</code>, <code>correlation_id</code>, <code>trace_id</code>, and <code>span_id</code> — without the developer doing anything.</li>
+    <li>In development: uses <code>pino-pretty</code> for human-readable colored output.</li>
+    <li>In production: writes raw JSON to stdout.</li>
+    </ul>
+    <p><strong>Log methods (debug, info, warn, error, fatal):</strong> Each one calls the corresponding Pino method. The metadata object (second argument) is merged with the mixin fields. So <code>logger.info('order created', { orderId: '123' })</code> produces a JSON line with the message, the orderId, AND all the context fields.</p>
+    <p><strong>Child loggers:</strong> <code>child({ component: 'auth' })</code> creates a new logger that inherits everything but adds <code>component: 'auth'</code> to every log line. Useful for tagging logs from a specific part of the code.</p>
+    <h4 id="loggernest-loggerts--the-nestjs-bridge"><code>logger/nest-logger.ts</code> — The NestJS Bridge</h4>
+    <p>NestJS has its own logger interface (<code>LoggerService</code>) with methods like <code>log()</code>, <code>error()</code>, <code>warn()</code>. This class implements that interface and forwards everything to our Pino-based logger.</p>
+    <p>This means when NestJS itself writes internal log messages (like "Nest application successfully started"), those messages go through our logger and get the same structured JSON format with the same context fields.</p>
+    <p>The <code>extractMeta()</code> helper handles NestJS's quirky calling convention — sometimes the last argument is a string (the "context" like "MyController"), sometimes it's an object, sometimes it's an Error.</p>
+    <hr />
+    <h3 id="4-tracing--the-distributed-trace-system">4. Tracing — The Distributed Trace System</h3>
+    <h4 id="tracingtracinginitts--the-trace-engine-startup"><code>tracing/tracing.init.ts</code> — The Trace Engine Startup</h4>
+    <p>This file initializes OpenTelemetry's tracing system. It runs once, before the app starts handling requests.</p>
+    <p><strong>What it does:</strong></p>
+    <ol>
+    <li><p><strong>Creates a Resource</strong> — tells OpenTelemetry "I am service X, version Y, running in environment Z." This metadata appears on every trace span.</p></li>
+    <li><p><strong>Creates a TracerProvider</strong> — the central object that manages trace spans. Configured with the resource and a sampler (which decides if a given request should be traced or skipped).</p></li>
+    <li><p><strong>Creates an Exporter</strong> — decides where trace data goes:</p>
+    <ul>
+    <li><code>otlp-http</code>: Sends traces to an OpenTelemetry Collector via HTTP (production)</li>
+    <li><code>otlp-grpc</code>: Same but over gRPC (optional, needs extra package)</li>
+    <li><code>console</code>: Prints traces to stdout (development/debugging)</li>
+    <li><code>none</code>: Discards traces (testing)</li>
+    </ul></li>
+    <li><p><strong>Creates a SpanProcessor</strong> — sits between span creation and export:</p>
+    <ul>
+    <li>Development: <code>SimpleSpanProcessor</code> — exports each span immediately (good for debugging)</li>
+    <li>Production: <code>BatchSpanProcessor</code> — buffers up to 512 spans and flushes every 5 seconds (much more efficient)</li>
+    </ul></li>
+    <li><p><strong>Registers the provider globally</strong> — after this, any code calling <code>trace.getTracer()</code> from the OpenTelemetry API gets a working tracer.</p></li>
+    <li><p><strong>Registers instrumentations</strong> — collects all OTel instrumentation objects from the plugins the user registered (HTTP, Redis, etc.) and activates them. These instrumentations monkey-patch libraries to automatically create spans.</p></li>
+    </ol>
+    <p><strong>Idempotency:</strong> The <code>provider</code> variable and <code>initialized</code> flag ensure this only runs once, even if <code>forRoot()</code> is called multiple times.</p>
+    <p><strong>Shutdown:</strong> <code>shutdownTracing()</code> flushes any buffered spans and cleans up. Called when the NestJS app shuts down.</p>
+    <h4 id="tracingtracerservicets--the-span-creator"><code>tracing/tracer.service.ts</code> — The Span Creator</h4>
+    <p>This is the developer-facing API for creating custom trace spans.</p>
+    <ul>
+    <li><p><strong><code>startActiveSpan(name, fn)</code></strong>: Creates a new span, runs your function inside it, and automatically:</p>
+    <ul>
+    <li>Marks the span as OK if the function succeeds</li>
+    <li>Marks the span as ERROR and records the exception if the function throws</li>
+    <li>Ends the span when the function completes (success or failure)</li>
+    </ul>
+    <p>Example: <code>tracer.startActiveSpan('calculate-credit-score', async (span) =&gt; { ... })</code> creates a span called "calculate-credit-score" that wraps whatever business logic you put inside.</p></li>
+    <li><p><strong><code>getActiveSpan()</code></strong>: Returns the currently-active span (if any). Useful for adding custom attributes to an existing span.</p></li>
+    <li><p><strong><code>getTracer()</code></strong>: Returns the raw OpenTelemetry Tracer object for advanced use cases.</p></li>
+    </ul>
+    <h4 id="tracingsamplingts--the-traffic-controller"><code>tracing/sampling.ts</code> — The Traffic Controller</h4>
+    <p>Not every request needs to be traced (especially in high-traffic production). This file creates a sampler that decides which requests get traced:</p>
+    <ul>
+    <li><strong><code>always</code></strong>: Trace every single request. Good for development.</li>
+    <li><strong><code>never</code></strong>: Trace nothing. Good for testing.</li>
+    <li><strong><code>probabilistic</code></strong>: Trace X% of requests randomly. Example: ratio 0.1 = trace 10%.</li>
+    <li><strong><code>parent-based</code></strong>: If an incoming request already has a trace (from an upstream service), continue it. If it's a new request with no parent trace, use the probabilistic ratio to decide. This is the default because it keeps distributed traces complete — if the gateway traces a request, all downstream services trace it too.</li>
+    </ul>
+    <hr />
+    <h3 id="5-metrics--the-performance-counter">5. Metrics — The Performance Counter</h3>
+    <h4 id="metricsmetricsservicets--the-metric-registry"><code>metrics/metrics.service.ts</code> — The Metric Registry</h4>
+    <p>This wraps <code>prom-client</code> (the standard Prometheus metrics library for Node.js).</p>
+    <p><strong>Setup:</strong></p>
+    <ul>
+    <li>Creates a fresh metric registry (isolated from any global metrics).</li>
+    <li>Sets default labels (service name, environment, plus any custom labels). These appear on every metric automatically.</li>
+    <li>If <code>defaultMetrics</code> is enabled, registers Node.js process metrics: CPU usage, memory usage, event loop lag, open file handles, etc.</li>
+    </ul>
+    <p><strong>Creating metrics:</strong></p>
+    <ul>
+    <li><strong>Counter</strong> (<code>createCounter</code>): A number that only goes up. Example: total number of requests served. You call <code>counter.inc()</code> each time an event happens.</li>
+    <li><strong>Histogram</strong> (<code>createHistogram</code>): Measures the distribution of values. Example: request duration. You call <code>histogram.observe(0.123)</code> with each measurement. Prometheus can then show percentiles (p50, p95, p99). Default buckets are tuned for HTTP latency (5ms to 10s).</li>
+    <li><strong>Gauge</strong> (<code>createGauge</code>): A number that goes up and down. Example: currently active connections. You call <code>gauge.set(10)</code>, <code>gauge.inc()</code>, <code>gauge.dec()</code>.</li>
+    </ul>
+    <p><strong>Serving metrics:</strong> <code>getMetrics()</code> returns all registered metrics in Prometheus text format — the format Prometheus expects when it scrapes the <code>/metrics</code> endpoint.</p>
+    <h4 id="metricsmetricscontrollerts--the-metrics-endpoint"><code>metrics/metrics.controller.ts</code> — The /metrics Endpoint</h4>
+    <p>A simple NestJS controller that serves <code>GET /metrics</code>. When Prometheus scrapes this endpoint, it gets all the registered metrics in the correct text format with the correct content type header.</p>
+    <hr />
+    <h3 id="6-nestjs-integration--the-glue-layer">6. NestJS Integration — The Glue Layer</h3>
+    <h4 id="nestjsobservabilitymodulets--the-main-entry-point"><code>nestjs/observability.module.ts</code> — The Main Entry Point</h4>
+    <p>This is the single module developers import. <code>ObservabilityModule.forRoot(config)</code> wires everything together.</p>
+    <p><strong>What <code>forRoot()</code> does:</strong></p>
+    <ol>
+    <li><strong>Resolves config</strong> — fills in defaults for anything not specified.</li>
+    <li><strong>Initializes tracing</strong> — starts the OpenTelemetry trace provider (only once).</li>
+    <li><strong>Initializes plugins</strong> — calls <code>init()</code> on each instrumentation plugin.</li>
+    <li><strong>Registers providers</strong> — makes the logger, tracer, and metrics service available for injection throughout the app:
+    <ul>
+    <li>Each service is created as a singleton (one instance, shared everywhere).</li>
+    <li>Registered both by Symbol token (e.g., <code>OBSERVABILITY_LOGGER</code>) and by class (e.g., <code>ObservabilityLogger</code>) so developers can inject using either style.</li>
+    </ul></li>
+    <li><strong>Registers the NestJS logger adapter</strong> — so NestJS internal logs go through Pino.</li>
+    <li><strong>Registers the context middleware</strong> — runs on every request to set up AsyncLocalStorage context.</li>
+    <li><strong>Registers interceptors globally</strong> — logging interceptor and tracing interceptor run on every request automatically.</li>
+    <li><strong>Registers the exception filter</strong> — catches unhandled errors globally.</li>
+    <li><strong>Conditionally adds the metrics controller</strong> — if metrics are enabled, adds the <code>/metrics</code> endpoint.</li>
+    <li><strong>Marks the module as global</strong> — so other modules don't need to import it explicitly.</li>
+    </ol>
+    <p><strong>Shutdown (<code>onModuleDestroy</code>):</strong> When the app shuts down, it flushes pending traces, shuts down each plugin, and resets the initialization flag.</p>
+    <h4 id="nestjscontextmiddlewarets--the-request-context-setup"><code>nestjs/context.middleware.ts</code> — The Request Context Setup</h4>
+    <p>This middleware runs before every HTTP request handler. Its job:</p>
+    <ol>
+    <li><strong>Extract IDs from headers</strong>: If the incoming request has <code>x-request-id</code> or <code>x-correlation-id</code> headers (set by an upstream service or API gateway), use those. Otherwise, generate new UUIDs.</li>
+    <li><strong>Create request context</strong>: Build the identity card for this request.</li>
+    <li><strong>Run the rest of the request inside AsyncLocalStorage</strong>: Everything downstream (controllers, services, database calls) can now call <code>getContext()</code> to get the request's identity card.</li>
+    <li><strong>Enrich from span</strong>: If OpenTelemetry already created a trace span for this request (from the HTTP instrumentation), copy the trace ID into the context.</li>
+    </ol>
+    <h4 id="nestjslogginginterceptorts--the-request-logger"><code>nestjs/logging.interceptor.ts</code> — The Request Logger</h4>
+    <p>This interceptor runs around every HTTP handler. It:</p>
+    <ol>
+    <li>Logs <code>"request started"</code> with method and URL when the request arrives.</li>
+    <li>Starts a timer.</li>
+    <li>Lets the handler run.</li>
+    <li>When the handler completes: logs <code>"request completed"</code> with method, URL, status code, and duration in milliseconds.</li>
+    <li>If the handler throws: logs <code>"request failed"</code> with the error message and duration.</li>
+    </ol>
+    <p>Because the logger automatically includes context fields (via the mixin), these log lines include trace_id, request_id, etc. without the interceptor needing to pass them explicitly.</p>
+    <h4 id="nestjstracinginterceptorts--the-span-creator-for-handlers"><code>nestjs/tracing.interceptor.ts</code> — The Span Creator for Handlers</h4>
+    <p>This interceptor creates an OpenTelemetry span for every NestJS handler method. The span:</p>
+    <ul>
+    <li>Is named <code>ControllerName.methodName</code> (e.g., <code>OrderController.findAll</code>).</li>
+    <li>Has attributes for the controller name, handler name, context type, HTTP method, and URL.</li>
+    <li>Is marked OK when the handler succeeds (with status code recorded).</li>
+    <li>Is marked ERROR when the handler throws (with the exception recorded).</li>
+    <li>Ends when the handler completes.</li>
+    </ul>
+    <p>This gives you a span for every controller method without writing any tracing code.</p>
+    <h4 id="nestjsexceptionfilterts--the-error-safety-net"><code>nestjs/exception.filter.ts</code> — The Error Safety Net</h4>
+    <p>This catch-all exception filter handles any unhandled error in the app:</p>
+    <ol>
+    <li><strong>Determines the HTTP status</strong>: If it's an NestJS <code>HttpException</code>, uses its status code. Otherwise, 500.</li>
+    <li><strong>Logs the error</strong>: Writes a structured error log with the message, status code, HTTP method, URL, and stack trace.</li>
+    <li><strong>Records on trace span</strong>: If there's an active trace span, marks it as ERROR and records the exception. This makes errors visible in your trace viewer (Tempo/Jaeger).</li>
+    <li><strong>Returns a clean error response</strong>: Sends JSON with status code, message, timestamp, request ID, and trace ID. Including the trace ID in error responses lets developers search for the exact trace when debugging.</li>
+    </ol>
+    <h4 id="nestjsspandecoratorts--the-span-decorator"><code>nestjs/span.decorator.ts</code> — The @Span Decorator</h4>
+    <p>A TypeScript decorator you put on service methods to wrap them in a trace span:</p>
+    <pre class="typescript"><code>@Span(&#39;calculate-score&#39;)
+    async calculateScore(userId: string) {
+      // This method is now wrapped in a span called &quot;calculate-score&quot;
+    }
+    </code></pre>
+    <p>How it works: It replaces the original method with a wrapper that creates an OpenTelemetry span, runs the original method inside it, and handles success/error/cleanup. Works with both sync and async methods.</p>
+    <hr />
+    <h3 id="7-instrumentations--the-library-monitors">7. Instrumentations — The Library Monitors</h3>
+    <p>Each instrumentation is a factory function that returns a plugin object. The pattern is the same for all:</p>
+    <h4 id="instrumentationshttpts--http-monitoring-bundled"><code>instrumentations/http.ts</code> — HTTP Monitoring (Bundled)</h4>
+    <p>Returns an OpenTelemetry HTTP instrumentation that monkey-patches Node's <code>http</code> and <code>https</code> modules. This means every HTTP request your app makes (outbound) or receives (inbound) automatically gets a trace span — no code changes needed.</p>
+    <p>Options let you ignore certain paths (like <code>/health</code> and <code>/metrics</code> — you don't need traces for health checks).</p>
+    <p>This is the only instrumentation bundled as a direct dependency because almost every service makes HTTP calls.</p>
+    <h4 id="instrumentationskafkats--kafka-monitoring"><code>instrumentations/kafka.ts</code> — Kafka Monitoring</h4>
+    <p>Two parts:</p>
+    <ol>
+    <li><p><strong>Auto-instrumentation</strong>: Tries to load <code>@opentelemetry/instrumentation-kafkajs</code>. If installed, it monkey-patches kafkajs to automatically propagate trace context through message headers. If not installed, returns null (no crash).</p></li>
+    <li><p><strong>Manual helpers</strong>:</p>
+    <ul>
+    <li><code>injectKafkaHeaders()</code>: When producing a message, call this to inject the current trace context into the message headers. The consumer on the other end can extract it.</li>
+    <li><code>withKafkaContext(headers, spanName, fn)</code>: When consuming a message, call this to extract trace context from the message headers and run your handler inside that context. This connects the consumer's spans to the producer's trace.</li>
+    </ul></li>
+    </ol>
+    <h4 id="instrumentationsredists-mysqlts-pgts--databasecache-monitoring"><code>instrumentations/redis.ts</code>, <code>mysql.ts</code>, <code>pg.ts</code> — Database/Cache Monitoring</h4>
+    <p>All follow the same pattern:</p>
+    <ol>
+    <li>Try to <code>require()</code> the corresponding OpenTelemetry instrumentation package.</li>
+    <li>If found, return an instance that will monkey-patch the database driver to create spans for every query/command.</li>
+    <li>If not found, log a debug hint about which package to install and return null.</li>
+    </ol>
+    <p>Key design: these instrument at the <strong>driver level</strong> (mysql2, pg, ioredis), not the ORM level. So if you switch from Sequelize to Prisma or Drizzle, the instrumentation keeps working because all ORMs use the same underlying driver.</p>
+    <hr />
+    <h3 id="8-health--the-liveness-probes">8. Health — The Liveness Probes</h3>
+    <h4 id="healthhealthcontrollerts-and-healthhealthmodulets"><code>health/health.controller.ts</code> and <code>health/health.module.ts</code></h4>
+    <p>Three endpoints for container orchestrators and load balancers:</p>
+    <ul>
+    <li><strong><code>GET /health</code></strong>: Returns service name, environment, version, uptime, and timestamp. For human operators and dashboards.</li>
+    <li><strong><code>GET /health/ready</code></strong>: Returns <code>{ status: 'ok' }</code>. Tells Kubernetes "this pod is ready to receive traffic." (In a more advanced setup, this would check database connections, cache connectivity, etc.)</li>
+    <li><strong><code>GET /health/live</code></strong>: Returns <code>{ status: 'ok' }</code>. Tells Kubernetes "this pod is alive and not stuck." If this fails, Kubernetes restarts the pod.</li>
+    </ul>
+    <p>The health module is separate and optional — you import <code>ObservabilityHealthModule</code> alongside <code>ObservabilityModule</code> if you want these endpoints.</p>
+    <hr />
+    <h3 id="9-diagnostics--sdk-self-reporting">9. Diagnostics — SDK Self-Reporting</h3>
+    <h4 id="diagnosticsdiagnosticsservicets"><code>diagnostics/diagnostics.service.ts</code></h4>
+    <p>Reports the status of the observability SDK itself. Returns:</p>
+    <ul>
+    <li>SDK version</li>
+    <li>Service name and environment</li>
+    <li>Whether tracing is enabled and which exporter is configured</li>
+    <li>Whether metrics are enabled</li>
+    <li>Which instrumentations are loaded</li>
+    <li>Node.js version</li>
+    <li>Uptime</li>
+    </ul>
+    <p>This lets operators answer "is observability actually working in this service?" without digging through code.</p>
+    <hr />
+    <h3 id="10-index--the-public-api">10. Index — The Public API</h3>
+    <h4 id="indexts"><code>index.ts</code></h4>
+    <p>This file decides what consumers can import from <code>@company/observability</code>. It re-exports exactly what's needed and nothing more:</p>
+    <ul>
+    <li>The two NestJS modules (observability + health)</li>
+    <li>All TypeScript types (for type-safe config)</li>
+    <li>The injection tokens (for custom injection)</li>
+    <li>Context functions (for reading/creating request context manually)</li>
+    <li>Logger and tracer classes (for injection into services)</li>
+    <li>The @Span decorator</li>
+    <li>Metrics service</li>
+    <li>All instrumentation factory functions</li>
+    <li>Kafka helper functions</li>
+    <li>Security utilities</li>
+    </ul>
+    <p>Everything else (internal implementations, middleware, interceptors, filters) stays internal.</p>
+    <hr />
+    <h2 id="how-it-all-flows-together">How It All Flows Together</h2>
+    <h3 id="request-lifecycle-what-happens-when-get-users42-hits-your-service">Request Lifecycle (what happens when <code>GET /users/42</code> hits your service):</h3>
+    <pre><code>1. HTTP request arrives at the NestJS server
+
+    2. OpenTelemetry HTTP instrumentation (monkey-patched http module)
+       creates a root span: &quot;HTTP GET /users/42&quot;
+
+    3. Context Middleware runs:
+       - Extracts x-request-id and x-correlation-id from headers
+         (or generates new UUIDs)
+       - Creates a RequestContext object
+       - Stores it in AsyncLocalStorage
+       - Copies trace_id from the OTel span into the context
+
+    4. Logging Interceptor runs:
+       - Logs: {&quot;level&quot;:&quot;info&quot;, &quot;msg&quot;:&quot;request started&quot;, &quot;method&quot;:&quot;GET&quot;,
+         &quot;url&quot;:&quot;/users/42&quot;, &quot;trace_id&quot;:&quot;abc123&quot;, &quot;request_id&quot;:&quot;req-456&quot;}
+       - Starts a timer
+
+    5. Tracing Interceptor runs:
+       - Creates a child span: &quot;AppController.getUser&quot;
+       - Adds attributes: http.method, http.url, nestjs.controller, etc.
+
+    6. Your controller method runs:
+       - You call logger.info(&#39;fetching user&#39;, { userId: &#39;42&#39; })
+       - The logger&#39;s mixin automatically adds trace_id, request_id,
+         service_name, etc. to the log line
+       - If you have @Span(&#39;get-user&#39;) on the service method,
+         another child span is created
+
+    7. If your method calls a MySQL database:
+       - The MySQL instrumentation (monkey-patched mysql2 driver)
+         automatically creates a span: &quot;db.query SELECT * FROM users&quot;
+       - The span includes the SQL statement, database name, duration
+
+    8. Your method returns the result
+
+    9. Tracing Interceptor completes:
+       - Marks span &quot;AppController.getUser&quot; as OK
+       - Records http.status_code = 200
+       - Ends the span
+
+    10. Logging Interceptor completes:
+        - Logs: {&quot;level&quot;:&quot;info&quot;, &quot;msg&quot;:&quot;request completed&quot;, &quot;method&quot;:&quot;GET&quot;,
+          &quot;url&quot;:&quot;/users/42&quot;, &quot;statusCode&quot;:200, &quot;duration_ms&quot;:4.23,
+          &quot;trace_id&quot;:&quot;abc123&quot;, &quot;request_id&quot;:&quot;req-456&quot;}
+
+    11. HTTP instrumentation completes:
+        - Ends root span &quot;HTTP GET /users/42&quot;
+
+    12. BatchSpanProcessor buffers the spans
+        - Every 5 seconds (or when 512 spans accumulate),
+          sends them to the OTel Collector
+
+    13. Response sent to client
+    </code></pre>
+    <h3 id="if-an-error-occurs-at-any-step">If an error occurs (at any step):</h3>
+    <pre><code>- Exception Filter catches it
+    - Logs the error with full context (trace_id, request_id, stack trace)
+    - Marks the active trace span as ERROR
+    - Records the exception on the span
+    - Returns JSON error response with requestId and traceId
+      (so the developer can search for the exact trace in Grafana)
+    </code></pre>
+    <h3 id="cross-service-trace-propagation">Cross-service trace propagation:</h3>
+    <pre><code>Service A (API Gateway)                Service B (Order Service)
+    +-----------------------+              +-----------------------+
+    | Receives request      |              |                       |
+    | OTel creates span     |              |                       |
+    | trace_id: abc123      |              |                       |
+    |                       |   HTTP call  |                       |
+    | Makes HTTP request ---|--------------| OTel HTTP instr.      |
+    | OTel auto-injects     |  (traceparent| extracts traceparent  |
+    | traceparent header    |   header)    | Continues same trace  |
+    |                       |              | trace_id: abc123      |
+    |                       |              | (same trace!)         |
+    +-----------------------+              +-----------------------+
+    </code></pre>
+    <p>The <code>traceparent</code> header propagation happens automatically via the HTTP instrumentation. No developer code needed. The gateway's span and the order service's span appear in the same trace in Grafana/Tempo.</p>
+    <hr />
+    <h2 id="what-the-developer-actually-writes">What the Developer Actually Writes</h2>
+    <h3 id="minimum-viable-setup-covers-90-of-needs">Minimum viable setup (covers 90% of needs):</h3>
+    <pre class="typescript"><code>// app.module.ts — 1 import, 1 config block
+    ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      instrumentations: [httpInstrumentation()],
+    })
+
+    // main.ts — 1 line to replace NestJS logger
+    app.useLogger(app.get(NestPinoLogger));
+    </code></pre>
+    <p>That's it. Logs, traces, metrics, context propagation, error handling, and sensitive data redaction all work automatically.</p>
+    <h3 id="optional-additions">Optional additions:</h3>
+    <pre class="typescript"><code>// Add custom spans for business logic
+    @Span(&#39;process-payment&#39;)
+    async processPayment(orderId: string) { ... }
+
+    // Use the logger with automatic context
+    this.logger.info(&#39;payment processed&#39;, { orderId, amount });
+
+    // Create custom metrics
+    const counter = this.metrics.createCounter(&#39;orders_total&#39;, &#39;Total orders&#39;, [&#39;status&#39;]);
+    counter.inc({ status: &#39;completed&#39; });
+
+    // Kafka: inject trace context into messages
+    await producer.send({
+      topic: &#39;events&#39;,
+      messages: [{ value: data, headers: injectKafkaHeaders() }],
+    });
+    </code></pre>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "sdk-explained";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

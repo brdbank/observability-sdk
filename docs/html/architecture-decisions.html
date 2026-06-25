@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture Decisions — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+      <a href="architecture.html" id="nav-architecture">Architecture</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="architecture-decisions">Architecture Decisions</h1>
+    <p>This document records the key decisions behind the <code>@brdrwanda/observability</code> SDK — what we chose, what we rejected, and why.</p>
+    <hr />
+    <h2 id="adr-1-single-sdk-package-instead-of-multi-package-monorepo">ADR-1: Single SDK package instead of multi-package monorepo</h2>
+    <p><strong>Decision:</strong> Ship one npm package (<code>@brdrwanda/observability</code>) containing logging, tracing, and metrics.</p>
+    <p><strong>Alternatives considered:</strong></p>
+    <ul>
+    <li><code>@brdrwanda/observability-core</code> + <code>@brdrwanda/observability-logger</code> + <code>@brdrwanda/observability-tracing</code> + <code>@brdrwanda/observability-metrics</code></li>
+    </ul>
+    <p><strong>Why single package:</strong></p>
+    <ul>
+    <li>Services install one package, import from one place</li>
+    <li>No cross-package version coordination (logger v1.2 + tracing v1.1 = untested combination)</li>
+    <li>Instrumentations that aren't registered never initialize — same isolation benefit without the packaging overhead</li>
+    <li>Simpler CI/CD: one build, one version, one changelog</li>
+    </ul>
+    <p><strong>Trade-off:</strong> Larger install size (~12MB total). Acceptable because services already ship hundreds of MB in node_modules.</p>
+    <hr />
+    <h2 id="adr-2-pino-over-winston">ADR-2: Pino over Winston</h2>
+    <p><strong>Decision:</strong> Use Pino as the structured JSON logger.</p>
+    <p><strong>Why Pino:</strong></p>
+    <ul>
+    <li>5x faster than Winston in benchmarks (critical for high-throughput services)</li>
+    <li>JSON-native — no serialization overhead</li>
+    <li>Built-in redaction (path-based, configurable)</li>
+    <li><code>mixin</code> function injects context at serialization time (not at call time) — zero overhead when log level is below threshold</li>
+    <li>Async transports via worker threads (pino v9)</li>
+    </ul>
+    <p><strong>Why not Winston:</strong></p>
+    <ul>
+    <li>Winston was already in use across services but with inconsistent configuration</li>
+    <li>Winston's <code>createLogger</code> + <code>transports</code> pattern requires more boilerplate</li>
+    <li>Winston's JSON output needs manual formatting to match structured logging requirements</li>
+    <li>Kafka transport in Winston adds coupling — SDK sends to stdout, infrastructure handles delivery</li>
+    </ul>
+    <p><strong>Migration impact:</strong> All <code>handleInfoLog</code>/<code>handleWarnLog</code>/<code>handlErrorLog</code> calls replaced with <code>logger.info()</code>/<code>logger.warn()</code>/<code>logger.error()</code>.</p>
+    <hr />
+    <h2 id="adr-3-asynclocalstorage-for-request-context">ADR-3: AsyncLocalStorage for request context</h2>
+    <p><strong>Decision:</strong> Use Node.js native <code>AsyncLocalStorage</code> to propagate request context (requestId, correlationId, traceId, spanId).</p>
+    <p><strong>What it replaces:</strong></p>
+    <ul>
+    <li><code>createLoggingContextWithId(traceId, spanId, context, ...)</code> — a utility that built context objects manually, requiring traceId/spanId to be passed through every function signature</li>
+    <li>Manual <code>@Trace()</code> and <code>@Span()</code> decorator params in controller methods</li>
+    </ul>
+    <p><strong>Why AsyncLocalStorage:</strong></p>
+    <ul>
+    <li>Native Node.js API (no dependencies)</li>
+    <li>Context flows automatically through async boundaries (await, callbacks, timers)</li>
+    <li>Developers never pass traceId/spanId manually — inject <code>ObservabilityLogger</code>, call <code>.info()</code>, context is there</li>
+    <li>Works with any async pattern: Promises, callbacks, event emitters</li>
+    </ul>
+    <p><strong>What this means for developers:</strong></p>
+    <pre class="typescript"><code>// Before: manual context threading
+    async doWork(traceId: string, spanId: string) {
+      const context = createLoggingContextWithId(traceId, spanId, &#39;doWork&#39;, ...);
+      this.logger.handleInfoLog(&#39;doing work&#39;, context);
+    }
+
+    // After: automatic context
+    async doWork() {
+      this.logger.info(&#39;doing work&#39;);
+      // trace_id, span_id, request_id — all injected automatically
+    }
+    </code></pre>
+    <hr />
+    <h2 id="adr-4-sdk-managed-exception-filter-instead-of-custom-httpexceptionfilter">ADR-4: SDK-managed exception filter instead of custom HttpExceptionFilter</h2>
+    <p><strong>Decision:</strong> The SDK registers its own <code>ObservabilityExceptionFilter</code> via <code>APP_FILTER</code>. Services must remove their custom exception filters.</p>
+    <p><strong>What the old pattern looked like:</strong></p>
+    <ul>
+    <li>Each service had <code>src/filters/http.exception.filter.ts</code></li>
+    <li>Registered via <code>app.useGlobalFilters(new HttpExceptionFilter())</code> in main.ts or <code>{ provide: APP_FILTER, useClass: HttpExceptionFilter }</code> in app.module.ts</li>
+    <li>The custom filter used <code>LoggerService</code> to log errors to Kafka</li>
+    </ul>
+    <p><strong>Why SDK-managed:</strong></p>
+    <ul>
+    <li>Consistent error classification across all services (401=<code>authentication_failed</code>, 400+validation=<code>validation_failed</code>, 500=<code>server_error</code>)</li>
+    <li>Automatic trace context on error logs (traceId, spanId linked to the failing request)</li>
+    <li>Proper log levels (4xx=warn, 5xx=error with stack trace)</li>
+    <li>One implementation to maintain instead of 11 copies</li>
+    </ul>
+    <p><strong>What the SDK filter returns to the client:</strong></p>
+    <pre class="json"><code>{
+      &quot;statusCode&quot;: 401,
+      &quot;message&quot;: &quot;Unauthorized&quot;,
+      &quot;timestamp&quot;: &quot;2026-06-25T10:00:00.000Z&quot;,
+      &quot;requestId&quot;: &quot;req-abc-123&quot;,
+      &quot;traceId&quot;: &quot;trace-def-456&quot;
+    }
+    </code></pre>
+    <p>Same <code>statusCode</code> + <code>message</code> as the old filter, plus debugging fields (<code>requestId</code>, <code>traceId</code>).</p>
+    <p><strong>For caught errors (try/catch):</strong> Use <code>this.logger.logCaughtError(error)</code> — a built-in method on <code>ObservabilityLogger</code> that extracts status/message, picks the right log level, and includes stack traces for 5xx.</p>
+    <hr />
+    <h2 id="adr-5-stdoutstderr-for-log-delivery-not-kafka">ADR-5: stdout/stderr for log delivery, not Kafka</h2>
+    <p><strong>Decision:</strong> SDK writes structured JSON to stdout. Log delivery to Loki/ELK is handled by infrastructure (Promtail, FluentBit, Vector), not application code.</p>
+    <p><strong>What the old pattern looked like:</strong></p>
+    <ul>
+    <li><code>LoggerService</code> sent logs to both Winston (console) and Kafka (<code>loggingClient.emit()</code>)</li>
+    <li>Each service injected <code>ClientKafka</code> into the logger</li>
+    <li>Logger depended on Kafka broker being available</li>
+    </ul>
+    <p><strong>Why stdout:</strong></p>
+    <ul>
+    <li>Decouples application from delivery infrastructure</li>
+    <li>No Kafka dependency in the logger — one fewer failure mode</li>
+    <li>Standard 12-factor app pattern: application produces, infrastructure ships</li>
+    <li>Works with any collector: Promtail, FluentBit, Vector, CloudWatch agent</li>
+    <li>Simplifies testing — logs are just stdout, no Kafka mock needed</li>
+    </ul>
+    <p><strong>Infrastructure requirement:</strong> Services must pipe stdout to a location where Promtail/FluentBit can read it. For PM2: <code>pm2 start dist/main.js --log /tmp/observability-logs/service.log</code>. For Docker: stdout goes to container logs automatically.</p>
+    <hr />
+    <h2 id="adr-6-opentelemetry-for-tracing-with-w3c-propagation">ADR-6: OpenTelemetry for tracing with W3C propagation</h2>
+    <p><strong>Decision:</strong> Use OpenTelemetry SDK with W3C TraceContext (<code>traceparent</code> header) for distributed tracing.</p>
+    <p><strong>Why OpenTelemetry:</strong></p>
+    <ul>
+    <li>Vendor-neutral — export to Tempo, Jaeger, Zipkin, Datadog, or any OTLP-compatible backend</li>
+    <li>W3C TraceContext is the industry standard for HTTP propagation</li>
+    <li>Auto-instrumentation for HTTP, Kafka, database drivers</li>
+    <li>Parent-based sampling respects upstream decisions</li>
+    </ul>
+    <p><strong>Why not custom tracing (x-trace-id headers):</strong></p>
+    <ul>
+    <li>Services already pass <code>x-trace-id</code> in headers, but each service generates its own — no true end-to-end tracing</li>
+    <li>No span hierarchy (parent-child relationships)</li>
+    <li>No sampling control</li>
+    <li>No integration with Grafana Tempo for trace visualization</li>
+    </ul>
+    <p><strong>Coexistence:</strong> The SDK's <code>TracingInterceptor</code> extracts <code>traceparent</code> if present. Services can continue sending <code>x-trace-id</code> for backwards compatibility, but <code>traceparent</code> is the source of truth.</p>
+    <hr />
+    <h2 id="adr-7-driver-level-database-instrumentation-not-orm-level">ADR-7: Driver-level database instrumentation, not ORM-level</h2>
+    <p><strong>Decision:</strong> Instrument at the database driver level (<code>mysql2</code>, <code>pg</code>, <code>tedious</code>) rather than the ORM level (Sequelize).</p>
+    <p><strong>Why driver-level:</strong></p>
+    <ul>
+    <li>All ORMs use the same underlying driver — instrumenting once covers Sequelize, TypeORM, Prisma, Drizzle, Knex, and raw queries</li>
+    <li>ORM switch (e.g., Sequelize → Drizzle) requires zero SDK changes</li>
+    <li>OTel community maintains driver instrumentations — battle-tested, low maintenance burden</li>
+    </ul>
+    <p><strong>Sequelize-specific addition:</strong> <code>createSequelizeLogging()</code> provides structured query logging on top of driver instrumentation. This is optional convenience, not the primary instrumentation.</p>
+    <hr />
+    <h2 id="adr-8-prometheus-client-side-metrics-not-statsdpush">ADR-8: Prometheus client-side metrics, not StatsD/push</h2>
+    <p><strong>Decision:</strong> Use <code>prom-client</code> with a <code>/metrics</code> endpoint that Prometheus scrapes.</p>
+    <p><strong>Why pull-based (Prometheus scrape):</strong></p>
+    <ul>
+    <li>No push infrastructure needed (no StatsD server, no Graphite)</li>
+    <li>Prometheus already deployed in BRD infrastructure</li>
+    <li><code>/metrics</code> endpoint is a health signal itself — if the endpoint is down, Prometheus alerts</li>
+    <li>Exemplars link metrics to traces (click histogram dot → jump to trace in Tempo)</li>
+    </ul>
+    <p><strong>Built-in metrics:</strong></p>
+    <ul>
+    <li><code>http_requests_total</code> (counter) with <code>method</code>, <code>route</code>, <code>status_code</code> labels</li>
+    <li><code>http_request_duration_seconds</code> (histogram) with exemplars</li>
+    <li>Node.js process metrics (event loop lag, memory, CPU)</li>
+    </ul>
+    <hr />
+    <h2 id="adr-9-logcaughterror-as-a-built-in-method-not-a-helper-function">ADR-9: logCaughtError as a built-in method, not a helper function</h2>
+    <p><strong>Decision:</strong> Add <code>logCaughtError(error)</code> as a method on <code>ObservabilityLogger</code> rather than documenting a helper function pattern.</p>
+    <p><strong>What the old pattern was:</strong></p>
+    <ul>
+    <li>Each controller copy-pasted a <code>private logCaughtError()</code> helper</li>
+    <li>Or worse, each catch block had inline error logging with inconsistent format</li>
+    </ul>
+    <p><strong>Why built-in:</strong></p>
+    <ul>
+    <li>One implementation, tested once, used everywhere</li>
+    <li>Consistent event name (<code>request_error</code>), consistent severity routing</li>
+    <li>Extracts status from NestJS <code>HttpException.getStatus()</code>, <code>error.statusCode</code>, or defaults to 500</li>
+    <li>Extracts message from <code>error.response.message</code>, <code>error.message</code>, or defaults to <code>'Unknown error'</code></li>
+    <li>Stack trace included only for 5xx (avoids noise from expected 4xx errors)</li>
+    <li>No helper function, no utility file, no import — it's on the logger you already have</li>
+    </ul>
+    <pre class="typescript"><code>catch (error) {
+      this.logger.logCaughtError(error);
+      return ResponseCommon.handleError(error?.getStatus() || 500, error?.message, res);
+    }
+    </code></pre>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "architecture-decisions";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>
