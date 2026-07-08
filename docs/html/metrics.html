@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metrics &amp; Dashboards — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="metrics--dashboards-guide">Metrics &amp; Dashboards Guide</h1>
+    <p>This guide covers how to collect, expose, and visualize metrics with the <code>@brdrwanda/observability</code> SDK.</p>
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ul>
+    <li><a href="#auto-http-metrics">Auto HTTP metrics</a></li>
+    <li><a href="#custom-business-metrics">Custom business metrics</a></li>
+    <li><a href="#exemplars-metrics--traces">Exemplars (metrics to traces)</a></li>
+    <li><a href="#metrics-configuration">Metrics configuration</a></li>
+    <li><a href="#prometheus-scraping">Prometheus scraping</a></li>
+    <li><a href="#grafana-dashboard-queries">Grafana dashboard queries</a></li>
+    </ul>
+    <hr />
+    <h2 id="auto-http-metrics">Auto HTTP metrics</h2>
+    <p>When you import <code>ObservabilityModule.forRoot()</code>, the SDK automatically registers a <code>MetricsInterceptor</code> that tracks every HTTP request. You get three things out of the box with zero code:</p>
+    <h3 id="1-http_requests_total-counter">1. <code>http_requests_total</code> counter</h3>
+    <p>Labels: <code>method</code>, <code>route</code>, <code>status_code</code></p>
+    <p>Counts every HTTP request that enters your service. Incremented on both success and error responses.</p>
+    <h3 id="2-http_request_duration_seconds-histogram">2. <code>http_request_duration_seconds</code> histogram</h3>
+    <p>Labels: <code>method</code>, <code>route</code>, <code>status_code</code></p>
+    <p>Measures how long each request takes in seconds. Default buckets: <code>0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10</code>.</p>
+    <p>When tracing is enabled, each histogram observation includes a <code>trace_id</code> exemplar so you can jump from a slow data point straight to its trace in Grafana Tempo.</p>
+    <h3 id="3-nodejs-default-metrics">3. Node.js default metrics</h3>
+    <p>Standard <code>prom-client</code> default metrics are collected automatically:</p>
+    <ul>
+    <li><code>process_cpu_user_seconds_total</code> — CPU time spent in user mode</li>
+    <li><code>process_cpu_system_seconds_total</code> — CPU time spent in system mode</li>
+    <li><code>process_resident_memory_bytes</code> — Resident memory size</li>
+    <li><code>nodejs_heap_size_total_bytes</code> — V8 total heap size</li>
+    <li><code>nodejs_heap_size_used_bytes</code> — V8 used heap size</li>
+    <li><code>nodejs_eventloop_lag_seconds</code> — Event loop lag</li>
+    <li><code>nodejs_active_handles_total</code> — Active libuv handles</li>
+    <li><code>nodejs_active_requests_total</code> — Active libuv requests</li>
+    </ul>
+    <h3 id="4-metrics-endpoint">4. <code>/metrics</code> endpoint</h3>
+    <p>A <code>MetricsController</code> is auto-registered at <code>/metrics</code>. Prometheus scrapes this endpoint. The controller negotiates content type — it returns OpenMetrics format when the client sends <code>Accept: application/openmetrics-text</code>, and Prometheus text format otherwise.</p>
+    <h3 id="example-prometheus-output">Example Prometheus output</h3>
+    <p>Hit <code>GET /metrics</code> on a running service to see output like this:</p>
+    <pre><code># HELP http_requests_total Total number of HTTP requests
+    # TYPE http_requests_total counter
+    http_requests_total{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,service=&quot;loan-service&quot;,environment=&quot;production&quot;} 1524
+    http_requests_total{method=&quot;POST&quot;,route=&quot;/api/loans/apply&quot;,status_code=&quot;201&quot;,service=&quot;loan-service&quot;,environment=&quot;production&quot;} 312
+    http_requests_total{method=&quot;GET&quot;,route=&quot;/api/loans/:id&quot;,status_code=&quot;404&quot;,service=&quot;loan-service&quot;,environment=&quot;production&quot;} 7
+
+    # HELP http_request_duration_seconds HTTP request duration in seconds
+    # TYPE http_request_duration_seconds histogram
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.01&quot;} 980
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.025&quot;} 1350
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.05&quot;} 1480
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.1&quot;} 1510
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.25&quot;} 1520
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;0.5&quot;} 1524
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;1&quot;} 1524
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;2.5&quot;} 1524
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;5&quot;} 1524
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;10&quot;} 1524
+    http_request_duration_seconds_bucket{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;,le=&quot;+Inf&quot;} 1524
+    http_request_duration_seconds_sum{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;} 18.274
+    http_request_duration_seconds_count{method=&quot;GET&quot;,route=&quot;/api/loans&quot;,status_code=&quot;200&quot;} 1524
+
+    # HELP process_resident_memory_bytes Resident memory size in bytes.
+    # TYPE process_resident_memory_bytes gauge
+    process_resident_memory_bytes 98304000
+
+    # HELP nodejs_eventloop_lag_seconds Lag of event loop in seconds.
+    # TYPE nodejs_eventloop_lag_seconds gauge
+    nodejs_eventloop_lag_seconds 0.0024
+    </code></pre>
+    <hr />
+    <h2 id="custom-business-metrics">Custom business metrics</h2>
+    <p>Inject <code>ObservabilityMetrics</code> to create counters, histograms, and gauges for your domain-specific data.</p>
+    <pre class="typescript"><code>import { Injectable } from &#39;@nestjs/common&#39;;
+    import { ObservabilityMetrics } from &#39;@brdrwanda/observability&#39;;
+    import type { Counter, Histogram, Gauge } from &#39;prom-client&#39;;
+
+    @Injectable()
+    export class LoanService {
+      private loansApproved: Counter;
+      private loanProcessingTime: Histogram;
+      private activeApplications: Gauge;
+
+      constructor(private metrics: ObservabilityMetrics) {
+        this.loansApproved = metrics.createCounter(
+          &#39;loans_approved_total&#39;,
+          &#39;Total number of approved loans&#39;,
+          [&#39;loan_type&#39;],
+        );
+        this.loanProcessingTime = metrics.createHistogram(
+          &#39;loan_processing_duration_seconds&#39;,
+          &#39;Time to process a loan application&#39;,
+          [&#39;loan_type&#39;],
+          [0.1, 0.5, 1, 2, 5, 10, 30],
+        );
+        this.activeApplications = metrics.createGauge(
+          &#39;active_loan_applications&#39;,
+          &#39;Currently active loan applications&#39;,
+          [&#39;status&#39;],
+        );
+      }
+
+      async approveLoan(application: LoanApplication) {
+        this.loansApproved.inc({ loan_type: application.type });
+        this.activeApplications.dec({ status: &#39;pending&#39; });
+        this.activeApplications.inc({ status: &#39;approved&#39; });
+      }
+    }
+    </code></pre>
+    <h3 id="api-reference">API reference</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Method</th>
+    <th>What it creates</th>
+    <th>Use case</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>createCounter(name, help, labels?)</code></td>
+    <td>A counter that only goes up</td>
+    <td>Request counts, errors, events</td>
+    </tr>
+    <tr class="even">
+    <td><code>createHistogram(name, help, labels?, buckets?, enableExemplars?)</code></td>
+    <td>A histogram with configurable buckets</td>
+    <td>Durations, sizes, latencies</td>
+    </tr>
+    <tr class="odd">
+    <td><code>createGauge(name, help, labels?)</code></td>
+    <td>A value that goes up and down</td>
+    <td>Active connections, queue depth, temperature</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="counter">Counter</h3>
+    <pre class="typescript"><code>const errors = metrics.createCounter(&#39;payment_errors_total&#39;, &#39;Payment errors&#39;, [&#39;error_type&#39;]);
+    errors.inc({ error_type: &#39;timeout&#39; });        // increment by 1
+    errors.inc({ error_type: &#39;validation&#39; }, 3);  // increment by 3
+    </code></pre>
+    <h3 id="histogram">Histogram</h3>
+    <pre class="typescript"><code>const duration = metrics.createHistogram(
+      &#39;external_api_duration_seconds&#39;,
+      &#39;External API call duration&#39;,
+      [&#39;api_name&#39;],
+      [0.1, 0.5, 1, 2, 5, 10],  // custom bucket boundaries
+    );
+    duration.observe({ api_name: &#39;esri&#39; }, 1.234);  // record an observation
+
+    // Or use a timer
+    const end = duration.startTimer({ api_name: &#39;esri&#39; });
+    await callExternalApi();
+    end();  // automatically records the elapsed time
+    </code></pre>
+    <p>If no <code>buckets</code> array is provided, the SDK uses these defaults: <code>[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]</code>.</p>
+    <h3 id="gauge">Gauge</h3>
+    <pre class="typescript"><code>const queue = metrics.createGauge(&#39;job_queue_size&#39;, &#39;Pending jobs in queue&#39;, [&#39;priority&#39;]);
+    queue.set({ priority: &#39;high&#39; }, 42);  // set to absolute value
+    queue.inc({ priority: &#39;high&#39; });      // increment by 1
+    queue.dec({ priority: &#39;high&#39; });      // decrement by 1
+    </code></pre>
+    <hr />
+    <h2 id="exemplars-metrics--traces">Exemplars (metrics → traces)</h2>
+    <p>Exemplars link a specific metric data point to the trace that produced it. When you see a latency spike on a Grafana histogram panel, you can click the exemplar dot and jump directly to the trace in Tempo that caused it.</p>
+    <h3 id="how-it-works">How it works</h3>
+    <p>The SDK's <code>MetricsInterceptor</code> automatically attaches <code>trace_id</code> as an exemplar on every <code>http_request_duration_seconds</code> histogram observation. This happens when tracing is enabled — no extra configuration needed.</p>
+    <pre class="typescript"><code>// This is what the interceptor does internally (you don&#39;t write this code):
+    this.httpRequestDuration.observe({
+      labels: { method, route, status_code: statusCode },
+      value: duration,
+      exemplarLabels: traceId ? { trace_id: traceId } : undefined,
+    });
+    </code></pre>
+    <h3 id="adding-exemplars-to-custom-histograms">Adding exemplars to custom histograms</h3>
+    <p>To add exemplars to your own histograms, pass <code>enableExemplars: true</code> when creating them:</p>
+    <pre class="typescript"><code>import { getContext } from &#39;@brdrwanda/observability&#39;;
+
+    const processingTime = metrics.createHistogram(
+      &#39;loan_processing_duration_seconds&#39;,
+      &#39;Time to process a loan application&#39;,
+      [&#39;loan_type&#39;],
+      [0.1, 0.5, 1, 2, 5, 10, 30],
+      true, // enableExemplars
+    );
+
+    // When observing, include the trace_id as an exemplar label
+    const traceId = getContext()?.traceId;
+    processingTime.observe({
+      labels: { loan_type: &#39;personal&#39; },
+      value: 2.45,
+      exemplarLabels: traceId ? { trace_id: traceId } : undefined,
+    });
+    </code></pre>
+    <h3 id="viewing-exemplars-in-grafana">Viewing exemplars in Grafana</h3>
+    <ol>
+    <li>Prometheus must be started with <code>--enable-feature=exemplar-storage</code> (the sandbox docker-compose already does this)</li>
+    <li>In a Grafana histogram or heatmap panel, enable <strong>Exemplars</strong> in the query options</li>
+    <li>Small diamonds appear on the graph at data points that have exemplars</li>
+    <li>Click a diamond to see its <code>trace_id</code>, then click through to Tempo</li>
+    </ol>
+    <h3 id="prometheus-format-with-exemplar">Prometheus format with exemplar</h3>
+    <pre><code>http_request_duration_seconds_bucket{method=&quot;POST&quot;,route=&quot;/api/loans/apply&quot;,status_code=&quot;201&quot;,le=&quot;5&quot;} 312 # {trace_id=&quot;8cf631b00df8e35a403e57823ac58eee&quot;} 3.21 1719900000.000
+    </code></pre>
+    <hr />
+    <h2 id="metrics-configuration">Metrics configuration</h2>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;loan-service&#39;,
+      metrics: {
+        enabled: true,          // default: true — set to false to disable all metrics
+        prefix: &#39;&#39;,             // prefix for all metric names (e.g., &#39;lending&#39; → &#39;lending_http_requests_total&#39;)
+        defaultMetrics: true,   // default: true — collect Node.js runtime metrics
+        endpoint: &#39;/metrics&#39;,   // default: &#39;/metrics&#39; — Prometheus scrape endpoint path
+        labels: {               // default labels applied to every metric
+          team: &#39;lending&#39;,
+        },
+      },
+    })
+    </code></pre>
+    <h3 id="configuration-options">Configuration options</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>enabled</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>When <code>false</code>, no metrics interceptor or controller is registered</td>
+    </tr>
+    <tr class="even">
+    <td><code>prefix</code></td>
+    <td><code>string</code></td>
+    <td><code>''</code></td>
+    <td>Prepended to all metric names. If set to <code>'lending'</code>, a metric <code>http_requests_total</code> becomes <code>lending_http_requests_total</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>defaultMetrics</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Collect Node.js runtime metrics (memory, CPU, event loop lag)</td>
+    </tr>
+    <tr class="even">
+    <td><code>endpoint</code></td>
+    <td><code>string</code></td>
+    <td><code>'/metrics'</code></td>
+    <td>The HTTP path where Prometheus scrapes metrics</td>
+    </tr>
+    <tr class="odd">
+    <td><code>labels</code></td>
+    <td><code>Record&lt;string, string&gt;</code></td>
+    <td><code>{}</code></td>
+    <td>Default labels attached to every metric. <code>service</code> and <code>environment</code> are always included automatically</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="automatic-default-labels">Automatic default labels</h3>
+    <p>The SDK always adds these labels to every metric, regardless of your config:</p>
+    <pre class="typescript"><code>{
+      service: config.serviceName,    // e.g., &#39;loan-service&#39;
+      environment: config.environment // e.g., &#39;production&#39;
+    }
+    </code></pre>
+    <p>Any labels you add in <code>metrics.labels</code> are merged on top of these.</p>
+    <h3 id="disabling-metrics">Disabling metrics</h3>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      metrics: {
+        enabled: false,  // no MetricsController, no MetricsInterceptor
+      },
+    })
+    </code></pre>
+    <p>When disabled, <code>ObservabilityMetrics</code> is still provided as a dependency (so injected constructors don't break), but the <code>/metrics</code> endpoint and auto-collection interceptor are not registered.</p>
+    <hr />
+    <h2 id="prometheus-scraping">Prometheus scraping</h2>
+    <h3 id="prometheusyml">prometheus.yml</h3>
+    <p>Add your service as a scrape target in your Prometheus configuration:</p>
+    <pre class="yaml"><code>scrape_configs:
+      - job_name: &quot;loan-service&quot;
+        metrics_path: /metrics
+        scrape_interval: 15s
+        static_configs:
+          - targets: [&quot;localhost:3000&quot;]
+
+      - job_name: &quot;api-gateway&quot;
+        metrics_path: /metrics
+        static_configs:
+          - targets: [&quot;localhost:7070&quot;]
+
+      - job_name: &quot;authentication-service&quot;
+        metrics_path: /metrics
+        static_configs:
+          - targets: [&quot;localhost:9001&quot;]
+    </code></pre>
+    <h3 id="enable-exemplar-storage">Enable exemplar storage</h3>
+    <p>To use exemplars (metrics-to-trace linking), Prometheus must be started with the exemplar feature flag:</p>
+    <pre class="yaml"><code># docker-compose.yml
+    prometheus:
+      image: prom/prometheus:v2.52.0
+      command:
+        - &#39;--config.file=/etc/prometheus/prometheus.yml&#39;
+        - &#39;--enable-feature=exemplar-storage&#39;
+    </code></pre>
+    <h3 id="openmetrics-content-negotiation">OpenMetrics content negotiation</h3>
+    <p>The SDK's <code>/metrics</code> endpoint supports both Prometheus text format and OpenMetrics format. Add the OpenMetrics scrape protocol in your Prometheus config for exemplar support:</p>
+    <pre class="yaml"><code>global:
+      scrape_interval: 15s
+      scrape_protocols:
+        - OpenMetricsText1.0.0
+        - OpenMetricsText0.0.1
+        - PrometheusProto
+        - PrometheusText0.0.4
+    </code></pre>
+    <h3 id="verify-scraping-works">Verify scraping works</h3>
+    <pre class="bash"><code># Check that the service exposes metrics
+    curl http://localhost:3000/metrics
+
+    # Check that Prometheus is scraping successfully
+    curl http://localhost:9090/api/v1/targets | jq &#39;.data.activeTargets[] | {job: .labels.job, health: .health}&#39;
+    </code></pre>
+    <hr />
+    <h2 id="grafana-dashboard-queries">Grafana dashboard queries</h2>
+    <p>Practical PromQL queries for building dashboards. All examples assume the default metric names (no prefix).</p>
+    <h3 id="request-rate">Request rate</h3>
+    <p>Total requests per second across all routes:</p>
+    <pre class="promql"><code>rate(http_requests_total[5m])
+    </code></pre>
+    <p>Request rate for a specific service:</p>
+    <pre class="promql"><code>rate(http_requests_total{service=&quot;loan-service&quot;}[5m])
+    </code></pre>
+    <p>Request rate grouped by route:</p>
+    <pre class="promql"><code>sum by (route) (rate(http_requests_total{service=&quot;loan-service&quot;}[5m]))
+    </code></pre>
+    <h3 id="error-rate">Error rate</h3>
+    <p>5xx errors per second:</p>
+    <pre class="promql"><code>rate(http_requests_total{status_code=~&quot;5..&quot;}[5m])
+    </code></pre>
+    <p>Error percentage (useful for SLO dashboards):</p>
+    <pre class="promql"><code>sum(rate(http_requests_total{status_code=~&quot;5..&quot;}[5m]))
+    /
+    sum(rate(http_requests_total[5m]))
+    * 100
+    </code></pre>
+    <p>Error rate by route (find which endpoints are failing):</p>
+    <pre class="promql"><code>sum by (route) (rate(http_requests_total{status_code=~&quot;5..&quot;}[5m]))
+    </code></pre>
+    <h3 id="latency">Latency</h3>
+    <p>P95 latency (95th percentile request duration):</p>
+    <pre class="promql"><code>histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+    </code></pre>
+    <p>P99 latency:</p>
+    <pre class="promql"><code>histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+    </code></pre>
+    <p>P95 latency per route:</p>
+    <pre class="promql"><code>histogram_quantile(0.95, sum by (route, le) (rate(http_request_duration_seconds_bucket[5m])))
+    </code></pre>
+    <p>Average request duration:</p>
+    <pre class="promql"><code>rate(http_request_duration_seconds_sum[5m])
+    /
+    rate(http_request_duration_seconds_count[5m])
+    </code></pre>
+    <h3 id="custom-business-metrics-1">Custom business metrics</h3>
+    <p>Loan approvals per hour:</p>
+    <pre class="promql"><code>rate(loans_approved_total[1h])
+    </code></pre>
+    <p>Loan approvals by type:</p>
+    <pre class="promql"><code>sum by (loan_type) (rate(loans_approved_total[1h]))
+    </code></pre>
+    <p>Currently active loan applications:</p>
+    <pre class="promql"><code>active_loan_applications
+    </code></pre>
+    <p>P95 loan processing time:</p>
+    <pre class="promql"><code>histogram_quantile(0.95, rate(loan_processing_duration_seconds_bucket[5m]))
+    </code></pre>
+    <h3 id="nodejs-runtime">Node.js runtime</h3>
+    <p>Memory usage:</p>
+    <pre class="promql"><code>process_resident_memory_bytes{service=&quot;loan-service&quot;} / 1024 / 1024
+    </code></pre>
+    <p>Event loop lag (should stay under ~100ms):</p>
+    <pre class="promql"><code>nodejs_eventloop_lag_seconds{service=&quot;loan-service&quot;}
+    </code></pre>
+    <p>CPU usage rate:</p>
+    <pre class="promql"><code>rate(process_cpu_user_seconds_total{service=&quot;loan-service&quot;}[5m])
+    </code></pre>
+    <h3 id="alert-worthy-queries">Alert-worthy queries</h3>
+    <p>High error rate alert (more than 5% of requests are 5xx):</p>
+    <pre class="promql"><code>sum(rate(http_requests_total{status_code=~&quot;5..&quot;}[5m]))
+    /
+    sum(rate(http_requests_total[5m]))
+    &gt; 0.05
+    </code></pre>
+    <p>High latency alert (P95 above 2 seconds):</p>
+    <pre class="promql"><code>histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))
+    &gt; 2
+    </code></pre>
+    <p>Memory usage alert (above 512 MB):</p>
+    <pre class="promql"><code>process_resident_memory_bytes &gt; 536870912
+    </code></pre>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "metrics";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

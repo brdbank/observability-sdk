@@ -43,11 +43,12 @@ Every log line in every service carries the same `trace_id`, so you can query Lo
 
 The SDK uses [OpenTelemetry](https://opentelemetry.io/) with the W3C TraceContext standard:
 
-1. **TracingInterceptor** — creates a span for each incoming HTTP request, extracts `traceparent` header from upstream callers
+1. **TracingInterceptor** — creates a span named `ControllerName.methodName` for each incoming HTTP request, adding NestJS-specific attributes (controller, handler)
 2. **AsyncLocalStorage** — propagates trace context through async boundaries automatically
 3. **Pino mixin** — injects `trace_id` and `span_id` into every log entry
 4. **Metric exemplars** — attaches `trace_id` to Prometheus histogram observations
 5. **Auto-instrumentations** — HTTP, Kafka, database drivers create spans automatically
+6. **HTTP Instrumentation** — `httpInstrumentation()` handles `traceparent` header extraction/injection for incoming and outgoing HTTP requests
 
 ### Propagation header
 
@@ -313,7 +314,7 @@ export class PaymentService {
 
 ## External API tracing
 
-BRD services call several external systems. Each external call should be a separate span.
+your services call several external systems. Each external call should be a separate span.
 
 ### Pattern
 

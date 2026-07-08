@@ -6,7 +6,7 @@ This document explains every module and file in the SDK, translating the code in
 
 ## The Big Picture
 
-This SDK is a toolkit that you plug into any NestJS service. Once plugged in, it automatically:
+This SDK is a toolkit that you plug into any BRD NestJS service. Once plugged in, it automatically:
 
 1. Writes structured log entries (JSON) to stdout with trace IDs, request IDs, and service info baked in
 2. Creates distributed traces so you can follow a request as it hops between services
@@ -358,7 +358,7 @@ This lets operators answer "is observability actually working in this service?" 
 
 #### `index.ts`
 
-This file decides what consumers can import from `@company/observability`. It re-exports exactly what's needed and nothing more:
+This file decides what consumers can import from `@brdrwanda/observability`. It re-exports exactly what's needed and nothing more:
 
 - The two NestJS modules (observability + health)
 - All TypeScript types (for type-safe config)

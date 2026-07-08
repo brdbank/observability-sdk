@@ -56,7 +56,7 @@ async doWork() {
 - **Part 1: Setup**
   - [1. Install](#1-install)
   - [2. Wire the module](#2-wire-the-module)
-  - [3. Use in your services](#3-use-in-your-services)
+  - [3. Use in BRD services](#3-use-in-your-services)
   - [4. Verify](#4-verify)
 - **Part 2: What the SDK does automatically**
   - [Auto request logging](#auto-request-logging)
@@ -176,7 +176,7 @@ bootstrap();
 
 `setupProcessErrorHandlers` catches `uncaughtException` and `unhandledRejection` events that happen before or outside NestJS — like missing modules, database connection failures during import, or Kafka broker unreachable errors.
 
-## 3. Use in your services
+## 3. Use in BRD services
 
 Inject `ObservabilityLogger` anywhere — it's globally available, no extra providers needed:
 

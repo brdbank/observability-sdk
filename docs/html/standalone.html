@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation Home — @brdrwanda/observability</title>
+  <title>Standalone Mode — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -273,184 +273,215 @@
     </div>
   </nav>
   <main class="content">
-    <h1 id="brdrwandaobservability--documentation">@brdrwanda/observability — Documentation</h1>
-    <h2 id="getting-started">Getting Started</h2>
+    <h1 id="standalone-mode-express--fastify--plain-nodejs">Standalone Mode (Express / Fastify / Plain Node.js)</h1>
+    <p>Use the SDK without NestJS. The <code>createObservability()</code> function gives you a logger, tracer, metrics, and middleware — no dependency injection required.</p>
+    <hr />
+    <h2 id="quick-start">Quick Start</h2>
+    <pre class="typescript"><code>import { createObservability } from &#39;@brdrwanda/observability&#39;;
+
+    const obs = createObservability({
+      serviceName: &#39;my-worker&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39; } },
+    });
+    </code></pre>
+    <h3 id="what-you-get-back">What you get back</h3>
     <table>
     <thead>
     <tr class="header">
-    <th>Guide</th>
+    <th>Property</th>
+    <th>Type</th>
     <th>Description</th>
-    <th>Audience</th>
     </tr>
     </thead>
     <tbody>
     <tr class="odd">
-    <td><a href="getting-started.html">Quick Start</a></td>
-    <td>Install, wire, verify in 10 minutes</td>
-    <td>New developers</td>
+    <td><code>obs.logger</code></td>
+    <td><code>ObservabilityLogger</code></td>
+    <td>Structured logger with <code>info</code>, <code>warn</code>, <code>error</code>, <code>debug</code>, <code>fatal</code>, <code>logCaughtError</code>, <code>child</code></td>
     </tr>
     <tr class="even">
-    <td><a href="configuration.html">Configuration Reference</a></td>
-    <td>Every config option with defaults and examples</td>
-    <td>All developers</td>
+    <td><code>obs.tracer</code></td>
+    <td><code>ObservabilityTracer</code></td>
+    <td>Create custom spans, start active spans</td>
     </tr>
     <tr class="odd">
-    <td><a href="standalone.html">Standalone Mode</a></td>
-    <td>Express, Fastify, plain Node.js — no NestJS needed</td>
-    <td>Non-NestJS developers</td>
+    <td><code>obs.metrics</code></td>
+    <td><code>ObservabilityMetrics</code></td>
+    <td>Create counters, histograms, gauges</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.config</code></td>
+    <td><code>ResolvedConfig</code></td>
+    <td>The resolved configuration</td>
+    </tr>
+    <tr class="odd">
+    <td><code>obs.middleware()</code></td>
+    <td>Express-compatible middleware</td>
+    <td>Adds request context, logs request_start/request_complete</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.metricsHandler</code></td>
+    <td>HTTP handler</td>
+    <td>Serves <code>/metrics</code> endpoint for Prometheus scraping</td>
+    </tr>
+    <tr class="odd">
+    <td><code>obs.healthHandler</code></td>
+    <td>HTTP handler</td>
+    <td>Serves health check endpoint</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.shutdown()</code></td>
+    <td><code>Promise&lt;void&gt;</code></td>
+    <td>Graceful shutdown — flushes traces and plugins</td>
     </tr>
     </tbody>
     </table>
-    <h2 id="guides">Guides</h2>
+    <hr />
+    <h2 id="express-integration">Express Integration</h2>
+    <pre class="typescript"><code>import express from &#39;express&#39;;
+    import { createObservability } from &#39;@brdrwanda/observability&#39;;
+
+    const app = express();
+    const obs = createObservability({
+      serviceName: &#39;loan-api&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39;, endpoint: &#39;http://otel-collector:4318&#39; } },
+    });
+
+    // Add request context middleware (trace_id, request_id, request logging)
+    app.use(obs.middleware());
+
+    // Expose metrics for Prometheus
+    app.get(&#39;/metrics&#39;, (req, res) =&gt; obs.metricsHandler(req, res));
+
+    // Expose health check
+    app.get(&#39;/health&#39;, (req, res) =&gt; obs.healthHandler(req, res));
+
+    // Use the logger in your routes
+    app.post(&#39;/api/loans&#39;, (req, res) =&gt; {
+      obs.logger.info(&#39;loan application received&#39;, { applicantId: req.body.applicantId });
+      // ... business logic
+      res.status(201).json({ status: &#39;created&#39; });
+    });
+
+    // Graceful shutdown
+    process.on(&#39;SIGTERM&#39;, async () =&gt; {
+      await obs.shutdown();
+      process.exit(0);
+    });
+
+    app.listen(3000, () =&gt; {
+      obs.logger.info(&#39;server started&#39;, { port: 3000 });
+    });
+    </code></pre>
+    <hr />
+    <h2 id="worker--cli-usage">Worker / CLI Usage</h2>
+    <p>For Kafka consumers, cron jobs, or CLI scripts that don't serve HTTP:</p>
+    <pre class="typescript"><code>import { createObservability } from &#39;@brdrwanda/observability&#39;;
+    import { withKafkaContext } from &#39;@brdrwanda/observability&#39;;
+
+    const obs = createObservability({
+      serviceName: &#39;notification-worker&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39; } },
+    });
+
+    async function processMessage(message: KafkaMessage) {
+      await withKafkaContext(message.headers, &#39;process-notification&#39;, async () =&gt; {
+        obs.logger.info(&#39;processing notification&#39;, { topic: message.topic });
+        // ... business logic
+      });
+    }
+
+    // Graceful shutdown
+    process.on(&#39;SIGTERM&#39;, async () =&gt; {
+      await obs.shutdown();
+      process.exit(0);
+    });
+    </code></pre>
+    <hr />
+    <h2 id="configuration">Configuration</h2>
+    <p>Standalone mode accepts the same <code>ObservabilityConfig</code> as the NestJS version. See the <a href="configuration.html">Configuration Reference</a> for all options.</p>
+    <pre class="typescript"><code>const obs = createObservability({
+      serviceName: &#39;my-service&#39;,
+      environment: &#39;production&#39;,
+      logger: { level: &#39;info&#39;, prettyPrint: false },
+      tracing: {
+        exporter: { type: &#39;otlp-http&#39;, endpoint: &#39;http://otel-collector:4318&#39; },
+        sampling: { ratio: 0.1 },
+      },
+      metrics: { enabled: true },
+      instrumentations: [httpInstrumentation()],
+      clientOrigins: { &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39; },
+    });
+    </code></pre>
+    <hr />
+    <h2 id="what-the-middleware-does">What the Middleware Does</h2>
+    <p><code>obs.middleware()</code> returns an Express-compatible <code>(req, res, next)</code> function that:</p>
+    <ol>
+    <li>Creates a request context (request_id, correlation_id, client_app)</li>
+    <li>Reads <code>x-client-app</code> header and resolves via <code>clientOrigins</code></li>
+    <li>Logs <code>request started</code> with method and URL</li>
+    <li>On response finish, logs <code>request completed</code> with statusCode and duration_ms</li>
+    <li>Runs the handler inside <code>runWithContext()</code> so trace_id propagates to all logs</li>
+    </ol>
+    <hr />
+    <h2 id="limitations-vs-nestjs-mode">Limitations vs NestJS Mode</h2>
     <table>
     <thead>
     <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
+    <th>Feature</th>
+    <th>NestJS</th>
+    <th>Standalone</th>
     </tr>
     </thead>
     <tbody>
     <tr class="odd">
-    <td><a href="logging.html">Structured Logging</a></td>
-    <td>Auto-request logging, business events, Loki queries, redaction</td>
-    <td>All developers</td>
+    <td>Auto-registered interceptors (request logging, metrics)</td>
+    <td>Yes</td>
+    <td>Use <code>obs.middleware()</code> manually</td>
     </tr>
     <tr class="even">
-    <td><a href="tracing.html">Distributed Tracing</a></td>
-    <td>Trace setup, sampling, custom spans, cross-service correlation</td>
-    <td>All developers</td>
+    <td>Auto-registered exception filter</td>
+    <td>Yes</td>
+    <td>No — handle errors yourself</td>
     </tr>
     <tr class="odd">
-    <td><a href="metrics.html">Metrics &amp; Dashboards</a></td>
-    <td>Auto HTTP metrics, custom counters/histograms, Grafana PromQL</td>
-    <td>All developers</td>
+    <td>Dependency injection</td>
+    <td>Yes</td>
+    <td>No — use <code>obs.logger</code> / <code>obs.tracer</code> directly</td>
     </tr>
     <tr class="even">
-    <td><a href="error-handling.html">Error Handling</a></td>
-    <td>Auto error classification, logCaughtError, process handlers</td>
-    <td>All developers</td>
+    <td>Health endpoint auto-registered</td>
+    <td>Yes</td>
+    <td>Use <code>obs.healthHandler</code> manually</td>
     </tr>
     <tr class="odd">
-    <td><a href="instrumentations.html">Instrumentations</a></td>
-    <td>Redis, MySQL, PostgreSQL, Sequelize, Kafka setup and spans</td>
-    <td>All developers</td>
+    <td>Metrics endpoint auto-registered</td>
+    <td>Yes</td>
+    <td>Use <code>obs.metricsHandler</code> manually</td>
     </tr>
     <tr class="even">
-    <td><a href="alerting.html">Alerting &amp; Monitoring</a></td>
-    <td>Prometheus rules, Alertmanager, Teams/Slack notifications</td>
-    <td>DevOps, SREs</td>
+    <td>Graceful shutdown</td>
+    <td>Module handles it</td>
+    <td>Call <code>obs.shutdown()</code> on process exit</td>
+    </tr>
+    <tr class="odd">
+    <td>Controller/handler names in logs</td>
+    <td>Yes</td>
+    <td>No — middleware only has req.method/url</td>
     </tr>
     </tbody>
     </table>
-    <h2 id="migration">Migration</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="migration.html">Migration Guide</a></td>
-    <td>Step-by-step migration from Winston/LoggerService</td>
-    <td>Migrating developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="migration-per-service.html">Integration Checklist</a></td>
-    <td>Step-by-step SDK integration with verification steps</td>
-    <td>Migrating developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="deployment--operations">Deployment &amp; Operations</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="deployment-pm2.html">PM2 Deployment</a></td>
-    <td>PM2 ecosystem config, log collection, Promtail setup</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    <tr class="even">
-    <td><a href="sdk-deployment.html">SDK Publishing</a></td>
-    <td>Build, version, publish the SDK package</td>
-    <td>Maintainers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="architecture">Architecture</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="architecture.html">How It Works</a></td>
-    <td>SDK structure, dependency strategy, design decisions</td>
-    <td>Tech leads, architects</td>
-    </tr>
-    <tr class="even">
-    <td><a href="architecture-decisions.html">Architecture Decisions</a></td>
-    <td>Why the SDK exists and key technical choices</td>
-    <td>Tech leads, new members</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="sdk-explained.html">SDK Internals</a></td>
-    <td>Deep dive into every module and file</td>
-    <td>Contributors</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="reference">Reference</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="troubleshooting.html">Troubleshooting &amp; FAQ</a></td>
-    <td>Common issues, diagnostics, frequently asked questions</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="testing.html">Testing</a></td>
-    <td>Mocking SDK providers, suppressing logs, e2e testing</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="CHANGELOG.html">Changelog</a></td>
-    <td>Version history and release notes</td>
-    <td>All developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="quick-links">Quick Links</h2>
+    <hr />
+    <h2 id="see-also">See Also</h2>
     <ul>
-    <li><strong>Install</strong>: <code>npm install @brdrwanda/observability</code></li>
-    <li><strong>GitHub</strong>: <a href="https://github.com/brdbank/observability-sdk">brdbank/observability-sdk</a></li>
-    <li><strong>SDK README</strong>: <a href="../packages/sdk/README.html">packages/sdk/README.md</a></li>
+    <li><a href="getting-started.html">Getting Started</a> — NestJS setup</li>
+    <li><a href="configuration.html">Configuration Reference</a> — all config options</li>
+    <li><a href="logging.html">Structured Logging</a> — logger API and Loki queries</li>
     </ul>
   </main>
   <script>
     // Highlight active nav item
-    var current = "index";
+    var current = "standalone";
     var el = document.getElementById("nav-" + current);
     if (el) el.classList.add("active");
   </script>

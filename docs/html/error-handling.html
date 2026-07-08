@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Handling — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="error-handling">Error Handling</h1>
+    <p>The <code>@brdrwanda/observability</code> SDK provides automatic error classification, structured error logging, span error recording, and process-level crash handlers -- all out of the box. This guide covers every error-handling feature and how to configure them.</p>
+    <hr />
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ol>
+    <li><a href="#automatic-error-classification">Automatic Error Classification</a></li>
+    <li><a href="#whats-included-in-error-logs">What's Included in Error Logs</a></li>
+    <li><a href="#error-response-format">Error Response Format</a></li>
+    <li><a href="#logcaughterror-for-trycatch">logCaughtError() for Try/Catch</a></li>
+    <li><a href="#disabling-auto-error-logging">Disabling Auto Error Logging</a></li>
+    <li><a href="#span-error-recording">Span Error Recording</a></li>
+    <li><a href="#process-error-handlers">Process Error Handlers</a></li>
+    </ol>
+    <hr />
+    <h2 id="automatic-error-classification">Automatic Error Classification</h2>
+    <p>The SDK registers a global <code>ObservabilityExceptionFilter</code> (via <code>APP_FILTER</code>) that catches <strong>all</strong> unhandled exceptions thrown from your controllers, guards, pipes, and interceptors. Each exception is classified by HTTP status code into a named event, and logged at the appropriate level.</p>
+    <h3 id="classification-table">Classification Table</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Status</th>
+    <th>Event</th>
+    <th>Log Level</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>400</td>
+    <td><code>bad_request</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="even">
+    <td>400 + validation errors</td>
+    <td><code>validation_failed</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="odd">
+    <td>401</td>
+    <td><code>authentication_failed</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="even">
+    <td>403</td>
+    <td><code>authorization_failed</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="odd">
+    <td>404</td>
+    <td><code>not_found</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="even">
+    <td>409</td>
+    <td><code>conflict</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="odd">
+    <td>422</td>
+    <td><code>validation_failed</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="even">
+    <td>429</td>
+    <td><code>rate_limited</code></td>
+    <td><code>warn</code></td>
+    </tr>
+    <tr class="odd">
+    <td>500+</td>
+    <td><code>server_error</code></td>
+    <td><code>error</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Any other 4xx status not listed above is classified as <code>client_error</code> at <code>warn</code> level.</p>
+    <h3 id="example-log-output">Example Log Output</h3>
+    <p><strong>400 -- Bad Request</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;a1b2c3d4-e5f6-7890-abcd-ef1234567890&quot;,
+      &quot;trace_id&quot;: &quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;,
+      &quot;msg&quot;: &quot;bad_request&quot;,
+      &quot;event&quot;: &quot;bad_request&quot;,
+      &quot;statusCode&quot;: 400,
+      &quot;message&quot;: &quot;Missing required field: amount&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments&quot;
+    }
+    </code></pre>
+    <p><strong>400 + Validation Errors (class-validator)</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;a1b2c3d4-e5f6-7890-abcd-ef1234567890&quot;,
+      &quot;trace_id&quot;: &quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;,
+      &quot;msg&quot;: &quot;validation_failed&quot;,
+      &quot;event&quot;: &quot;validation_failed&quot;,
+      &quot;statusCode&quot;: 400,
+      &quot;message&quot;: &quot;amount must be a positive number, currency must be a valid ISO 4217 code&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments&quot;,
+      &quot;validationErrors&quot;: [
+        &quot;amount must be a positive number&quot;,
+        &quot;currency must be a valid ISO 4217 code&quot;
+      ]
+    }
+    </code></pre>
+    <p><strong>401 -- Authentication Failed</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;b2c3d4e5-f6a7-8901-bcde-f12345678901&quot;,
+      &quot;trace_id&quot;: &quot;5cf93f4688c45eb7b4df030e1f1f5847&quot;,
+      &quot;msg&quot;: &quot;authentication_failed&quot;,
+      &quot;event&quot;: &quot;authentication_failed&quot;,
+      &quot;statusCode&quot;: 401,
+      &quot;message&quot;: &quot;Invalid token&quot;,
+      &quot;method&quot;: &quot;GET&quot;,
+      &quot;url&quot;: &quot;/api/payments/txn-123&quot;
+    }
+    </code></pre>
+    <p><strong>403 -- Authorization Failed</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;c3d4e5f6-a7b8-9012-cdef-123456789012&quot;,
+      &quot;trace_id&quot;: &quot;6dg04g5799d56fc8c5eg141f2g2g6958&quot;,
+      &quot;msg&quot;: &quot;authorization_failed&quot;,
+      &quot;event&quot;: &quot;authorization_failed&quot;,
+      &quot;statusCode&quot;: 403,
+      &quot;message&quot;: &quot;Insufficient permissions to access this resource&quot;,
+      &quot;method&quot;: &quot;DELETE&quot;,
+      &quot;url&quot;: &quot;/api/payments/txn-456&quot;
+    }
+    </code></pre>
+    <p><strong>404 -- Not Found</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;d4e5f6a7-b8c9-0123-defa-234567890123&quot;,
+      &quot;trace_id&quot;: &quot;7eh15h6800e67gd9d6fh252g3h3h7069&quot;,
+      &quot;msg&quot;: &quot;not_found&quot;,
+      &quot;event&quot;: &quot;not_found&quot;,
+      &quot;statusCode&quot;: 404,
+      &quot;message&quot;: &quot;Payment txn-999 not found&quot;,
+      &quot;method&quot;: &quot;GET&quot;,
+      &quot;url&quot;: &quot;/api/payments/txn-999&quot;
+    }
+    </code></pre>
+    <p><strong>409 -- Conflict</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;e5f6a7b8-c9d0-1234-efab-345678901234&quot;,
+      &quot;trace_id&quot;: &quot;8fi26i7911f78he0e7gi363h4i4i8170&quot;,
+      &quot;msg&quot;: &quot;conflict&quot;,
+      &quot;event&quot;: &quot;conflict&quot;,
+      &quot;statusCode&quot;: 409,
+      &quot;message&quot;: &quot;Payment txn-123 has already been processed&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments/txn-123/capture&quot;
+    }
+    </code></pre>
+    <p><strong>422 -- Validation Failed</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;f6a7b8c9-d0e1-2345-fabc-456789012345&quot;,
+      &quot;trace_id&quot;: &quot;9gj37j8022g89if1f8hj474i5j5j9281&quot;,
+      &quot;msg&quot;: &quot;validation_failed&quot;,
+      &quot;event&quot;: &quot;validation_failed&quot;,
+      &quot;statusCode&quot;: 422,
+      &quot;message&quot;: &quot;Cannot refund more than the original amount&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments/txn-123/refund&quot;
+    }
+    </code></pre>
+    <p><strong>429 -- Rate Limited</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;a7b8c9d0-e1f2-3456-abcd-567890123456&quot;,
+      &quot;trace_id&quot;: &quot;0hk48k9133h90jg2g9ik585j6k6k0392&quot;,
+      &quot;msg&quot;: &quot;rate_limited&quot;,
+      &quot;event&quot;: &quot;rate_limited&quot;,
+      &quot;statusCode&quot;: 429,
+      &quot;message&quot;: &quot;Too many requests, please try again later&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments&quot;
+    }
+    </code></pre>
+    <p><strong>500+ -- Server Error</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;error&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;b8c9d0e1-f2a3-4567-bcde-678901234567&quot;,
+      &quot;trace_id&quot;: &quot;1il59l0244i01kh3h0jl696k7l7l1403&quot;,
+      &quot;msg&quot;: &quot;server_error&quot;,
+      &quot;event&quot;: &quot;server_error&quot;,
+      &quot;statusCode&quot;: 500,
+      &quot;message&quot;: &quot;Connection to database timed out&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/payments&quot;,
+      &quot;stack&quot;: &quot;Error: Connection to database timed out\n    at PaymentService.create (/app/src/payment.service.ts:42:11)\n    at PaymentController.create (/app/src/payment.controller.ts:18:30)\n    ...&quot;
+    }
+    </code></pre>
+    <blockquote>
+    <p><strong>Note:</strong> The <code>stack</code> field is only included for 5xx errors. Client errors (4xx) never expose stack traces.</p>
+    </blockquote>
+    <hr />
+    <h2 id="whats-included-in-error-logs">What's Included in Error Logs</h2>
+    <p>Every error log entry is automatically enriched with these fields:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Field</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>event</code></td>
+    <td>Classified event name (<code>bad_request</code>, <code>server_error</code>, etc.) from the table above</td>
+    </tr>
+    <tr class="even">
+    <td><code>statusCode</code></td>
+    <td>HTTP status code (e.g. <code>400</code>, <code>401</code>, <code>500</code>)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>message</code></td>
+    <td>Human-readable error message extracted from the exception</td>
+    </tr>
+    <tr class="even">
+    <td><code>method</code></td>
+    <td>HTTP method of the request (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>, etc.)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>url</code></td>
+    <td>Request URL path that triggered the error</td>
+    </tr>
+    <tr class="even">
+    <td><code>validationErrors</code></td>
+    <td>Array of validation error strings (only present for class-validator errors with array messages)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>stack</code></td>
+    <td>Full stack trace (only present for 5xx server errors)</td>
+    </tr>
+    <tr class="even">
+    <td><code>trace_id</code></td>
+    <td>OpenTelemetry trace ID for correlating with distributed traces in Tempo</td>
+    </tr>
+    <tr class="odd">
+    <td><code>span_id</code></td>
+    <td>OpenTelemetry span ID for the active span</td>
+    </tr>
+    <tr class="even">
+    <td><code>request_id</code></td>
+    <td>Unique request identifier for correlating all logs within a single request lifecycle</td>
+    </tr>
+    <tr class="odd">
+    <td><code>correlation_id</code></td>
+    <td>Propagated correlation ID for tracking requests across services</td>
+    </tr>
+    <tr class="even">
+    <td><code>service_name</code></td>
+    <td>Name of the service that produced the log</td>
+    </tr>
+    <tr class="odd">
+    <td><code>environment</code></td>
+    <td>Current environment (<code>development</code>, <code>staging</code>, <code>production</code>)</td>
+    </tr>
+    <tr class="even">
+    <td><code>version</code></td>
+    <td>Service version</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>The <code>trace_id</code> and <code>request_id</code> fields are critical for debugging. Use <code>trace_id</code> to jump from a log line in Grafana/Loki directly to the corresponding trace in Tempo. Use <code>request_id</code> to find every log line produced during a single HTTP request.</p>
+    <hr />
+    <h2 id="error-response-format">Error Response Format</h2>
+    <p>When the exception filter catches an error, it sends a structured JSON response to the client:</p>
+    <pre class="json"><code>{
+      &quot;statusCode&quot;: 401,
+      &quot;message&quot;: &quot;Invalid token&quot;,
+      &quot;timestamp&quot;: &quot;2026-07-02T10:00:00.000Z&quot;,
+      &quot;requestId&quot;: &quot;a1b2c3d4-e5f6-7890-abcd-ef1234567890&quot;,
+      &quot;traceId&quot;: &quot;4bf92f3577b34da6a3ce929d0e0e4736&quot;
+    }
+    </code></pre>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Field</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>statusCode</code></td>
+    <td>The HTTP status code</td>
+    </tr>
+    <tr class="even">
+    <td><code>message</code></td>
+    <td>The error message (from the exception, never a raw stack trace)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>timestamp</code></td>
+    <td>ISO 8601 timestamp of when the error occurred</td>
+    </tr>
+    <tr class="even">
+    <td><code>requestId</code></td>
+    <td>The request's unique ID (from the context middleware)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>traceId</code></td>
+    <td>The OpenTelemetry trace ID (if tracing is enabled)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>The <code>requestId</code> and <code>traceId</code> are included so that when a client reports an error, your team can immediately look up the full request lifecycle in Loki and Tempo without asking "what time did this happen?" or guessing.</p>
+    <p><strong>Example: 500 response</strong></p>
+    <pre class="json"><code>{
+      &quot;statusCode&quot;: 500,
+      &quot;message&quot;: &quot;Internal server error&quot;,
+      &quot;timestamp&quot;: &quot;2026-07-02T10:05:23.456Z&quot;,
+      &quot;requestId&quot;: &quot;c9d0e1f2-a3b4-5678-cdef-789012345678&quot;,
+      &quot;traceId&quot;: &quot;2jm60m1355j12li4i1km707l8m8m2514&quot;
+    }
+    </code></pre>
+    <blockquote>
+    <p><strong>Security note:</strong> The response never includes stack traces or internal details. The <code>message</code> for unrecognized exceptions defaults to <code>"Internal server error"</code>. Detailed error information is only available in your internal logs.</p>
+    </blockquote>
+    <hr />
+    <h2 id="logcaughterror-for-trycatch">logCaughtError() for Try/Catch</h2>
+    <p>Not every error should be unhandled. When you catch errors in business logic (e.g., calling an external API, processing a queue message), use <code>logCaughtError()</code> to get the same structured, classified logging:</p>
+    <pre class="typescript"><code>import { Injectable } from &#39;@nestjs/common&#39;;
+    import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class PaymentService {
+      constructor(private readonly logger: ObservabilityLogger) {}
+
+      async processPayment(paymentId: string) {
+        try {
+          await this.externalPaymentGateway.charge(paymentId);
+        } catch (error) {
+          this.logger.logCaughtError(error);
+          // Return a fallback, queue for retry, or rethrow
+          throw error;
+        }
+      }
+    }
+    </code></pre>
+    <h3 id="how-it-works">How It Works</h3>
+    <p><code>logCaughtError()</code> extracts the status code and message from the error, then routes it to the correct log level:</p>
+    <ol>
+    <li><strong>Status extraction</strong> -- checks <code>error.getStatus()</code> (NestJS <code>HttpException</code>), then <code>error.statusCode</code>, then defaults to <code>500</code>.</li>
+    <li><strong>Message extraction</strong> -- checks <code>error.response.message</code> (NestJS response shape), then <code>error.message</code>, then falls back to <code>"Unknown error"</code>.</li>
+    <li><strong>Log routing:</strong>
+    <ul>
+    <li><strong>4xx</strong> errors are logged at <code>warn</code> level (no stack trace).</li>
+    <li><strong>5xx</strong> errors are logged at <code>error</code> level with the full <code>stack</code> trace.</li>
+    </ul></li>
+    </ol>
+    <p><strong>Example output for a caught 502 error:</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;error&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:03:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;d0e1f2a3-b4c5-6789-defa-890123456789&quot;,
+      &quot;trace_id&quot;: &quot;3kn71n2466k23mj5j2ln818m9n9n3625&quot;,
+      &quot;msg&quot;: &quot;request_error&quot;,
+      &quot;statusCode&quot;: 502,
+      &quot;message&quot;: &quot;Payment gateway connection refused&quot;,
+      &quot;stack&quot;: &quot;Error: Payment gateway connection refused\n    at PaymentGateway.charge (/app/src/gateway.ts:55:11)\n    ...&quot;
+    }
+    </code></pre>
+    <p><strong>Example output for a caught 404 error:</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2026-07-02T10:03:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;payment-service&quot;,
+      &quot;request_id&quot;: &quot;e1f2a3b4-c5d6-7890-efab-901234567890&quot;,
+      &quot;trace_id&quot;: &quot;4lo82o3577l34nk6k3mo929n0o0o4736&quot;,
+      &quot;msg&quot;: &quot;request_error&quot;,
+      &quot;statusCode&quot;: 404,
+      &quot;message&quot;: &quot;Upstream resource not found&quot;
+    }
+    </code></pre>
+    <hr />
+    <h2 id="disabling-auto-error-logging">Disabling Auto Error Logging</h2>
+    <p>By default, the exception filter both logs the error and returns the JSON response. If your team has custom error logging middleware and you want to prevent duplicate logs, disable automatic error logging:</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;payment-service&#39;,
+      logger: {
+        autoErrorLogging: false,
+      },
+    });
+    </code></pre>
+    <p>When <code>autoErrorLogging</code> is <code>false</code>:</p>
+    <ul>
+    <li>The exception filter <strong>still catches</strong> all unhandled exceptions</li>
+    <li>The exception filter <strong>still returns</strong> the structured JSON response (with <code>statusCode</code>, <code>message</code>, <code>timestamp</code>, <code>requestId</code>, <code>traceId</code>)</li>
+    <li>The exception filter <strong>still records</strong> the error on the active OpenTelemetry span (see <a href="#span-error-recording">Span Error Recording</a>)</li>
+    <li>The exception filter <strong>does not</strong> call <code>logger.warn()</code> or <code>logger.error()</code></li>
+    </ul>
+    <blockquote>
+    <p><strong>Tip:</strong> Even with auto error logging disabled, <code>logCaughtError()</code> in your own try/catch blocks still works — it's independent of the exception filter.</p>
+    </blockquote>
+    <hr />
+    <h2 id="span-error-recording">Span Error Recording</h2>
+    <p>Every error caught by the exception filter is also recorded on the active OpenTelemetry span. This means errors appear in <strong>both</strong> your logs (Loki) and your traces (Tempo), giving you two independent ways to find and investigate issues.</p>
+    <p>The filter performs three operations on the active span:</p>
+    <pre class="typescript"><code>// 1. Mark the span status as ERROR
+    span.setStatus({ code: SpanStatusCode.ERROR, message: &#39;Invalid token&#39; });
+
+    // 2. Tag the span with the classified event
+    span.setAttribute(&#39;error.event&#39;, &#39;authentication_failed&#39;);
+
+    // 3. Record the exception with stack trace (if error is an Error instance)
+    span.recordException(exception);
+    </code></pre>
+    <p>Additionally, the HTTP status code is set on the span:</p>
+    <pre class="typescript"><code>span.setAttribute(&#39;http.status_code&#39;, 401);
+    </code></pre>
+    <h3 id="what-this-means-in-practice">What This Means in Practice</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Destination</th>
+    <th>What You See</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><strong>Loki</strong></td>
+    <td>Structured JSON log with <code>event</code>, <code>statusCode</code>, <code>message</code>, <code>trace_id</code></td>
+    </tr>
+    <tr class="even">
+    <td><strong>Tempo</strong></td>
+    <td>Span marked as error with <code>error.event</code> attribute, exception recorded with stack trace</td>
+    </tr>
+    <tr class="odd">
+    <td><strong>Grafana</strong></td>
+    <td>Click the <code>trace_id</code> in a Loki log line to jump directly to the trace in Tempo</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>This dual recording is automatic. You do not need to manually record errors on spans in your application code -- the exception filter handles it.</p>
+    <hr />
+    <h2 id="process-error-handlers">Process Error Handlers</h2>
+    <p>Node.js can crash from <code>uncaughtException</code> or <code>unhandledRejection</code> events (e.g., a forgotten <code>await</code>, a thrown error in a callback). By default, Node.js prints these to stderr and may or may not exit, often leaving the process in a broken state.</p>
+    <p><code>setupProcessErrorHandlers()</code> catches these events, logs them as structured <code>fatal</code>-level JSON, and exits the process so your process manager (PM2, Docker, Kubernetes) can restart it cleanly.</p>
+    <h3 id="setup">Setup</h3>
+    <p>Call this in your <code>main.ts</code> <strong>before</strong> starting the NestJS application:</p>
+    <pre class="typescript"><code>import { setupProcessErrorHandlers } from &#39;@brdrwanda/observability&#39;;
+
+    setupProcessErrorHandlers({
+      serviceName: &#39;my-service&#39;,
+      exitOnUncaught: true,           // default: true
+      exitOnUnhandledRejection: true, // default: true
+    });
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule);
+      await app.listen(3000);
+    }
+
+    bootstrap();
+    </code></pre>
+    <h3 id="options">Options</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>serviceName</code></td>
+    <td><code>string</code></td>
+    <td><code>process.env.npm_package_name</code></td>
+    <td>Service name included in the fatal log entry</td>
+    </tr>
+    <tr class="even">
+    <td><code>exitOnUncaught</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Exit the process after an uncaught exception</td>
+    </tr>
+    <tr class="odd">
+    <td><code>exitOnUnhandledRejection</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Exit the process after an unhandled rejection</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="output-format">Output Format</h3>
+    <p>Fatal errors are written to <code>stderr</code> as single-line JSON:</p>
+    <p><strong>Uncaught exception:</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;fatal&quot;,
+      &quot;time&quot;: 1751450400000,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;msg&quot;: &quot;uncaught_exception: Cannot read properties of undefined (reading &#39;id&#39;)&quot;,
+      &quot;error&quot;: {
+        &quot;name&quot;: &quot;TypeError&quot;,
+        &quot;message&quot;: &quot;Cannot read properties of undefined (reading &#39;id&#39;)&quot;,
+        &quot;stack&quot;: &quot;TypeError: Cannot read properties of undefined (reading &#39;id&#39;)\n    at processJob (/app/src/worker.ts:23:18)\n    ...&quot;
+      }
+    }
+    </code></pre>
+    <p><strong>Unhandled rejection:</strong></p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;fatal&quot;,
+      &quot;time&quot;: 1751450400000,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;msg&quot;: &quot;unhandled_rejection: Connection refused: redis://localhost:6379&quot;,
+      &quot;error&quot;: {
+        &quot;name&quot;: &quot;Error&quot;,
+        &quot;message&quot;: &quot;Connection refused: redis://localhost:6379&quot;,
+        &quot;stack&quot;: &quot;Error: Connection refused: redis://localhost:6379\n    at RedisClient.connect (/app/node_modules/redis/lib/client.ts:88:11)\n    ...&quot;
+      }
+    }
+    </code></pre>
+    <h3 id="why-exit">Why Exit?</h3>
+    <p>After an uncaught exception, the Node.js process may be in an inconsistent state (open database connections, partial writes, corrupted in-memory state). The safest path is to exit immediately and let PM2 or your container orchestrator restart the process. This is why <code>exitOnUncaught</code> and <code>exitOnUnhandledRejection</code> both default to <code>true</code>.</p>
+    <p>If you need to keep the process alive (e.g., during development), set the options to <code>false</code>:</p>
+    <pre class="typescript"><code>setupProcessErrorHandlers({
+      serviceName: &#39;my-service&#39;,
+      exitOnUncaught: false,
+      exitOnUnhandledRejection: false,
+    });
+    </code></pre>
+    <blockquote>
+    <p><strong>Warning:</strong> Running with <code>exitOnUncaught: false</code> in production is not recommended. A process that survives an uncaught exception may silently corrupt data or stop processing requests.</p>
+    </blockquote>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "error-handling";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

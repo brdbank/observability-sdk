@@ -75,9 +75,9 @@ npm install -D pino-pretty    # pretty logs for development
 npm uninstall winston nest-winston winston-daily-rotate-file morgan
 ```
 
-If migrating from `@ivymurage-rw/observability`:
+If migrating from an older SDK version under a different npm scope:
 ```bash
-npm uninstall @ivymurage-rw/observability
+npm uninstall @old-scope/observability
 npm install @brdrwanda/observability
 ```
 

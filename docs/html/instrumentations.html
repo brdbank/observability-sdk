@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instrumentations — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="database--service-instrumentation">Database &amp; Service Instrumentation</h1>
+    <p>The SDK provides instrumentation plugins that automatically create OpenTelemetry spans for database queries, Redis commands, and Kafka messages. Each plugin wraps an OTel instrumentation library and gracefully degrades if the peer dependency is missing.</p>
+    <hr />
+    <h2 id="overview">Overview</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Plugin</th>
+    <th>What It Instruments</th>
+    <th>Peer Dependency</th>
+    <th>Span Type</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>httpInstrumentation()</code></td>
+    <td>Inbound/outbound HTTP</td>
+    <td><code>@opentelemetry/instrumentation-http</code> (included)</td>
+    <td><code>HTTP GET /api/loans</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>sequelizeInstrumentation()</code></td>
+    <td>Sequelize ORM queries</td>
+    <td><code>opentelemetry-instrumentation-sequelize</code></td>
+    <td><code>SELECT applications</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>kafkaInstrumentation()</code></td>
+    <td>KafkaJS produce/consume</td>
+    <td><code>@opentelemetry/instrumentation-kafkajs</code></td>
+    <td><code>topic send</code> / <code>topic process</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>redisInstrumentation()</code></td>
+    <td>ioredis commands</td>
+    <td><code>@opentelemetry/instrumentation-ioredis</code></td>
+    <td><code>GET</code>, <code>SET</code>, <code>HGET</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>mysqlInstrumentation()</code></td>
+    <td>mysql2 queries</td>
+    <td><code>@opentelemetry/instrumentation-mysql2</code></td>
+    <td><code>SELECT loans</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>pgInstrumentation()</code></td>
+    <td>pg client queries</td>
+    <td><code>@opentelemetry/instrumentation-pg</code></td>
+    <td><code>SELECT applications</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Add plugins to your config:</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;loan-service&#39;,
+      instrumentations: [
+        httpInstrumentation(),
+        sequelizeInstrumentation({ slowQueryThreshold: 1000 }),
+        kafkaInstrumentation(),
+        redisInstrumentation(),
+      ],
+    })
+    </code></pre>
+    <hr />
+    <h2 id="sequelize">Sequelize</h2>
+    <p>The most feature-rich plugin. Provides OTel tracing, structured query logging, slow query detection, and SQL sanitization.</p>
+    <h3 id="install">Install</h3>
+    <pre class="bash"><code>npm install opentelemetry-instrumentation-sequelize
+    </code></pre>
+    <h3 id="configuration">Configuration</h3>
+    <pre class="typescript"><code>import { sequelizeInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    sequelizeInstrumentation({
+      logging: true,            // default: true — enable structured query logging
+      tracing: true,            // default: true — create OTel spans for queries
+      sanitizeQueries: true,    // default: true — strip literal values from SQL
+      captureSqlText: false,    // default: false — include SQL in log metadata
+      slowQueryThreshold: 500,  // default: 500ms — queries slower than this emit db.slow_query warning
+    })
+    </code></pre>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>logging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable structured query logging via the SDK logger</td>
+    </tr>
+    <tr class="even">
+    <td><code>tracing</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Create OpenTelemetry spans for each query</td>
+    </tr>
+    <tr class="odd">
+    <td><code>sanitizeQueries</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Replace literal values with <code>?</code> before logging</td>
+    </tr>
+    <tr class="even">
+    <td><code>captureSqlText</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include the SQL statement in log metadata as <code>db.statement</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>slowQueryThreshold</code></td>
+    <td><code>number</code> (ms)</td>
+    <td><code>500</code></td>
+    <td>Queries slower than this emit a <code>db.slow_query</code> warning</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="structured-query-logging">Structured Query Logging</h3>
+    <p>Wire the logging function into Sequelize:</p>
+    <pre class="typescript"><code>import { createSequelizeLogging, createSequelizeErrorLogging, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    const sequelize = new Sequelize({
+      dialect: &#39;mysql&#39;,
+      logging: createSequelizeLogging(logger, { slowQueryThreshold: 1000 }),
+    });
+    </code></pre>
+    <p>Normal queries log at <code>debug</code> level with event <code>db.query</code>:</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;debug&quot;,
+      &quot;msg&quot;: &quot;query executed&quot;,
+      &quot;event&quot;: &quot;db.query&quot;,
+      &quot;db.operation&quot;: &quot;SELECT&quot;,
+      &quot;table&quot;: &quot;applications&quot;,
+      &quot;duration_ms&quot;: 12,
+      &quot;success&quot;: true
+    }
+    </code></pre>
+    <p>Slow queries log at <code>warn</code> level with event <code>db.slow_query</code>:</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;msg&quot;: &quot;slow query detected&quot;,
+      &quot;event&quot;: &quot;db.slow_query&quot;,
+      &quot;db.operation&quot;: &quot;SELECT&quot;,
+      &quot;table&quot;: &quot;applications&quot;,
+      &quot;duration_ms&quot;: 2340,
+      &quot;success&quot;: true
+    }
+    </code></pre>
+    <h3 id="error-logging">Error Logging</h3>
+    <pre class="typescript"><code>import { createSequelizeErrorLogging } from &#39;@brdrwanda/observability&#39;;
+
+    const sequelize = new Sequelize({
+      dialect: &#39;mysql&#39;,
+      logging: createSequelizeLogging(logger),
+      dialectOptions: {
+        // Sequelize doesn&#39;t have a built-in error logging hook,
+        // but you can use createSequelizeErrorLogging in try/catch blocks
+      },
+    });
+
+    // In your repository
+    try {
+      await this.loanModel.create(data);
+    } catch (error) {
+      createSequelizeErrorLogging(this.logger)(error, &#39;INSERT INTO loans ...&#39;);
+      throw error;
+    }
+    </code></pre>
+    <p>Error log output:</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;error&quot;,
+      &quot;msg&quot;: &quot;query failed&quot;,
+      &quot;event&quot;: &quot;db.query_error&quot;,
+      &quot;db.operation&quot;: &quot;INSERT&quot;,
+      &quot;table&quot;: &quot;loans&quot;,
+      &quot;success&quot;: false,
+      &quot;error&quot;: &quot;Duplicate entry &#39;LN-001&#39; for key &#39;PRIMARY&#39;&quot;
+    }
+    </code></pre>
+    <hr />
+    <h2 id="kafka">Kafka</h2>
+    <p>Automatic span creation for KafkaJS producer and consumer operations, plus helpers for manual trace context propagation.</p>
+    <h3 id="install-1">Install</h3>
+    <pre class="bash"><code>npm install @opentelemetry/instrumentation-kafkajs
+    </code></pre>
+    <h3 id="configuration-1">Configuration</h3>
+    <pre class="typescript"><code>import { kafkaInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    // No options — the plugin wraps KafkaJsInstrumentation directly
+    kafkaInstrumentation()
+    </code></pre>
+    <h3 id="trace-context-propagation">Trace Context Propagation</h3>
+    <p>Inject trace headers when producing messages, extract them when consuming:</p>
+    <pre class="typescript"><code>import { injectKafkaHeaders, withKafkaContext } from &#39;@brdrwanda/observability&#39;;
+
+    // Producer: inject traceparent into message headers
+    await producer.send({
+      topic: &#39;loan-applications&#39;,
+      messages: [{
+        key: applicationId,
+        value: JSON.stringify(payload),
+        headers: injectKafkaHeaders(),
+      }],
+    });
+
+    // Consumer: extract trace context and run in a linked span
+    await withKafkaContext(message.headers, &#39;process-loan-application&#39;, async () =&gt; {
+      // This code runs inside a CONSUMER span linked to the producer&#39;s trace
+      logger.info(&#39;processing application&#39;, { applicationId });
+      await processApplication(message.value);
+    });
+    </code></pre>
+    <p><code>injectKafkaHeaders()</code> reads the active OTel context and returns headers with <code>traceparent</code> injected. Pass existing headers as an argument to merge: <code>injectKafkaHeaders(existingHeaders)</code>.</p>
+    <p><code>withKafkaContext(headers, spanName, fn)</code> extracts trace context from message headers, creates a CONSUMER span, and runs <code>fn</code> inside that context. If <code>fn</code> throws, the span is marked as ERROR and the exception is recorded.</p>
+    <hr />
+    <h2 id="redis">Redis</h2>
+    <p>Automatic span creation for ioredis commands.</p>
+    <h3 id="install-2">Install</h3>
+    <pre class="bash"><code>npm install @opentelemetry/instrumentation-ioredis
+    </code></pre>
+    <h3 id="configuration-2">Configuration</h3>
+    <pre class="typescript"><code>import { redisInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    // No options — wraps IORedisInstrumentation directly
+    redisInstrumentation()
+    </code></pre>
+    <h3 id="what-you-get">What You Get</h3>
+    <p>Every ioredis command creates a span with:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Attribute</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>db.system</code></td>
+    <td><code>redis</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>db.statement</code></td>
+    <td><code>GET session:abc123</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>net.peer.name</code></td>
+    <td><code>redis-host</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>net.peer.port</code></td>
+    <td><code>6379</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>If the ioredis package is not installed, the plugin logs a debug message and skips silently.</p>
+    <hr />
+    <h2 id="mysql">MySQL</h2>
+    <p>Automatic span creation for mysql2 queries.</p>
+    <h3 id="install-3">Install</h3>
+    <pre class="bash"><code>npm install @opentelemetry/instrumentation-mysql2
+    </code></pre>
+    <h3 id="configuration-3">Configuration</h3>
+    <pre class="typescript"><code>import { mysqlInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    // No options — wraps MySQL2Instrumentation directly
+    mysqlInstrumentation()
+    </code></pre>
+    <h3 id="what-you-get-1">What You Get</h3>
+    <p>Every mysql2 query creates a span with:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Attribute</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>db.system</code></td>
+    <td><code>mysql</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>db.statement</code></td>
+    <td><code>SELECT * FROM loans WHERE id = ?</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>db.name</code></td>
+    <td><code>brd_loans</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>net.peer.name</code></td>
+    <td><code>mysql-host</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="postgresql">PostgreSQL</h2>
+    <p>Automatic span creation for pg client queries.</p>
+    <h3 id="install-4">Install</h3>
+    <pre class="bash"><code>npm install @opentelemetry/instrumentation-pg
+    </code></pre>
+    <h3 id="configuration-4">Configuration</h3>
+    <pre class="typescript"><code>import { pgInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    // No options — wraps PgInstrumentation directly
+    pgInstrumentation()
+    </code></pre>
+    <h3 id="what-you-get-2">What You Get</h3>
+    <p>Every pg query creates a span with:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Attribute</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>db.system</code></td>
+    <td><code>postgresql</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>db.statement</code></td>
+    <td><code>SELECT * FROM applications WHERE status = $1</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>db.name</code></td>
+    <td><code>brd_applications</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="graceful-degradation">Graceful Degradation</h2>
+    <p>All plugins use <code>try/catch</code> around the <code>require()</code> call for their peer dependency. If the package is not installed:</p>
+    <ul>
+    <li>A <code>console.debug</code> message is logged (e.g., <code>[observability] Install @opentelemetry/instrumentation-ioredis for Redis tracing</code>)</li>
+    <li>The plugin returns <code>null</code> and is skipped</li>
+    <li>Your application runs normally — you just don't get spans for that technology</li>
+    </ul>
+    <p>This means you can safely include all plugins in your config even if not all peer dependencies are installed yet.</p>
+    <hr />
+    <h2 id="see-also">See Also</h2>
+    <ul>
+    <li><a href="configuration.html">Configuration Reference</a> — full instrumentation options table</li>
+    <li><a href="tracing.html">Distributed Tracing</a> — how traces work, custom spans</li>
+    <li><a href="getting-started.html">Getting Started</a> — which instrumentations to install</li>
+    </ul>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "instrumentations";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

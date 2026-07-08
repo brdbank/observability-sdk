@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SDK Deployment — @brdrwanda/observability</title>
+  <title>SDK Publishing — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -239,20 +239,42 @@
     </div>
     <div class="sidebar-nav">
       <a href="index.html" id="nav-index">Home</a>
-      <a href="architecture.html" id="nav-architecture">Architecture</a>
-      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
-      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
       <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
       <a href="migration.html" id="nav-migration">Migration Guide</a>
-      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
-      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
       <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
-      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
     </div>
   </nav>
   <main class="content">
     <h1 id="sdk-deployment--distribution-guide">SDK Deployment &amp; Distribution Guide</h1>
-    <p>How to build, publish, and consume <code>@company/observability</code> across your services.</p>
+    <p>How to build, publish, and consume <code>@brdrwanda/observability</code> across your services.</p>
     <hr />
     <h2 id="deployment-options">Deployment Options</h2>
     <pre><code>Option A: Private npm Registry     Option B: Git-based Install
@@ -263,7 +285,7 @@
     │   Packages/GitLab    │            │ Services install via │
     │                      │            │ git+ssh:// or        │
     │ Services install via │            │ file: path           │
-    │ npm install @company │            └─────────────────────┘
+    │ npm install @brdrwanda │            └─────────────────────┘
     │   /observability     │
     └─────────────────────┘
 
@@ -339,7 +361,7 @@
     </code></pre>
     <h4 id="github-packages">GitHub Packages</h4>
     <pre class="bash"><code># .npmrc in SDK root
-    @company:registry=https://npm.pkg.github.com
+    @brdrwanda:registry=https://npm.pkg.github.com
     //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 
     # Update package.json
@@ -350,17 +372,17 @@
     </code></pre>
     <h4 id="gitlab-packages">GitLab Packages</h4>
     <pre class="bash"><code># .npmrc
-    @company:registry=https://gitlab.com/api/v4/projects/&lt;PROJECT_ID&gt;/packages/npm/
+    @brdrwanda:registry=https://gitlab.com/api/v4/projects/&lt;PROJECT_ID&gt;/packages/npm/
     //gitlab.com/api/v4/projects/&lt;PROJECT_ID&gt;/packages/npm/:_authToken=${GITLAB_TOKEN}
 
     npm publish
     </code></pre>
     <h3 id="4-consume-in-services">4. Consume in services</h3>
     <pre class="bash"><code># In each service repo, point to your registry
-    echo &quot;@company:registry=http://your-verdaccio:4873&quot; &gt;&gt; .npmrc
+    echo &quot;@brdrwanda:registry=http://your-verdaccio:4873&quot; &gt;&gt; .npmrc
 
     # Install
-    pnpm add @company/observability
+    pnpm add @brdrwanda/observability
     </code></pre>
     <h3 id="5-version-bumps">5. Version bumps</h3>
     <pre class="bash"><code>cd packages/sdk
@@ -427,7 +449,7 @@
     <h3 id="service-packagejson">Service package.json</h3>
     <pre class="jsonc"><code>{
       &quot;dependencies&quot;: {
-        &quot;@company/observability&quot;: &quot;workspace:*&quot;
+        &quot;@brdrwanda/observability&quot;: &quot;workspace:*&quot;
       }
     }
     </code></pre>
@@ -461,10 +483,10 @@
               registry-url: &quot;https://npm.pkg.github.com&quot;
 
           - run: pnpm install --frozen-lockfile
-          - run: pnpm --filter @company/observability build
-          - run: pnpm --filter @company/observability test
+          - run: pnpm --filter @brdrwanda/observability build
+          - run: pnpm --filter @brdrwanda/observability test
 
-          - run: pnpm --filter @company/observability publish --no-git-checks
+          - run: pnpm --filter @brdrwanda/observability publish --no-git-checks
             env:
               NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     </code></pre>
@@ -473,13 +495,13 @@
         → PR review + merge to main
         → Tag release: git tag v0.2.0 &amp;&amp; git push origin v0.2.0
         → CI runs tests + publishes to registry
-        → Services update: pnpm update @company/observability
+        → Services update: pnpm update @brdrwanda/observability
     </code></pre>
     <hr />
     <h2 id="service-integration-checklist">Service Integration Checklist</h2>
     <p>After SDK is available, each service needs:</p>
     <h3 id="1-install">1. Install</h3>
-    <pre class="bash"><code>pnpm add @company/observability
+    <pre class="bash"><code>pnpm add @brdrwanda/observability
 
     # Add instrumentations you need
     pnpm add mysql2 @opentelemetry/instrumentation-mysql2   # if using MySQL
@@ -495,7 +517,7 @@
       mysqlInstrumentation,    // add what you need
       redisInstrumentation,
       kafkaInstrumentation,
-    } from &#39;@company/observability&#39;;
+    } from &#39;@brdrwanda/observability&#39;;
 
     @Module({
       imports: [
@@ -520,7 +542,7 @@
     </code></pre>
     <h3 id="3-replace-nestjs-logger">3. Replace NestJS logger</h3>
     <pre class="typescript"><code>// main.ts
-    import { NestPinoLogger } from &#39;@company/observability&#39;;
+    import { NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
 
     async function bootstrap() {
       const app = await NestFactory.create(AppModule);
@@ -550,7 +572,7 @@
     2. Update CHANGELOG with migration notes
     3. Publish new version
     4. Update services one at a time:
-       pnpm add @company/observability@^1.0.0
+       pnpm add @brdrwanda/observability@^1.0.0
     5. Test each service before moving to next
     </code></pre>
     <h3 id="non-breaking-change">Non-breaking change</h3>
@@ -562,7 +584,7 @@
     <pre class="jsonc"><code>// service package.json — pin exact version for stability
     {
       &quot;dependencies&quot;: {
-        &quot;@company/observability&quot;: &quot;0.1.0&quot;    // exact, not ^0.1.0
+        &quot;@brdrwanda/observability&quot;: &quot;0.1.0&quot;    // exact, not ^0.1.0
       }
     }
     </code></pre>

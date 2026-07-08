@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation Home — @brdrwanda/observability</title>
+  <title>Changelog — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -273,184 +273,73 @@
     </div>
   </nav>
   <main class="content">
-    <h1 id="brdrwandaobservability--documentation">@brdrwanda/observability — Documentation</h1>
-    <h2 id="getting-started">Getting Started</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="getting-started.html">Quick Start</a></td>
-    <td>Install, wire, verify in 10 minutes</td>
-    <td>New developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="configuration.html">Configuration Reference</a></td>
-    <td>Every config option with defaults and examples</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="standalone.html">Standalone Mode</a></td>
-    <td>Express, Fastify, plain Node.js — no NestJS needed</td>
-    <td>Non-NestJS developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="guides">Guides</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="logging.html">Structured Logging</a></td>
-    <td>Auto-request logging, business events, Loki queries, redaction</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="tracing.html">Distributed Tracing</a></td>
-    <td>Trace setup, sampling, custom spans, cross-service correlation</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="metrics.html">Metrics &amp; Dashboards</a></td>
-    <td>Auto HTTP metrics, custom counters/histograms, Grafana PromQL</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="error-handling.html">Error Handling</a></td>
-    <td>Auto error classification, logCaughtError, process handlers</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="instrumentations.html">Instrumentations</a></td>
-    <td>Redis, MySQL, PostgreSQL, Sequelize, Kafka setup and spans</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="alerting.html">Alerting &amp; Monitoring</a></td>
-    <td>Prometheus rules, Alertmanager, Teams/Slack notifications</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="migration">Migration</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="migration.html">Migration Guide</a></td>
-    <td>Step-by-step migration from Winston/LoggerService</td>
-    <td>Migrating developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="migration-per-service.html">Integration Checklist</a></td>
-    <td>Step-by-step SDK integration with verification steps</td>
-    <td>Migrating developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="deployment--operations">Deployment &amp; Operations</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="deployment-pm2.html">PM2 Deployment</a></td>
-    <td>PM2 ecosystem config, log collection, Promtail setup</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    <tr class="even">
-    <td><a href="sdk-deployment.html">SDK Publishing</a></td>
-    <td>Build, version, publish the SDK package</td>
-    <td>Maintainers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="architecture">Architecture</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="architecture.html">How It Works</a></td>
-    <td>SDK structure, dependency strategy, design decisions</td>
-    <td>Tech leads, architects</td>
-    </tr>
-    <tr class="even">
-    <td><a href="architecture-decisions.html">Architecture Decisions</a></td>
-    <td>Why the SDK exists and key technical choices</td>
-    <td>Tech leads, new members</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="sdk-explained.html">SDK Internals</a></td>
-    <td>Deep dive into every module and file</td>
-    <td>Contributors</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="reference">Reference</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="troubleshooting.html">Troubleshooting &amp; FAQ</a></td>
-    <td>Common issues, diagnostics, frequently asked questions</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="testing.html">Testing</a></td>
-    <td>Mocking SDK providers, suppressing logs, e2e testing</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="CHANGELOG.html">Changelog</a></td>
-    <td>Version history and release notes</td>
-    <td>All developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="quick-links">Quick Links</h2>
+    <h1 id="changelog">Changelog</h1>
+    <p>All notable changes to <code>@brdrwanda/observability</code> will be documented in this file.</p>
+    <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>, and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+    <h2 id="unreleased">[Unreleased]</h2>
+    <h3 id="added">Added</h3>
     <ul>
-    <li><strong>Install</strong>: <code>npm install @brdrwanda/observability</code></li>
-    <li><strong>GitHub</strong>: <a href="https://github.com/brdbank/observability-sdk">brdbank/observability-sdk</a></li>
-    <li><strong>SDK README</strong>: <a href="../packages/sdk/README.html">packages/sdk/README.md</a></li>
+    <li>Configurable auto-request logging: <code>autoRequestLogging</code>, <code>autoErrorLogging</code>, <code>logRequestBody</code>, <code>logResponseBody</code> options</li>
+    <li>Route exclusion: <code>excludeRoutes</code> option (defaults to <code>['/health', '/metrics']</code>)</li>
+    <li>Controller and handler names in request lifecycle logs</li>
+    <li>Consistent <code>request_start</code> / <code>request_complete</code> / <code>request_error</code> message format</li>
+    </ul>
+    <h2 id="100---2026-06-29">[1.0.0] - 2026-06-29</h2>
+    <h3 id="changed">Changed</h3>
+    <ul>
+    <li>Upgraded OpenTelemetry to v2 API</li>
+    <li>Upgraded NestJS peer dependency to support v11</li>
+    <li>Migrated npm scope from <code>@brd-rw</code> to <code>@brdrwanda</code></li>
+    </ul>
+    <h3 id="security">Security</h3>
+    <ul>
+    <li>Resolved security vulnerabilities in OpenTelemetry v1 dependencies</li>
+    </ul>
+    <h2 id="020---2026-06-25">[0.2.0] - 2026-06-25</h2>
+    <h3 id="added-1">Added</h3>
+    <ul>
+    <li><code>logCaughtError()</code> method on <code>ObservabilityLogger</code> — auto-classifies caught exceptions (4xx → warn, 5xx → error with stack)</li>
+    <li><code>setupProcessErrorHandlers()</code> — catches <code>uncaughtException</code> and <code>unhandledRejection</code>, logs as fatal JSON</li>
+    <li>Tracing configuration documentation and process error handler options</li>
+    <li>"Why this SDK" section in documentation</li>
+    </ul>
+    <h2 id="010---2026-06-22">[0.1.0] - 2026-06-22</h2>
+    <h3 id="added-2">Added</h3>
+    <ul>
+    <li><code>ObservabilityModule.forRoot()</code> — single module wires up logging, tracing, metrics, and health</li>
+    <li><code>ObservabilityLogger</code> — structured JSON logging via Pino with trace context enrichment</li>
+    <li><code>ObservabilityTracer</code> — OpenTelemetry tracing with <code>@Span</code> decorator and manual span API</li>
+    <li><code>ObservabilityMetrics</code> — Prometheus metrics with <code>createCounter</code>, <code>createHistogram</code>, <code>createGauge</code></li>
+    <li><code>ObservabilityExceptionFilter</code> — global exception filter with error classification (bad_request, authentication_failed, server_error, etc.)</li>
+    <li><code>LoggingInterceptor</code> — auto logs request started / request completed with duration</li>
+    <li><code>MetricsInterceptor</code> — auto records <code>http_requests_total</code> and <code>http_request_duration_seconds</code></li>
+    <li><code>TracingInterceptor</code> — creates <code>ControllerName.methodName</code> spans for each request</li>
+    <li><code>ContextMiddleware</code> — request context via AsyncLocalStorage (request_id, correlation_id, trace_id, client_app)</li>
+    <li>Instrumentation plugins: <code>httpInstrumentation</code>, <code>sequelizeInstrumentation</code>, <code>kafkaInstrumentation</code>, <code>redisInstrumentation</code>, <code>mysqlInstrumentation</code>, <code>pgInstrumentation</code></li>
+    <li>Kafka helpers: <code>injectKafkaHeaders</code>, <code>withKafkaContext</code> for trace propagation</li>
+    <li>Sequelize helpers: <code>createSequelizeLogging</code>, <code>createSequelizeErrorLogging</code> for structured query logging</li>
+    <li><code>DiagnosticsService</code> — runtime diagnostic report (SDK version, config, active instrumentations)</li>
+    <li><code>NestPinoLogger</code> — NestJS LoggerService adapter for Pino</li>
+    <li>Standalone mode: <code>createObservability()</code> for Express/Fastify/plain Node.js</li>
+    <li>Sensitive data redaction with 17 default paths (passwords, tokens, credit cards, SSNs, etc.)</li>
+    <li>Health module: <code>ObservabilityHealthModule</code> with liveness endpoint</li>
+    <li>Metric exemplars: automatic <code>trace_id</code> attachment on histogram observations</li>
+    <li>Client origin resolution: <code>clientOrigins</code> config maps Origin/Referer to friendly app names</li>
+    <li>Environment-aware defaults (dev: debug + pretty + console export, prod: info + JSON + OTLP + 10% sampling)</li>
+    <li>SQL query sanitizer: strips literals from SQL before logging</li>
+    <li>Sandbox environment: Docker Compose with Grafana, Loki, Tempo, Prometheus, Alertmanager, Teams forwarder</li>
+    </ul>
+    <h3 id="infrastructure">Infrastructure</h3>
+    <ul>
+    <li>Prometheus alert rules: ServiceDown, HighErrorRate, HighLatencyP95, HighLatencyP99, HighMemoryUsage, HighEventLoopLag</li>
+    <li>Alertmanager with Microsoft Teams webhook forwarding</li>
+    <li>Promtail config for log collection from PM2 or file-based logs</li>
+    <li>GitHub Actions workflow for auto-deploying docs to GitHub Pages</li>
     </ul>
   </main>
   <script>
     // Highlight active nav item
-    var current = "index";
+    var current = "CHANGELOG";
     var el = document.getElementById("nav-" + current);
     if (el) el.classList.add("active");
   </script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Getting Started — @brdrwanda/observability</title>
+  <title>Quick Start — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -239,23 +239,45 @@
     </div>
     <div class="sidebar-nav">
       <a href="index.html" id="nav-index">Home</a>
-      <a href="architecture.html" id="nav-architecture">Architecture</a>
-      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
-      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
       <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
       <a href="migration.html" id="nav-migration">Migration Guide</a>
-      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
-      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
       <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
-      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
     </div>
   </nav>
   <main class="content">
     <h1 id="getting-started">Getting Started</h1>
-    <p>Add structured logging, distributed tracing, and Prometheus metrics to any NestJS service in 3 steps. Takes about 10 minutes.</p>
+    <p>Add structured logging, distributed tracing, and Prometheus metrics to any BRD NestJS service in 3 steps. Takes about 10 minutes.</p>
     <hr />
     <h2 id="step-1-install">Step 1: Install</h2>
-    <pre class="bash"><code>npm install @company/observability
+    <pre class="bash"><code>npm install @brdrwanda/observability
 
     # Pretty logs for development (recommended)
     npm install -D pino-pretty
@@ -271,7 +293,7 @@
       httpInstrumentation,
       kafkaInstrumentation,
       redisInstrumentation,
-    } from &#39;@company/observability&#39;;
+    } from &#39;@brdrwanda/observability&#39;;
 
     @Module({
       imports: [
@@ -292,7 +314,7 @@
     <h3 id="maints">main.ts</h3>
     <p>Add <code>setupProcessErrorHandlers</code> at the top to catch bootstrap crashes (missing modules, connection failures, bad config) as structured JSON. Then add <code>bufferLogs: true</code> and set the SDK logger.</p>
     <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
-    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@company/observability&#39;;
+    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
     import { AppModule } from &#39;./app.module&#39;;
 
     setupProcessErrorHandlers({ serviceName: &#39;your-service-name&#39; });
@@ -307,10 +329,10 @@
     <p><code>setupProcessErrorHandlers</code> catches <code>uncaughtException</code> and <code>unhandledRejection</code> events that happen before or outside NestJS — like missing modules, database connection failures during import, or Kafka broker unreachable errors. These are output as structured JSON to stderr so your log aggregator can parse them.</p>
     <p>That's it. Start your service and you'll see structured logs with <code>service_name</code>, <code>environment</code>, and <code>version</code> on every line.</p>
     <hr />
-    <h2 id="step-3-use-in-your-services">Step 3: Use in your services</h2>
+    <h2 id="step-3-use-in-brd-services">Step 3: Use in BRD services</h2>
     <p>Inject <code>ObservabilityLogger</code> anywhere you need logging. It's globally available from the module — no extra providers needed.</p>
     <pre class="typescript"><code>import { Injectable } from &#39;@nestjs/common&#39;;
-    import { ObservabilityLogger, Span } from &#39;@company/observability&#39;;
+    import { ObservabilityLogger, Span } from &#39;@brdrwanda/observability&#39;;
 
     @Injectable()
     export class PaymentService {
@@ -406,6 +428,11 @@
     <td>Service uses PostgreSQL</td>
     <td><code>@opentelemetry/instrumentation-pg</code></td>
     </tr>
+    <tr class="even">
+    <td><code>sequelizeInstrumentation()</code></td>
+    <td>Service uses Sequelize ORM</td>
+    <td><code>opentelemetry-instrumentation-sequelize</code></td>
+    </tr>
     </tbody>
     </table>
     <p>The SDK logs a helpful message if an optional dependency is missing — it won't crash.</p>
@@ -474,7 +501,7 @@
     // After
     // import LoggerModule from &#39;./logger/logger.module&#39;;
     // import MorganMiddleware from &#39;./middlewares/morgan.middleware&#39;;
-    import { ObservabilityModule, ObservabilityHealthModule, httpInstrumentation } from &#39;@company/observability&#39;;
+    import { ObservabilityModule, ObservabilityHealthModule, httpInstrumentation } from &#39;@brdrwanda/observability&#39;;
 
     @Module({
       imports: [
@@ -495,7 +522,7 @@
     const app = await NestFactory.create(AppModule);
 
     // After
-    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@company/observability&#39;;
+    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
 
     setupProcessErrorHandlers({ serviceName: &#39;my-service&#39; });
 
@@ -516,7 +543,7 @@
     }
 
     // After
-    import { ObservabilityLogger } from &#39;@company/observability&#39;;
+    import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 
     @Injectable()
     export class MyService {
@@ -573,7 +600,7 @@
     <h2 id="kafka-context-propagation">Kafka context propagation</h2>
     <p>Trace context flows automatically across Kafka when you add <code>kafkaInstrumentation()</code>.</p>
     <p>For manual control over headers:</p>
-    <pre class="typescript"><code>import { injectKafkaHeaders, withKafkaContext } from &#39;@company/observability&#39;;
+    <pre class="typescript"><code>import { injectKafkaHeaders, withKafkaContext } from &#39;@brdrwanda/observability&#39;;
 
     // Producer: inject trace context into headers
     await producer.send({
@@ -596,7 +623,7 @@
     <hr />
     <h2 id="custom-spans">Custom spans</h2>
     <p>Use the <code>@Span</code> decorator for automatic span management, or <code>ObservabilityTracer</code> for manual control.</p>
-    <pre class="typescript"><code>import { ObservabilityTracer, Span } from &#39;@company/observability&#39;;
+    <pre class="typescript"><code>import { ObservabilityTracer, Span } from &#39;@brdrwanda/observability&#39;;
 
     @Injectable()
     export class OrderService {

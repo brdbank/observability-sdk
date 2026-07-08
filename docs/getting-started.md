@@ -1,13 +1,13 @@
 # Getting Started
 
-Add structured logging, distributed tracing, and Prometheus metrics to any NestJS service in 3 steps. Takes about 10 minutes.
+Add structured logging, distributed tracing, and Prometheus metrics to any BRD NestJS service in 3 steps. Takes about 10 minutes.
 
 ---
 
 ## Step 1: Install
 
 ```bash
-npm install @company/observability
+npm install @brdrwanda/observability
 
 # Pretty logs for development (recommended)
 npm install -D pino-pretty
@@ -30,7 +30,7 @@ import {
   httpInstrumentation,
   kafkaInstrumentation,
   redisInstrumentation,
-} from '@company/observability';
+} from '@brdrwanda/observability';
 
 @Module({
   imports: [
@@ -55,7 +55,7 @@ Add `setupProcessErrorHandlers` at the top to catch bootstrap crashes (missing m
 
 ```typescript
 import { NestFactory } from '@nestjs/core';
-import { setupProcessErrorHandlers, NestPinoLogger } from '@company/observability';
+import { setupProcessErrorHandlers, NestPinoLogger } from '@brdrwanda/observability';
 import { AppModule } from './app.module';
 
 setupProcessErrorHandlers({ serviceName: 'your-service-name' });
@@ -74,13 +74,13 @@ That's it. Start your service and you'll see structured logs with `service_name`
 
 ---
 
-## Step 3: Use in your services
+## Step 3: Use in BRD services
 
 Inject `ObservabilityLogger` anywhere you need logging. It's globally available from the module — no extra providers needed.
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { ObservabilityLogger, Span } from '@company/observability';
+import { ObservabilityLogger, Span } from '@brdrwanda/observability';
 
 @Injectable()
 export class PaymentService {
@@ -124,6 +124,7 @@ Install only what your service uses:
 | `redisInstrumentation()` | Service uses Redis/ioredis | `@opentelemetry/instrumentation-ioredis` |
 | `mysqlInstrumentation()` | Service uses MySQL | `@opentelemetry/instrumentation-mysql2` |
 | `pgInstrumentation()` | Service uses PostgreSQL | `@opentelemetry/instrumentation-pg` |
+| `sequelizeInstrumentation()` | Service uses Sequelize ORM | `opentelemetry-instrumentation-sequelize` |
 
 The SDK logs a helpful message if an optional dependency is missing — it won't crash.
 
@@ -207,7 +208,7 @@ class AppModule implements NestModule {
 // After
 // import LoggerModule from './logger/logger.module';
 // import MorganMiddleware from './middlewares/morgan.middleware';
-import { ObservabilityModule, ObservabilityHealthModule, httpInstrumentation } from '@company/observability';
+import { ObservabilityModule, ObservabilityHealthModule, httpInstrumentation } from '@brdrwanda/observability';
 
 @Module({
   imports: [
@@ -231,7 +232,7 @@ class AppModule implements NestModule {
 const app = await NestFactory.create(AppModule);
 
 // After
-import { setupProcessErrorHandlers, NestPinoLogger } from '@company/observability';
+import { setupProcessErrorHandlers, NestPinoLogger } from '@brdrwanda/observability';
 
 setupProcessErrorHandlers({ serviceName: 'my-service' });
 
@@ -255,7 +256,7 @@ export class MyService {
 }
 
 // After
-import { ObservabilityLogger } from '@company/observability';
+import { ObservabilityLogger } from '@brdrwanda/observability';
 
 @Injectable()
 export class MyService {
@@ -297,7 +298,7 @@ Trace context flows automatically across Kafka when you add `kafkaInstrumentatio
 For manual control over headers:
 
 ```typescript
-import { injectKafkaHeaders, withKafkaContext } from '@company/observability';
+import { injectKafkaHeaders, withKafkaContext } from '@brdrwanda/observability';
 
 // Producer: inject trace context into headers
 await producer.send({
@@ -325,7 +326,7 @@ await consumer.run({
 Use the `@Span` decorator for automatic span management, or `ObservabilityTracer` for manual control.
 
 ```typescript
-import { ObservabilityTracer, Span } from '@company/observability';
+import { ObservabilityTracer, Span } from '@brdrwanda/observability';
 
 @Injectable()
 export class OrderService {

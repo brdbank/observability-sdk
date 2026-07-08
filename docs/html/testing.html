@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation Home — @brdrwanda/observability</title>
+  <title>Testing — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -273,184 +273,167 @@
     </div>
   </nav>
   <main class="content">
-    <h1 id="brdrwandaobservability--documentation">@brdrwanda/observability — Documentation</h1>
-    <h2 id="getting-started">Getting Started</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="getting-started.html">Quick Start</a></td>
-    <td>Install, wire, verify in 10 minutes</td>
-    <td>New developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="configuration.html">Configuration Reference</a></td>
-    <td>Every config option with defaults and examples</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="standalone.html">Standalone Mode</a></td>
-    <td>Express, Fastify, plain Node.js — no NestJS needed</td>
-    <td>Non-NestJS developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="guides">Guides</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="logging.html">Structured Logging</a></td>
-    <td>Auto-request logging, business events, Loki queries, redaction</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="tracing.html">Distributed Tracing</a></td>
-    <td>Trace setup, sampling, custom spans, cross-service correlation</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="metrics.html">Metrics &amp; Dashboards</a></td>
-    <td>Auto HTTP metrics, custom counters/histograms, Grafana PromQL</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="error-handling.html">Error Handling</a></td>
-    <td>Auto error classification, logCaughtError, process handlers</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="instrumentations.html">Instrumentations</a></td>
-    <td>Redis, MySQL, PostgreSQL, Sequelize, Kafka setup and spans</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="alerting.html">Alerting &amp; Monitoring</a></td>
-    <td>Prometheus rules, Alertmanager, Teams/Slack notifications</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="migration">Migration</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="migration.html">Migration Guide</a></td>
-    <td>Step-by-step migration from Winston/LoggerService</td>
-    <td>Migrating developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="migration-per-service.html">Integration Checklist</a></td>
-    <td>Step-by-step SDK integration with verification steps</td>
-    <td>Migrating developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="deployment--operations">Deployment &amp; Operations</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="deployment-pm2.html">PM2 Deployment</a></td>
-    <td>PM2 ecosystem config, log collection, Promtail setup</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    <tr class="even">
-    <td><a href="sdk-deployment.html">SDK Publishing</a></td>
-    <td>Build, version, publish the SDK package</td>
-    <td>Maintainers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="architecture">Architecture</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="architecture.html">How It Works</a></td>
-    <td>SDK structure, dependency strategy, design decisions</td>
-    <td>Tech leads, architects</td>
-    </tr>
-    <tr class="even">
-    <td><a href="architecture-decisions.html">Architecture Decisions</a></td>
-    <td>Why the SDK exists and key technical choices</td>
-    <td>Tech leads, new members</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="sdk-explained.html">SDK Internals</a></td>
-    <td>Deep dive into every module and file</td>
-    <td>Contributors</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="reference">Reference</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="troubleshooting.html">Troubleshooting &amp; FAQ</a></td>
-    <td>Common issues, diagnostics, frequently asked questions</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="testing.html">Testing</a></td>
-    <td>Mocking SDK providers, suppressing logs, e2e testing</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="CHANGELOG.html">Changelog</a></td>
-    <td>Version history and release notes</td>
-    <td>All developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="quick-links">Quick Links</h2>
+    <h1 id="testing-with-the-sdk">Testing with the SDK</h1>
+    <p>How to mock SDK providers in unit tests, suppress log noise, and verify observability behavior in integration tests.</p>
+    <hr />
+    <h2 id="mocking-observabilitylogger">Mocking ObservabilityLogger</h2>
+    <p>In unit tests, mock the logger instead of importing the full module:</p>
+    <pre class="typescript"><code>import { Test } from &#39;@nestjs/testing&#39;;
+    import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+    import { LoanService } from &#39;./loan.service&#39;;
+
+    const mockLogger = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      fatal: jest.fn(),
+      logCaughtError: jest.fn(),
+      child: jest.fn().mockReturnThis(),
+    };
+
+    describe(&#39;LoanService&#39;, () =&gt; {
+      let service: LoanService;
+
+      beforeEach(async () =&gt; {
+        const module = await Test.createTestingModule({
+          providers: [
+            LoanService,
+            { provide: ObservabilityLogger, useValue: mockLogger },
+          ],
+        }).compile();
+
+        service = module.get(LoanService);
+        jest.clearAllMocks();
+      });
+
+      it(&#39;should log loan approval&#39;, async () =&gt; {
+        await service.approveLoan(&#39;LN-001&#39;);
+
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          &#39;loan approved&#39;,
+          expect.objectContaining({ loanId: &#39;LN-001&#39; }),
+        );
+      });
+
+      it(&#39;should log caught errors at appropriate level&#39;, async () =&gt; {
+        await service.processWithFallback();
+
+        expect(mockLogger.logCaughtError).toHaveBeenCalled();
+      });
+    });
+    </code></pre>
+    <hr />
+    <h2 id="mocking-observabilitymetrics">Mocking ObservabilityMetrics</h2>
+    <pre class="typescript"><code>import { ObservabilityMetrics } from &#39;@brdrwanda/observability&#39;;
+
+    const mockCounter = { inc: jest.fn() };
+    const mockHistogram = { observe: jest.fn(), startTimer: jest.fn(() =&gt; jest.fn()) };
+    const mockGauge = { set: jest.fn(), inc: jest.fn(), dec: jest.fn() };
+
+    const mockMetrics = {
+      createCounter: jest.fn().mockReturnValue(mockCounter),
+      createHistogram: jest.fn().mockReturnValue(mockHistogram),
+      createGauge: jest.fn().mockReturnValue(mockGauge),
+    };
+
+    // In your test module
+    { provide: ObservabilityMetrics, useValue: mockMetrics }
+    </code></pre>
+    <hr />
+    <h2 id="mocking-observabilitytracer">Mocking ObservabilityTracer</h2>
+    <pre class="typescript"><code>import { ObservabilityTracer } from &#39;@brdrwanda/observability&#39;;
+
+    const mockTracer = {
+      startActiveSpan: jest.fn((name, fn) =&gt; fn({ end: jest.fn(), setAttribute: jest.fn() })),
+      getActiveSpan: jest.fn(),
+    };
+
+    // In your test module
+    { provide: ObservabilityTracer, useValue: mockTracer }
+    </code></pre>
+    <hr />
+    <h2 id="disabling-tracing-and-metrics-in-tests">Disabling Tracing and Metrics in Tests</h2>
+    <p>For integration or e2e tests where you import the real module but don't want OTel overhead:</p>
+    <pre class="typescript"><code>const module = await Test.createTestingModule({
+      imports: [
+        ObservabilityModule.forRoot({
+          serviceName: &#39;test-service&#39;,
+          tracing: { enabled: false },
+          metrics: { enabled: false },
+          logger: { level: &#39;warn&#39;, prettyPrint: false },
+        }),
+      ],
+    }).compile();
+    </code></pre>
+    <p>Setting <code>logger.level</code> to <code>'warn'</code> suppresses info/debug output. Set to <code>'fatal'</code> to silence everything.</p>
+    <hr />
+    <h2 id="e2e-testing-error-handling">E2E Testing Error Handling</h2>
+    <p>Verify the exception filter returns the expected JSON structure:</p>
+    <pre class="typescript"><code>import * as request from &#39;supertest&#39;;
+
+    describe(&#39;Error Handling (e2e)&#39;, () =&gt; {
+      it(&#39;returns structured 404 response&#39;, async () =&gt; {
+        const response = await request(app.getHttpServer())
+          .get(&#39;/nonexistent&#39;)
+          .expect(404);
+
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            statusCode: 404,
+            message: expect.any(String),
+            timestamp: expect.any(String),
+          }),
+        );
+      });
+
+      it(&#39;returns structured validation error&#39;, async () =&gt; {
+        const response = await request(app.getHttpServer())
+          .post(&#39;/api/loans&#39;)
+          .send({})
+          .expect(400);
+
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            statusCode: 400,
+            message: expect.any(String),
+          }),
+        );
+      });
+    });
+    </code></pre>
+    <hr />
+    <h2 id="verifying-trace-context-in-tests">Verifying Trace Context in Tests</h2>
+    <p>Check that trace_id appears in response or logs:</p>
+    <pre class="typescript"><code>it(&#39;includes traceId in error responses&#39;, async () =&gt; {
+      const response = await request(app.getHttpServer())
+        .get(&#39;/nonexistent&#39;)
+        .expect(404);
+
+      // traceId is included in error responses by the exception filter
+      expect(response.body.traceId).toBeDefined();
+    });
+    </code></pre>
+    <hr />
+    <h2 id="tips">Tips</h2>
     <ul>
-    <li><strong>Install</strong>: <code>npm install @brdrwanda/observability</code></li>
-    <li><strong>GitHub</strong>: <a href="https://github.com/brdbank/observability-sdk">brdbank/observability-sdk</a></li>
-    <li><strong>SDK README</strong>: <a href="../packages/sdk/README.html">packages/sdk/README.md</a></li>
+    <li><strong>Unit tests</strong>: Mock SDK providers, don't import the full module</li>
+    <li><strong>Integration tests</strong>: Use <code>tracing: { enabled: false }</code> and <code>metrics: { enabled: false }</code> to skip OTel setup</li>
+    <li><strong>Suppress log noise</strong>: Set <code>logger: { level: 'fatal' }</code> in test config</li>
+    <li><strong>CI pipelines</strong>: Set <code>NODE_ENV=test</code> — the SDK uses dev defaults (debug level, console exporter)</li>
+    <li><strong>Don't mock what you're testing</strong>: If you're testing that your service logs correctly, use the real logger with a captured transport, not a mock</li>
+    </ul>
+    <hr />
+    <h2 id="see-also">See Also</h2>
+    <ul>
+    <li><a href="logging.html">Structured Logging</a> — logger API reference</li>
+    <li><a href="error-handling.html">Error Handling</a> — exception filter behavior</li>
+    <li><a href="configuration.html">Configuration Reference</a> — all config options</li>
     </ul>
   </main>
   <script>
     // Highlight active nav item
-    var current = "index";
+    var current = "testing";
     var el = document.getElementById("nav-" + current);
     if (el) el.classList.add("active");
   </script>

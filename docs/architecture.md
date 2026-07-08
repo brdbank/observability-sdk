@@ -15,7 +15,7 @@ Design principles: pay-for-what-you-use, explicit over magic, driver-level DB in
 ```
 observability-platform-sdk/
 ├── packages/
-│   └── sdk/                               # @company/observability (single publishable package)
+│   └── sdk/                               # @brdrwanda/observability (single publishable package)
 │       └── src/
 │           ├── core/                      # Types, config, AsyncLocalStorage context, constants
 │           ├── logger/                    # Pino logger + NestJS adapter
@@ -50,7 +50,7 @@ observability-platform-sdk/
 
 Previous designs considered a multi-package monorepo (@obs/core, @obs/logger, etc). Rejected for simplicity:
 
-- Consumer installs ONE package: `npm install @company/observability`
+- Consumer installs ONE package: `npm install @brdrwanda/observability`
 - ONE version to track
 - ONE changelog
 - No cross-package version coordination

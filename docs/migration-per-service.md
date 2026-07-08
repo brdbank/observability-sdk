@@ -1,373 +1,719 @@
-# Service Migration Reference
+# SDK Integration & Migration Checklist
 
-Per-service migration status, files to change, and specific patterns found in each BRD microservice.
+A step-by-step implementation guide for integrating `@brdrwanda/observability` into any BRD NestJS service. Each step documents the objective, files to modify, example code, what to verify, and common pitfalls.
 
-For step-by-step instructions, see the [Migration Guide](migration.md).
+For background on why this migration is needed, see the [Migration Guide](migration.md).
+
+---
 
 ## Table of Contents
 
-- [Migration status overview](#migration-status-overview)
-- [api-gateway](#api-gateway)
-- [application-service](#application-service)
-- [authentication-service](#authentication-service)
-- [access-management-microservice](#access-management-microservice)
-- [uno-job-scheduler](#uno-job-scheduler)
-- [configuration-microservice](#configuration-microservice)
-- [mel-service](#mel-service)
-- [payment-microservice](#payment-microservice)
-- [product-microservice](#product-microservice)
-- [profile-microservice](#profile-microservice)
-- [workflow-service](#workflow-service)
+1. [Step 1: Install the SDK](#step-1-install-the-sdk)
+2. [Step 2: Configure main.ts](#step-2-configure-maints)
+3. [Step 3: Configure app.module.ts](#step-3-configure-appmodulets)
+4. [Step 4: Remove old logging infrastructure](#step-4-remove-old-logging-infrastructure)
+5. [Step 5: Replace logger usage in services and controllers](#step-5-replace-logger-usage-in-services-and-controllers)
+6. [Step 6: Add database instrumentation](#step-6-add-database-instrumentation)
+7. [Step 7: Add Kafka trace propagation](#step-7-add-kafka-trace-propagation)
+8. [Step 8: Add external API tracing](#step-8-add-external-api-tracing)
+9. [Step 9: Replace console.log statements](#step-9-replace-consolelog-statements)
+10. [Step 10: Configure deployment (PM2 / Docker)](#step-10-configure-deployment-pm2--docker)
+11. [Step 11: Final verification](#step-11-final-verification)
+12. [Files to delete checklist](#files-to-delete-checklist)
+13. [Common pitfalls](#common-pitfalls)
 
 ---
 
-## Migration status overview
+## Step 1: Install the SDK
 
-| Service | SDK installed | main.ts done | app.module done | Controllers done | Services done | Complexity |
-|---------|:---:|:---:|:---:|:---:|:---:|:---:|
-| api-gateway | `@brdrwanda` | Yes | Partial | No | No | Medium |
-| application-service | `@brdrwanda` | Yes | Yes | Yes | Yes | Done |
-| authentication-service | `@ivymurage-rw` | Partial | Partial | No | No | **High** |
-| access-management-microservice | `@ivymurage-rw` | Partial | Yes | No | No | Low |
-| uno-job-scheduler | `@ivymurage-rw` | Partial | Partial | No | No | Low |
-| configuration-microservice | None | No | No | No | No | Medium |
-| mel-service | None | No | No | No | No | Medium |
-| payment-microservice | None | No | No | No | No | Medium |
-| product-microservice | None | No | No | No | No | **High** |
-| profile-microservice | None | No | No | No | No | **High** |
-| workflow-service | None | No | No | No | No | Low |
+### Objective
+Add `@brdrwanda/observability` and any instrumentation peer dependencies your service needs.
 
-### Complexity ratings
+### Files to modify
+- `package.json`
 
-- **Low** — Few files, simple LoggerService usage, no createLoggingContextWithId
-- **Medium** — Multiple controllers/services, Kafka logging client, some console.log
-- **High** — Many files with handleInfoLog/handlErrorLog, createLoggingContextWithId usage, heavy console.log, Kafka event handlers
+### What to do
 
----
+```bash
+# Install the SDK
+npm install @brdrwanda/observability
 
-## api-gateway
+# Remove old logging packages
+npm uninstall winston nest-winston winston-daily-rotate-file morgan
 
-**Status:** SDK installed (`@brdrwanda/observability`), main.ts and imports updated. LoggerService and createLoggingContextWithId still in use.
+# Add optional peer dependencies based on your service's stack
+npm install -D pino-pretty                                          # pretty dev logs
+npm install opentelemetry-instrumentation-sequelize                 # if using Sequelize
+npm install @opentelemetry/instrumentation-ioredis                  # if using Redis
+npm install @opentelemetry/instrumentation-kafkajs                  # if using KafkaJS
+npm install @opentelemetry/instrumentation-mysql2                   # if using MySQL
+npm install @opentelemetry/instrumentation-pg                       # if using PostgreSQL
+```
 
-### What's done
-- `package.json` — `@brdrwanda/observability` installed
-- `src/main.ts` — `setupProcessErrorHandlers`, `bufferLogs`, `NestPinoLogger` configured
-- `src/app.module.ts` — `ObservabilityModule.forRoot()` and `ObservabilityHealthModule` imported
+If replacing an older SDK version under a different npm scope:
 
-### What's left
+```bash
+npm uninstall @old-scope/observability
+npm install @brdrwanda/observability
+```
 
-| File | Pattern | Change needed |
-|------|---------|---------------|
-| `src/app.module.ts` | `APP_FILTER` with `HttpExceptionFilter` | Remove provider |
-| `src/app.module.ts` | `MorganMiddleware` in configure() | Remove middleware, remove `NestModule` |
-| `src/applications/apply/application.controller.ts` | `LoggerService` + `handleInfoLog` + `createLoggingContextWithId` | Replace with `ObservabilityLogger` |
-| `src/utils/logging.util.ts` | `createLoggingContextWithId` utility | Delete file |
-| `src/filters/http.exception.filter.ts` | Custom exception filter | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan HTTP logging | Delete file |
-| `src/logger/logger.service.ts` | Winston LoggerService | Delete file |
-| `src/axios/axios.service.ts` | HTTP client | Add `propagation.inject()` for trace propagation |
+### How to verify
+- `npm ls @brdrwanda/observability` shows the package installed
+- No peer dependency warnings related to `@nestjs/common` or `@nestjs/core`
+- `npm ls winston` shows "empty" (uninstalled)
 
-### Service details
-- **Database:** Sequelize (MSSQL/Tedious)
-- **Kafka:** Yes (ClientKafka for logging)
-- **External APIs:** Yes (AxiosService)
-- **Redis:** Yes (cache-manager)
+### Pitfalls
+- Don't remove `morgan` or `winston` before completing the other steps — the service will break if old code still references them
+- If your service has `@opentelemetry/*` packages already installed, check for version conflicts
 
 ---
 
-## application-service
+## Step 2: Configure main.ts
 
-**Status: Migration complete.** All LoggerService references replaced, HttpExceptionFilter removed, SDK fully integrated.
+### Objective
+Set up process error handlers (catches bootstrap crashes), enable log buffering, and replace the NestJS logger with the SDK's Pino logger.
 
-### What was done
-- `@brdrwanda/observability` installed, `@ivymurage-rw/observability` removed
-- `main.ts` — `setupProcessErrorHandlers`, `bufferLogs`, `NestPinoLogger`
-- `app.module.ts` — `ObservabilityModule.forRoot()`, removed `APP_FILTER` + `HttpExceptionFilter`
-- 6 controllers — `LoggerService` → `ObservabilityLogger`, `handleInfoLog` → `logger.info()`
-- 5 approval services — `LoggerService` → `new Logger(ClassName.name)` (NestJS built-in)
-- `guarantee.service.ts` — 7 `createLoggingContextWithId` blocks + 2 `handlErrorLog` calls replaced manually
-- All `handleInfoLog`/`handlErrorLog`/`handleWarnLog`/`createLoggingContextWithId` references eliminated
+### Files to modify
+- `src/main.ts`
 
-### Pending
-- Build verification (requires `sudo rm -rf dist` due to root-owned dist directory)
+### Before (typical existing service)
 
----
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
 
-## authentication-service
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new HttpExceptionFilter());
+  await app.listen(3000);
+  console.log('Service running on port 3000');
+}
+bootstrap();
+```
 
-**Status:** Has `@ivymurage-rw/observability` v0.1.17. ObservabilityModule already configured. Needs package swap and LoggerService replacement.
+### After
 
-### Current state
-- `main.ts` — Already has `setupProcessErrorHandlers` and `bufferLogs` from `@ivymurage-rw/observability`
-- `app.module.ts` — Already has `ObservabilityModule.forRoot()` with HTTP, Redis, Kafka, Sequelize instrumentations
-- `database.module.ts` — Already uses `createSequelizeLogging` from `@ivymurage-rw/observability`
-- **But:** LoggerService (Winston + Kafka) still used in all controllers and services
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { setupProcessErrorHandlers, NestPinoLogger } from '@brdrwanda/observability';
+import { AppModule } from './app.module';
 
-### What needs to change
+setupProcessErrorHandlers({ serviceName: 'your-service-name' });
 
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | `@ivymurage-rw/observability` | Swap to `@brdrwanda/observability` |
-| `src/main.ts` | Import from `@ivymurage-rw/observability` | Change import to `@brdrwanda/observability` |
-| `src/app.module.ts` | Import from `@ivymurage-rw/observability` | Change import to `@brdrwanda/observability` |
-| `src/database/database.module.ts` | Import `createSequelizeLogging` from `@ivymurage-rw` | Change import |
-| `src/users/users.service.ts` | **49 calls** to `handleInfoLog`/`handlErrorLog` | Replace with `ObservabilityLogger` |
-| `src/access/access.service.ts` | **42 calls** to `handleInfoLog`/`handlErrorLog` | Replace with `ObservabilityLogger` |
-| `src/access/access.controller.ts` | 4 calls to `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/filters/http.exception.filter.ts` | Custom filter with `LoggerService('catch')` | Delete file |
-| `src/logger/logger.service.ts` | Winston + Kafka logger | Delete file |
-| `src/utils/logging.util.ts` | `createLoggingContextWithId` (defined but unused) | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan HTTP logging | Delete file |
-| Multiple files | 18 `console.log` statements | Replace with `logger.info/debug` |
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(NestPinoLogger));
+  await app.listen(3000);
+}
+bootstrap();
+```
 
-### Key details
-- **Highest effort:** `users.service.ts` (49 logger calls) and `access.service.ts` (42 logger calls)
-- **Typo:** Service uses `handlErrorLog` (missing 'e') — watch for this during grep/replace
-- **Service name discrepancy:** `main.ts` uses `'authentication-service'` in `setupProcessErrorHandlers`, but also references `'application-gateway'` — use `'authentication-service'`
-- **External APIs:** Calls NID/TIN lookup APIs via `src/utils/external.apis.call.ts` — add `@Span` decorators
-- **Database:** Already uses `createSequelizeLogging` from observability package
+### What changed
+- `setupProcessErrorHandlers()` added **before** `bootstrap()` — catches `uncaughtException` and `unhandledRejection` as structured JSON
+- `{ bufferLogs: true }` added — buffers logs during startup until the Pino logger is ready
+- `app.useLogger(app.get(NestPinoLogger))` — replaces NestJS's default logger with the SDK
+- `app.useGlobalFilters(new HttpExceptionFilter())` **removed** — the SDK registers its own global exception filter
+- `console.log` **removed** — the SDK logs startup events automatically
 
-### Migration approach
-1. Swap npm package (`@ivymurage-rw` → `@brdrwanda`)
-2. Update all import paths (sed batch)
-3. Replace LoggerService in `users.service.ts` (biggest file — do carefully)
-4. Replace LoggerService in `access.service.ts`
-5. Replace remaining controllers
-6. Delete old files
-7. Build and test
+### How to verify
+1. Start the service: `npm run start:dev`
+2. Check that logs are **structured JSON** (not plain text):
+   ```json
+   {"level":"info","time":"2026-07-02T10:00:00.000Z","service_name":"your-service-name","msg":"request started","method":"GET","url":"/health"}
+   ```
+3. If `prettyPrint` is enabled (default in dev), logs appear as colorized readable output
+4. Kill the process with `kill -9` and verify that `setupProcessErrorHandlers` outputs a `fatal`-level JSON log
 
----
-
-## access-management-microservice
-
-**Status:** Has `@ivymurage-rw/observability` v0.1.19. ObservabilityModule fully configured with all instrumentations. Minimal LoggerService usage.
-
-### Current state
-- `main.ts` — Has `setupProcessErrorHandlers` and `NestPinoLogger` from `@ivymurage-rw`
-- `app.module.ts` — Full `ObservabilityModule.forRoot()` with HTTP, Kafka, Redis, Sequelize instrumentations
-- LoggerService usage is minimal (2 controllers, 1 filter)
-
-### What needs to change
-
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | `@ivymurage-rw/observability` | Swap to `@brdrwanda/observability` |
-| `src/main.ts` | Import from `@ivymurage-rw/observability` | Change import |
-| `src/app.module.ts` | Import from `@ivymurage-rw/observability` | Change import |
-| `src/role-access/role-access.controller.ts` | `new LoggerService('role-access')` + `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/routes/route.controller.ts` | `new LoggerService('route')` + `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/filters/http.exception.filter.ts` | `new LoggerService('catch')` + `handlErrorLog` | Delete file |
-| `src/logger/logger.service.ts` | Winston logger | Delete file |
-| `src/main.ts` | `console.log` in listen callback | Remove |
-
-### Key details
-- **Low complexity** — only 2 controllers use LoggerService
-- **Direct instantiation:** Controllers use `const loggerService = new LoggerService('role-access')` at module scope (not injected)
-- **No createLoggingContextWithId**
-- **Service name:** `'access-management-service'` in app.module, `'application-gateway'` in main.ts error handler — fix to `'access-management-service'`
+### Pitfalls
+- `setupProcessErrorHandlers()` must be called **outside** `bootstrap()`, at the top level — otherwise it won't catch errors during module initialization
+- Don't forget `{ bufferLogs: true }` — without it, early startup logs bypass the SDK
+- Remove `app.useGlobalFilters(new HttpExceptionFilter())` — having two global filters causes double error logging
+- If your service runs a Kafka microservice transport alongside HTTP, preserve the `app.connectMicroservice()` calls
 
 ---
 
-## uno-job-scheduler
+## Step 3: Configure app.module.ts
 
-**Status:** Has `@ivymurage-rw/observability` v0.1.5. Old SDK version. Minimal LoggerService usage.
+### Objective
+Add `ObservabilityModule.forRoot()` with service-specific configuration. Remove Morgan middleware and old exception filter providers.
 
-### What needs to change
+### Files to modify
+- `src/app.module.ts`
 
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | `@ivymurage-rw/observability` v0.1.5 | Swap to `@brdrwanda/observability` |
-| `src/main.ts` | Import from `@ivymurage-rw` | Change import |
-| `src/app.module.ts` | Import from `@ivymurage-rw` | Change import + verify config |
-| `src/filters/http.exception.filter.ts` | Custom filter | Delete file |
-| `src/logger/logger.service.ts` | Winston logger | Delete file |
+### Before
 
-### Key details
-- **Low complexity** — scheduler service with few API endpoints
-- **No Kafka** in this service
-- **External APIs:** AxiosService for guarantee-framework and invoice operations
-- **Add `@Span` decorators** to scheduled job methods for cron job tracing
+```typescript
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { MorganMiddleware } from './middlewares/morgan.middleware';
+import { HttpExceptionFilter } from './filters/http.exception.filter';
 
----
+@Module({
+  imports: [/* ... */],
+  providers: [
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes('*');
+  }
+}
+```
 
-## configuration-microservice
+### After
 
-**Status:** No observability package installed. Full migration needed.
+```typescript
+import { Module } from '@nestjs/common';
+import {
+  ObservabilityModule,
+  ObservabilityHealthModule,
+  httpInstrumentation,
+  sequelizeInstrumentation,   // add if using Sequelize
+  kafkaInstrumentation,       // add if using Kafka
+  redisInstrumentation,       // add if using Redis
+} from '@brdrwanda/observability';
 
-### What needs to change
+@Module({
+  imports: [
+    ObservabilityModule.forRoot({
+      serviceName: 'your-service-name',
+      instrumentations: [
+        httpInstrumentation({ ignoreIncomingPaths: ['/health', '/metrics'] }),
+        sequelizeInstrumentation({ slowQueryThreshold: 1000 }),  // if applicable
+        kafkaInstrumentation(),                                   // if applicable
+        redisInstrumentation(),                                   // if applicable
+      ],
+      clientOrigins: {
+        'https://tugane.brd.rw': 'tugane-web',      // map frontend origins
+        'https://admin.brd.rw': 'admin-web',
+      },
+    }),
+    ObservabilityHealthModule,
+    // ... your other modules
+  ],
+})
+export class AppModule {}
+```
 
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | No setupProcessErrorHandlers, no bufferLogs | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware`, `ScheduleModule` | Add ObservabilityModule, remove Morgan |
-| `src/configuration/configuration.controller.ts` | `new LoggerService('Configurations', loggingClient)` + `handleInfoLog` + `handlErrorLog` | Replace with `ObservabilityLogger` |
-| `src/configuration/configuration.service.ts` | `console.log` (2 instances) | Replace with logger |
-| `src/filters/http.exception.filter.ts` | Logger calls commented out, uses `console.log` | Delete file |
-| `src/logger/logger.service.ts` | Winston + Kafka (full version with 3 methods) | Delete file |
-| `src/utils/logging.util.ts` | `createLoggingContextWithId` | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan HTTP logging | Delete file |
+### What changed
+- `ObservabilityModule.forRoot()` added — wires up logging, tracing, metrics, context middleware
+- `ObservabilityHealthModule` added — provides `/health` endpoint
+- `APP_FILTER` with `HttpExceptionFilter` **removed** — SDK has its own
+- `MorganMiddleware` **removed** — SDK's `LoggingInterceptor` replaces it with structured request logging
+- `implements NestModule` + `configure()` **removed** — no middleware to register manually
+- Instrumentations added for service's specific tech stack
 
-### Key details
-- **Has ScheduleModule** — cron jobs need `@Span` for tracing
-- **Has KafkaOutboxPublisher** — outbox pattern for Kafka, may need trace injection
-- **Swagger configured** at `/api-docs`
-- **Body parser:** Custom 50MB limit configuration — preserve during migration
-- **Kafka topics:** Uses `logging.info` and `logging.warn` for log shipping — remove after migration
+### How to verify
+1. Start the service and hit any endpoint:
+   ```bash
+   curl http://localhost:3000/health
+   ```
+2. Check that you see structured logs with `service_name`, `trace_id`, `request_id`
+3. Check `http://localhost:3000/metrics` returns Prometheus metrics:
+   ```
+   http_requests_total{method="GET",route="/health",status_code="200"} 1
+   ```
+4. Check `http://localhost:3000/health` returns:
+   ```json
+   {"status":"ok","info":{},"error":{},"details":{}}
+   ```
 
----
-
-## mel-service
-
-**Status:** No observability package installed. Full migration needed.
-
-### What needs to change
-
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | `app.useGlobalFilters(new HttpExceptionFilter())`, Kafka microservice | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware`, `ScheduleModule`, `EventEmitterModule` | Add ObservabilityModule, remove Morgan |
-| `src/logger/logger.service.ts` | Winston + Kafka (full version, 256 lines) | Delete file |
-| `src/filters/http.exception.filter.ts` | `LoggerService('catch')` + `handlErrorLog` + `console.log` | Delete file |
-| `src/app.controller.ts` | `new LoggerService('app')` | Replace with `ObservabilityLogger` |
-| `src/middlewares/morgan.middleware.ts` | Morgan | Delete file |
-
-### Key details
-- **Has Kafka microservice** — runs both HTTP and Kafka transport in main.ts
-- **Has ScheduleModule** — cron jobs
-- **External APIs:** AxiosService in kpis and programs modules
-- **Winston version:** ^3.19.0 (newer than other services)
-
----
-
-## payment-microservice
-
-**Status:** No observability package installed. Full migration needed.
-
-### What needs to change
-
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | `app.useGlobalFilters(new HttpExceptionFilter())`, Kafka microservice | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware`, `EventEmitterModule` | Add ObservabilityModule, remove Morgan |
-| `src/payment/payment.service.ts` | `new LoggerService('Payment')` + `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/workflow-events/workflow-events.controller.ts` | `LoggerService` + `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/payment/payment-approval.service.ts` | `LoggerService` | Replace |
-| `src/external-integration/external-integration.service.ts` | `LoggerService` | Replace + add `@Span` |
-| `src/filters/http.exception.filter.ts` | `LoggerService('catch')` + `console.log` | Delete file |
-| `src/logger/logger.service.ts` | Winston (simple version, 72 lines, no Kafka) | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan | Delete file |
-
-### Key details
-- **Simpler LoggerService** — no Kafka integration in the logger itself
-- **Has Kafka microservice** — transport in main.ts
-- **External APIs:** AxiosService for payment integrations
-- **5+ files** need LoggerService replacement
+### Pitfalls
+- Use the exact `serviceName` that matches your deployment name — it appears in every log and metric
+- Don't add instrumentations for technologies your service doesn't use — they log debug warnings about missing packages
+- If your service previously had `MorganMiddleware` in a `configure()` method and that was the only middleware, you can remove `implements NestModule` entirely
 
 ---
 
-## product-microservice
+## Step 4: Remove old logging infrastructure
 
-**Status:** No observability package installed. Full migration needed. **High complexity.**
+### Objective
+Delete files that the SDK replaces. These files are now dead code.
 
-### What needs to change
+### Files to delete
 
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | `app.useGlobalFilters(new HttpExceptionFilter())` | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware` | Add ObservabilityModule, remove Morgan |
-| `src/products/products.product.controller.ts` | `LoggerService` + Kafka + `handleInfoLog` + `createLoggingContextWithId` | Replace with `ObservabilityLogger` |
-| `src/products/products.product.service.ts` | `LoggerService` + `createLoggingContextWithId` + `console.log` | Replace carefully |
-| `src/bundles/bundle.controller.ts` | `LoggerService` + `handleInfoLog` | Replace |
-| `src/categories/category.service.ts` | `LoggerService` | Replace |
-| `src/projects/project.controller.ts` | `LoggerService` + `handleInfoLog` | Replace |
-| `src/projects/project.service.ts` | `LoggerService` | Replace |
-| `src/utils/logging.util.ts` | `createLoggingContextWithId` | Delete file |
-| `src/filters/http.exception.filter.ts` | `LoggerService('catch')` + `console.log` | Delete file |
-| `src/logger/logger.service.ts` | Winston + Kafka (full version, 276 lines) | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan | Delete file |
+| File | Replaced by |
+|------|-------------|
+| `src/logger/logger.service.ts` | `ObservabilityLogger` from SDK |
+| `src/logger/logger.module.ts` | `ObservabilityModule` (if this file exists) |
+| `src/filters/http.exception.filter.ts` | `ObservabilityExceptionFilter` from SDK |
+| `src/middlewares/morgan.middleware.ts` | `LoggingInterceptor` from SDK (auto-request logging) |
+| `src/utils/logging.util.ts` | AsyncLocalStorage context from SDK (if `createLoggingContextWithId` exists) |
 
-### Key details
-- **High complexity** — most extensive LoggerService usage with `createLoggingContextWithId`
-- **ProductService** has `console.log` for cache invalidation (line 479) — replace
-- **Kafka:** ClientKafka in product controller for log shipping
-- **Redis cache** — preserve cache configuration
-- **No external APIs**
+### How to verify
+1. Run `npx tsc --noEmit` — no compilation errors referencing deleted files
+2. Search for dangling imports:
+   ```bash
+   grep -rn "logger.service\|logger.module\|http.exception.filter\|morgan.middleware\|logging.util" src/ --include="*.ts"
+   ```
+3. Result should be empty — if not, fix the remaining imports
 
----
-
-## profile-microservice
-
-**Status:** No observability package installed. Full migration needed. **High complexity due to console.log volume.**
-
-### What needs to change
-
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | `app.useGlobalFilters(new HttpExceptionFilter())`, Kafka microservice | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware`, `LoggerModule`, `ClientsModule` (Kafka) | Add ObservabilityModule, remove Morgan + LoggerModule |
-| `src/customer/customer-kafka.controller.ts` | **8 `console.log` statements** in Kafka event handlers | Replace with `ObservabilityLogger` |
-| `src/business/business-kafka.controller.ts` | **2 `console.log` statements** | Replace |
-| `src/customer/customer.service.ts` | **3 `console.log` statements** | Replace |
-| `src/business/business.service.ts` | **6 `console.log` statements** | Replace |
-| `src/filters/http.exception.filter.ts` | `LoggerService('catch')` + `console.log` | Delete file |
-| `src/logger/logger.service.ts` | Winston (simple, 72 lines) | Delete file |
-| `src/logger/logger.module.ts` | DynamicModule `LoggerModule.register()` | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan | Delete file |
-
-### Key details
-- **High complexity** — 15+ `console.log` statements across Kafka controllers and services
-- **Unique:** Uses `LoggerModule.register('App')` dynamic module pattern — delete and replace with SDK
-- **Kafka controllers:** `CustomerKafkaController` and `BusinessKafkaController` handle events with raw console.log
-- **External APIs:** AxiosService for customer and business lookups
-- **Redis cache** — preserve cache configuration
+### Pitfalls
+- Some services import `LoggerService` in the barrel `index.ts` files — check those too
+- If `HttpExceptionFilter` was registered with `APP_FILTER` in `app.module.ts`, make sure you removed the provider (Step 3)
+- If `LoggerModule` was a dynamic module used in other modules, remove those imports too
 
 ---
 
-## workflow-service
+## Step 5: Replace logger usage in services and controllers
 
-**Status:** No observability package installed. Full migration needed. **Low complexity.**
+### Objective
+Replace all `LoggerService`, `handleInfoLog`, `handlErrorLog`, and `createLoggingContextWithId` patterns with `ObservabilityLogger`.
 
-### What needs to change
+### Files to modify
+- Every service and controller that uses the old logger
 
-| File | Current pattern | Change needed |
-|------|----------------|---------------|
-| `package.json` | No observability package | Install `@brdrwanda/observability` |
-| `src/main.ts` | No exception filter registered (unique among services) | Full main.ts update |
-| `src/app.module.ts` | `MorganMiddleware`, `ScheduleModule`, `EventEmitterModule` | Add ObservabilityModule, remove Morgan |
-| `src/app.controller.ts` | `const logger = new LoggerService('app')` + `handleInfoLog` | Replace with `ObservabilityLogger` |
-| `src/outbox/producer/kafka-producer.service.ts` | Direct KafkaJS usage | Add trace injection to Kafka headers |
-| `src/filters/http.exception.filter.ts` | `LoggerService('catch')` + `console.log` | Delete file |
-| `src/logger/logger.service.ts` | Winston (simple, 72 lines, no Kafka) | Delete file |
-| `src/middlewares/morgan.middleware.ts` | Morgan | Delete file |
+### Find all files that need changes
 
-### Key details
-- **Low complexity** — minimal LoggerService usage (only app.controller.ts)
-- **Unique:** No `useGlobalFilters` in main.ts — exception filter was never registered
-- **Has KafkaJS producer** (not NestJS ClientKafka) — add trace propagation to outbox messages
-- **Has ScheduleModule** — cron jobs need `@Span`
-- **External APIs:** AxiosService for workflow operations
+```bash
+grep -rn "LoggerService\|handleInfoLog\|handlErrorLog\|handleWarnLog\|createLoggingContextWithId" src/ --include="*.ts"
+```
+
+### Before
+
+```typescript
+import { LoggerService } from '../logger/logger.service';
+import { createLoggingContextWithId } from '../utils/logging.util';
+
+@Injectable()
+export class LoanService {
+  private loggerService = new LoggerService('LoanService');
+
+  async approveLoan(loanId: string) {
+    const loggingContext = createLoggingContextWithId('approveLoan', { loanId });
+    this.loggerService.handleInfoLog('Processing loan approval', loggingContext);
+
+    try {
+      const result = await this.loanRepository.approve(loanId);
+      this.loggerService.handleInfoLog('Loan approved successfully', {
+        ...loggingContext,
+        status: result.status,
+      });
+      return result;
+    } catch (error) {
+      this.loggerService.handlErrorLog('Loan approval failed', {
+        ...loggingContext,
+        error: error.message,
+      });
+      throw error;
+    }
+  }
+}
+```
+
+### After
+
+```typescript
+import { ObservabilityLogger } from '@brdrwanda/observability';
+
+@Injectable()
+export class LoanService {
+  constructor(private logger: ObservabilityLogger) {}
+
+  async approveLoan(loanId: string) {
+    this.logger.info('processing loan approval', { loanId });
+
+    try {
+      const result = await this.loanRepository.approve(loanId);
+      this.logger.info('loan approved', { loanId, status: result.status });
+      return result;
+    } catch (error) {
+      this.logger.logCaughtError(error);
+      throw error;
+    }
+  }
+}
+```
+
+### What changed
+- `LoggerService` instantiation → constructor-injected `ObservabilityLogger`
+- `handleInfoLog('message', context)` → `logger.info('message', metadata)`
+- `handlErrorLog('message', context)` → `logger.logCaughtError(error)` or `logger.error('message', metadata)`
+- `createLoggingContextWithId()` → **deleted** — the SDK injects `request_id`, `trace_id`, `correlation_id` automatically via AsyncLocalStorage
+- No need for manual context objects — every log line automatically includes service_name, trace_id, request_id, span_id
+
+### Method mapping
+
+| Old pattern | New pattern |
+|------------|-------------|
+| `loggerService.handleInfoLog(msg, ctx)` | `logger.info(msg, metadata)` |
+| `loggerService.handlErrorLog(msg, ctx)` | `logger.error(msg, metadata)` |
+| `loggerService.handleWarnLog(msg, ctx)` | `logger.warn(msg, metadata)` |
+| `createLoggingContextWithId(name, data)` | Not needed — context is automatic |
+| `new LoggerService('ClassName')` | `constructor(private logger: ObservabilityLogger) {}` |
+| `catch (e) { loggerService.handlErrorLog(...) }` | `catch (e) { logger.logCaughtError(e) }` |
+
+### How to verify
+1. Hit an endpoint and check that log lines include `trace_id`, `request_id`, `service_name`:
+   ```bash
+   curl http://localhost:3000/api/loans
+   ```
+2. Every log line should be structured JSON with automatic context fields
+3. Error responses should include `traceId` and `requestId` in the JSON body:
+   ```json
+   {"statusCode": 404, "message": "Not found", "timestamp": "...", "requestId": "...", "traceId": "..."}
+   ```
+4. No remaining references to old patterns:
+   ```bash
+   grep -rn "handleInfoLog\|handlErrorLog\|createLoggingContextWithId\|LoggerService" src/ --include="*.ts"
+   ```
+
+### Pitfalls
+- Watch for the typo `handlErrorLog` (missing 'e') — some services use this. Grep for both spellings
+- Controllers that use `const loggerService = new LoggerService('name')` at module scope (not DI) need to be converted to constructor injection
+- Don't replace `Logger` from `@nestjs/common` — that's NestJS's built-in logger and still works (it routes through `NestPinoLogger` to the SDK)
 
 ---
 
-## Migration priority order
+## Step 6: Add database instrumentation
 
-Recommended order based on complexity, risk, and business impact:
+### Objective
+Enable automatic tracing and structured logging for database queries.
 
-| Priority | Service | Reason |
-|----------|---------|--------|
-| 1 | **application-service** | Already done ✅ |
-| 2 | **access-management-microservice** | Low complexity, already has SDK (swap package) |
-| 3 | **uno-job-scheduler** | Low complexity, already has SDK (swap package) |
-| 4 | **authentication-service** | Already has SDK, but high file count — needs careful migration |
-| 5 | **workflow-service** | Low complexity, no SDK yet but minimal LoggerService usage |
-| 6 | **api-gateway** | Already has SDK, remaining LoggerService usage to clean up |
-| 7 | **configuration-microservice** | Medium complexity, no SDK yet |
-| 8 | **payment-microservice** | Medium complexity, multiple services to update |
-| 9 | **mel-service** | Medium complexity, has cron jobs |
-| 10 | **product-microservice** | High complexity, extensive createLoggingContextWithId |
-| 11 | **profile-microservice** | High complexity, 15+ console.log statements to replace |
+### Files to modify
+- `src/app.module.ts` (add instrumentation to config)
+- `src/database/database.module.ts` or wherever Sequelize is configured (add structured query logging)
+
+### Sequelize setup
+
+```typescript
+// In your database module
+import { createSequelizeLogging, ObservabilityLogger } from '@brdrwanda/observability';
+
+@Module({
+  imports: [
+    SequelizeModule.forRootAsync({
+      inject: [ObservabilityLogger],
+      useFactory: (logger: ObservabilityLogger) => ({
+        dialect: 'mysql',
+        // ... connection config
+        logging: createSequelizeLogging(logger, { slowQueryThreshold: 1000 }),
+        benchmark: true,
+      }),
+    }),
+  ],
+})
+export class DatabaseModule {}
+```
+
+### How to verify
+1. Hit an endpoint that queries the database
+2. Check logs for `db.query` events at `debug` level:
+   ```json
+   {"level":"debug","msg":"query executed","event":"db.query","db.operation":"SELECT","table":"applications","duration_ms":12}
+   ```
+3. For slow queries (>1000ms threshold), check for `db.slow_query` warnings:
+   ```json
+   {"level":"warn","msg":"slow query detected","event":"db.slow_query","duration_ms":2340}
+   ```
+4. If tracing is enabled, check Grafana Tempo for database spans in the trace waterfall
+
+### Pitfalls
+- Set `benchmark: true` in Sequelize config — without it, `duration_ms` will always be 0
+- If your service uses raw SQL alongside Sequelize, those queries won't be captured by the instrumentation unless you use `sequelize.query()`
+
+---
+
+## Step 7: Add Kafka trace propagation
+
+### Objective
+Propagate trace context through Kafka messages so that producer → consumer traces are linked.
+
+### Files to modify
+- Producer services (where you call `producer.send()`)
+- Consumer controllers/services (where you handle incoming messages)
+
+### Producer: inject trace headers
+
+```typescript
+import { injectKafkaHeaders } from '@brdrwanda/observability';
+
+// When producing messages, inject trace context into headers
+await this.producer.send({
+  topic: 'loan-applications',
+  messages: [{
+    key: applicationId,
+    value: JSON.stringify(payload),
+    headers: injectKafkaHeaders(),
+  }],
+});
+```
+
+### Consumer: extract trace context
+
+```typescript
+import { withKafkaContext, ObservabilityLogger } from '@brdrwanda/observability';
+
+@Controller()
+export class EventController {
+  constructor(private logger: ObservabilityLogger) {}
+
+  @EventPattern('loan-applications')
+  async handleLoanApplication(@Payload() data: any, @Ctx() context: KafkaContext) {
+    const message = context.getMessage();
+
+    await withKafkaContext(message.headers, 'process-loan-application', async () => {
+      this.logger.info('processing loan application', { applicationId: data.id });
+      // All logs inside this block share the producer's trace_id
+      await this.loanService.process(data);
+    });
+  }
+}
+```
+
+### How to verify
+1. Produce a message and consume it
+2. Check that the consumer logs have the **same `trace_id`** as the producer logs
+3. In Grafana Tempo, the trace should show both producer and consumer spans as part of one trace
+
+### Pitfalls
+- `injectKafkaHeaders()` reads from the **active OTel context** — call it inside a request handler or span, not at module initialization
+- If using NestJS `ClientKafka` for log shipping (sending logs to Kafka topics), that pattern can be removed entirely — the SDK logs to stdout and Promtail collects them
+- Services using the outbox pattern with direct KafkaJS (`new Kafka()`) need `injectKafkaHeaders()` added to the outbox producer
+
+---
+
+## Step 8: Add external API tracing
+
+### Objective
+Create spans for outgoing HTTP calls to external services and propagate trace context so downstream services can link traces.
+
+### Files to modify
+- HTTP client wrappers (e.g., `AxiosService`, `HttpService` usage)
+- External API call utilities
+
+### Add trace propagation to outgoing requests
+
+```typescript
+import { propagation, context as otelContext } from '@opentelemetry/api';
+import { Span } from '@brdrwanda/observability';
+
+@Injectable()
+export class AxiosService {
+  @Span('external-api-call')
+  async makeRequest(url: string, data: any) {
+    const headers: Record<string, string> = {};
+    propagation.inject(otelContext.active(), headers);
+
+    return this.httpService.post(url, data, { headers });
+  }
+}
+```
+
+### Add @Span to external API methods
+
+```typescript
+import { Span, ObservabilityLogger } from '@brdrwanda/observability';
+
+@Injectable()
+export class ExternalIntegrationService {
+  constructor(private logger: ObservabilityLogger, private http: AxiosService) {}
+
+  @Span('esri-lookup')
+  async lookupLocation(upi: string) {
+    this.logger.info('calling ESRI', { upi });
+    const result = await this.http.get(`https://esri.gov.rw/api/parcels/${upi}`);
+    this.logger.info('ESRI response received', { upi, status: result.status });
+    return result.data;
+  }
+
+  @Span('nid-verification')
+  async verifyNationalId(nid: string) {
+    this.logger.info('calling NID service', { nid: nid.substring(0, 4) + '***' });
+    return this.http.get(`https://nida.gov.rw/api/verify/${nid}`);
+  }
+}
+```
+
+### How to verify
+1. Make a request that calls an external API
+2. In Grafana Tempo, the trace waterfall should show a span named `esri-lookup` or `nid-verification` with duration
+3. If the external service also supports W3C traceparent, the trace continues into their system
+4. Check logs for the external call with matching `trace_id`
+
+### Pitfalls
+- `propagation.inject()` must be called inside an active span context — if called outside a request (e.g., in a cron job), wrap the call in `tracer.startActiveSpan()` first
+- Don't log full request/response bodies for external APIs — they may contain PII. Log only what's needed for debugging
+
+---
+
+## Step 9: Replace console.log statements
+
+### Objective
+Replace all `console.log`, `console.error`, `console.warn` with structured logger calls.
+
+### Find all console statements
+
+```bash
+grep -rn "console\.\(log\|error\|warn\|info\|debug\)" src/ --include="*.ts"
+```
+
+### Mapping
+
+| Old | New | When to use |
+|-----|-----|-------------|
+| `console.log('message', data)` | `logger.info('message', { key: data })` | Normal operations |
+| `console.log('Debug:', value)` | `logger.debug('description', { value })` | Dev-only verbose output |
+| `console.error('Failed:', err)` | `logger.error('description', { error: err.message })` | Error conditions |
+| `console.warn('Warning:', msg)` | `logger.warn('description', { detail: msg })` | Degraded but not broken |
+
+### How to verify
+1. `grep -rn "console\." src/ --include="*.ts"` returns no results
+2. All output flows through the structured logger
+3. In production (JSON mode), no unstructured text appears in stdout
+
+### Pitfalls
+- Kafka event handlers often use `console.log` as their primary logging — these need `ObservabilityLogger` injected via constructor
+- Some `console.log` statements are inside `catch` blocks with no logger available — inject `ObservabilityLogger` into the class
+
+---
+
+## Step 10: Configure deployment (PM2 / Docker)
+
+### Objective
+Ensure the production environment passes `NODE_ENV=production` so the SDK uses production defaults (JSON logs, OTLP export, 10% sampling).
+
+### PM2: ecosystem.config.js
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'your-service-name',
+    script: 'dist/main.js',
+    instances: 2,
+    env: {
+      NODE_ENV: 'production',
+      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-collector:4318',
+    },
+  }],
+};
+```
+
+### Docker: Dockerfile
+
+```dockerfile
+ENV NODE_ENV=production
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+CMD ["node", "dist/main.js"]
+```
+
+### Promtail: Collect PM2 logs
+
+If using PM2, point Promtail to PM2's log directory:
+
+```yaml
+scrape_configs:
+  - job_name: pm2
+    static_configs:
+      - targets: [localhost]
+        labels:
+          __path__: ~/.pm2/logs/*-out.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            service_name: service_name
+      - labels:
+          level:
+          service_name:
+```
+
+### How to verify
+1. Start the service with PM2: `pm2 start ecosystem.config.js`
+2. Check logs are JSON (not pretty-printed): `pm2 logs your-service-name --lines 5`
+3. Verify `NODE_ENV` is `production` in the log output (check `environment` field)
+4. Verify `http://localhost:3000/metrics` is accessible for Prometheus scraping
+5. If using Promtail → Loki → Grafana, query `{service_name="your-service-name"}` in Grafana Explore
+
+### Pitfalls
+- PM2 does **not** inherit shell environment variables — you must set `NODE_ENV` in `ecosystem.config.js` under `env`
+- If the service has a `.env` file that sets `NODE_ENV=development`, it will override PM2's env — remove it or ensure it matches
+- PM2 writes stdout to `~/.pm2/logs/<app-name>-out.log` — Promtail needs access to this path
+
+---
+
+## Step 11: Final verification
+
+Run through this checklist to confirm the integration is complete.
+
+### Structured logging
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| JSON logs in production | `NODE_ENV=production node dist/main.js` | Single-line JSON per log entry |
+| Pretty logs in development | `npm run start:dev` | Colorized readable output |
+| `service_name` in every log | Hit any endpoint, check log output | `"service_name": "your-service-name"` present |
+| `trace_id` in every log | Hit any endpoint, check log output | 32-character hex `trace_id` present |
+| `request_id` in every log | Hit any endpoint, check log output | UUID `request_id` present |
+| Auto request logging | Hit any endpoint | `request started` and `request completed` log entries appear |
+| Error classification | Trigger a 401 error | `"msg": "authentication_failed"` at warn level |
+| 5xx error with stack | Trigger a 500 error | `"msg": "server_error"` at error level with `stack` field |
+
+### Distributed tracing
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| Trace export | Check OTel collector or Tempo | Spans appear for each request |
+| Cross-service traces | Call service A → service B | Same `trace_id` in both services' logs |
+| Database spans | Query the database via an endpoint | DB spans visible in trace waterfall |
+| Custom spans | Call a method with `@Span` decorator | Named span appears in trace |
+
+### Metrics
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| Metrics endpoint | `curl http://localhost:3000/metrics` | Prometheus text format with `http_requests_total` |
+| Request counter | Hit endpoints, then check `/metrics` | `http_requests_total` incremented |
+| Duration histogram | Hit endpoints, then check `/metrics` | `http_request_duration_seconds_bucket` populated |
+| Node.js metrics | Check `/metrics` | `nodejs_heap_size_used_bytes`, `nodejs_eventloop_lag_seconds` present |
+
+### Health
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| Health endpoint | `curl http://localhost:3000/health` | `{"status":"ok"}` with 200 |
+
+### Error handling
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| Error response format | Trigger any error | JSON with `statusCode`, `message`, `timestamp`, `requestId`, `traceId` |
+| No old exception filter | Check `app.module.ts` | No `APP_FILTER` provider with `HttpExceptionFilter` |
+
+### Cleanup
+
+| Check | How to verify | Expected result |
+|-------|--------------|-----------------|
+| No old logger files | `ls src/logger/` | Directory doesn't exist or is empty |
+| No old filter files | `ls src/filters/http.exception.filter.ts` | File doesn't exist |
+| No Morgan middleware | `grep -rn "morgan" src/` | No results |
+| No console.log | `grep -rn "console\." src/ --include="*.ts"` | No results |
+| No old logger imports | `grep -rn "LoggerService\|handleInfoLog\|handlErrorLog" src/` | No results |
+| Clean build | `npx tsc --noEmit` | No compilation errors |
+
+---
+
+## Common Pitfalls
+
+| Pitfall | Symptom | Fix |
+|---------|---------|-----|
+| Two global exception filters | Errors logged twice | Remove `APP_FILTER` provider from `app.module.ts` |
+| `NODE_ENV` not set in PM2 | Pretty-printed logs in production | Add `env: { NODE_ENV: 'production' }` to `ecosystem.config.js` |
+| Missing `bufferLogs: true` | Early startup logs are unstructured | Add `{ bufferLogs: true }` to `NestFactory.create()` |
+| `setupProcessErrorHandlers` inside bootstrap | Doesn't catch module init errors | Move call outside and above `bootstrap()` |
+| Old logger still imported | Compilation error after deleting files | Search for and remove all imports of deleted files |
+| `handlErrorLog` typo | Grep misses some files | Search for both `handleErrorLog` and `handlErrorLog` |
+| Direct LoggerService instantiation | Not using DI, no trace context | Replace `new LoggerService('name')` with constructor-injected `ObservabilityLogger` |
+| Kafka log shipping still active | Duplicate logs in Kafka topics | Remove `ClientKafka` logging producers — SDK logs to stdout, Promtail collects |
+| Service name mismatch | Metrics/logs show wrong name | Use the same `serviceName` in `ObservabilityModule.forRoot()` and `setupProcessErrorHandlers()` |
+
+---
+
+## See Also
+
+- [Migration Guide](migration.md) — background on why this migration is needed, with before/after comparisons
+- [Getting Started](getting-started.md) — quick start for new services (not migrating)
+- [Structured Logging](logging.md) — what auto-request logging gives you and what code you can delete
+- [Configuration Reference](configuration.md) — all SDK config options
+- [Troubleshooting](troubleshooting.md) — common issues after migration

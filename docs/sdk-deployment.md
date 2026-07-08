@@ -1,6 +1,6 @@
 # SDK Deployment & Distribution Guide
 
-How to build, publish, and consume `@company/observability` across your services.
+How to build, publish, and consume `@brdrwanda/observability` across your services.
 
 ---
 
@@ -15,7 +15,7 @@ Option A: Private npm Registry     Option B: Git-based Install
 │   Packages/GitLab    │            │ Services install via │
 │                      │            │ git+ssh:// or        │
 │ Services install via │            │ file: path           │
-│ npm install @company │            └─────────────────────┘
+│ npm install @brdrwanda │            └─────────────────────┘
 │   /observability     │
 └─────────────────────┘
 
@@ -78,7 +78,7 @@ npm publish --registry http://localhost:4873
 
 ```bash
 # .npmrc in SDK root
-@company:registry=https://npm.pkg.github.com
+@brdrwanda:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 
 # Update package.json
@@ -92,7 +92,7 @@ npm publish
 
 ```bash
 # .npmrc
-@company:registry=https://gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/
+@brdrwanda:registry=https://gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/
 //gitlab.com/api/v4/projects/<PROJECT_ID>/packages/npm/:_authToken=${GITLAB_TOKEN}
 
 npm publish
@@ -102,10 +102,10 @@ npm publish
 
 ```bash
 # In each service repo, point to your registry
-echo "@company:registry=http://your-verdaccio:4873" >> .npmrc
+echo "@brdrwanda:registry=http://your-verdaccio:4873" >> .npmrc
 
 # Install
-pnpm add @company/observability
+pnpm add @brdrwanda/observability
 ```
 
 ### 5. Version bumps
@@ -202,7 +202,7 @@ packages:
 ```jsonc
 {
   "dependencies": {
-    "@company/observability": "workspace:*"
+    "@brdrwanda/observability": "workspace:*"
   }
 }
 ```
@@ -245,10 +245,10 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @company/observability build
-      - run: pnpm --filter @company/observability test
+      - run: pnpm --filter @brdrwanda/observability build
+      - run: pnpm --filter @brdrwanda/observability test
 
-      - run: pnpm --filter @company/observability publish --no-git-checks
+      - run: pnpm --filter @brdrwanda/observability publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -260,7 +260,7 @@ Developer pushes SDK change
     → PR review + merge to main
     → Tag release: git tag v0.2.0 && git push origin v0.2.0
     → CI runs tests + publishes to registry
-    → Services update: pnpm update @company/observability
+    → Services update: pnpm update @brdrwanda/observability
 ```
 
 ---
@@ -272,7 +272,7 @@ After SDK is available, each service needs:
 ### 1. Install
 
 ```bash
-pnpm add @company/observability
+pnpm add @brdrwanda/observability
 
 # Add instrumentations you need
 pnpm add mysql2 @opentelemetry/instrumentation-mysql2   # if using MySQL
@@ -291,7 +291,7 @@ import {
   mysqlInstrumentation,    // add what you need
   redisInstrumentation,
   kafkaInstrumentation,
-} from '@company/observability';
+} from '@brdrwanda/observability';
 
 @Module({
   imports: [
@@ -319,7 +319,7 @@ export class AppModule {}
 
 ```typescript
 // main.ts
-import { NestPinoLogger } from '@company/observability';
+import { NestPinoLogger } from '@brdrwanda/observability';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -360,7 +360,7 @@ curl http://localhost:3000/metrics
 2. Update CHANGELOG with migration notes
 3. Publish new version
 4. Update services one at a time:
-   pnpm add @company/observability@^1.0.0
+   pnpm add @brdrwanda/observability@^1.0.0
 5. Test each service before moving to next
 ```
 
@@ -378,7 +378,7 @@ curl http://localhost:3000/metrics
 // service package.json — pin exact version for stability
 {
   "dependencies": {
-    "@company/observability": "0.1.0"    // exact, not ^0.1.0
+    "@brdrwanda/observability": "0.1.0"    // exact, not ^0.1.0
   }
 }
 ```

@@ -11,18 +11,28 @@ mkdir -p "$OUT_DIR"
 
 declare -A TITLES
 TITLES[README]="Documentation Home"
-TITLES[architecture]="Architecture"
-TITLES[architecture-decisions]="Architecture Decisions"
-TITLES[getting-started]="Getting Started"
+TITLES[getting-started]="Quick Start"
+TITLES[configuration]="Configuration Reference"
+TITLES[logging]="Structured Logging"
 TITLES[tracing]="Distributed Tracing"
+TITLES[metrics]="Metrics & Dashboards"
+TITLES[error-handling]="Error Handling"
 TITLES[migration]="Migration Guide"
-TITLES[migration-per-service]="Service Migration Reference"
-TITLES[deployment-pm2]="Deployment"
+TITLES[migration-per-service]="Integration Checklist"
+TITLES[deployment-pm2]="PM2 Deployment"
+TITLES[sdk-deployment]="SDK Publishing"
+TITLES[architecture]="How It Works"
+TITLES[architecture-decisions]="Architecture Decisions"
 TITLES[sdk-explained]="SDK Internals"
-TITLES[sdk-deployment]="SDK Deployment"
+TITLES[troubleshooting]="Troubleshooting & FAQ"
+TITLES[standalone]="Standalone Mode"
+TITLES[instrumentations]="Instrumentations"
+TITLES[alerting]="Alerting & Monitoring"
+TITLES[testing]="Testing"
+TITLES[CHANGELOG]="Changelog"
 
-SLUGS=(README architecture architecture-decisions getting-started tracing migration migration-per-service deployment-pm2 sdk-explained sdk-deployment)
-OUT_NAMES=(index architecture architecture-decisions getting-started tracing migration migration-per-service deployment-pm2 sdk-explained sdk-deployment)
+SLUGS=(README getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
+OUT_NAMES=(index getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
 
 for i in "${!SLUGS[@]}"; do
   slug="${SLUGS[$i]}"

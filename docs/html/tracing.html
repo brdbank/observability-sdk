@@ -239,15 +239,37 @@
     </div>
     <div class="sidebar-nav">
       <a href="index.html" id="nav-index">Home</a>
-      <a href="architecture.html" id="nav-architecture">Architecture</a>
-      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
-      <a href="getting-started.html" id="nav-getting-started">Getting Started</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
       <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
       <a href="migration.html" id="nav-migration">Migration Guide</a>
-      <a href="migration-per-service.html" id="nav-migration-per-service">Service Reference</a>
-      <a href="deployment-pm2.html" id="nav-deployment-pm2">Deployment</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
       <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
-      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Deployment</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
     </div>
   </nav>
   <main class="content">
@@ -285,11 +307,12 @@
     <h2 id="how-the-sdk-implements-tracing">How the SDK implements tracing</h2>
     <p>The SDK uses <a href="https://opentelemetry.io/">OpenTelemetry</a> with the W3C TraceContext standard:</p>
     <ol>
-    <li><strong>TracingInterceptor</strong> — creates a span for each incoming HTTP request, extracts <code>traceparent</code> header from upstream callers</li>
+    <li><strong>TracingInterceptor</strong> — creates a span named <code>ControllerName.methodName</code> for each incoming HTTP request, adding NestJS-specific attributes (controller, handler)</li>
     <li><strong>AsyncLocalStorage</strong> — propagates trace context through async boundaries automatically</li>
     <li><strong>Pino mixin</strong> — injects <code>trace_id</code> and <code>span_id</code> into every log entry</li>
     <li><strong>Metric exemplars</strong> — attaches <code>trace_id</code> to Prometheus histogram observations</li>
     <li><strong>Auto-instrumentations</strong> — HTTP, Kafka, database drivers create spans automatically</li>
+    <li><strong>HTTP Instrumentation</strong> — <code>httpInstrumentation()</code> handles <code>traceparent</code> header extraction/injection for incoming and outgoing HTTP requests</li>
     </ol>
     <h3 id="propagation-header">Propagation header</h3>
     <p>The SDK uses the W3C <code>traceparent</code> header:</p>
@@ -584,7 +607,7 @@
     </code></pre>
     <hr />
     <h2 id="external-api-tracing">External API tracing</h2>
-    <p>BRD services call several external systems. Each external call should be a separate span.</p>
+    <p>your services call several external systems. Each external call should be a separate span.</p>
     <h3 id="pattern">Pattern</h3>
     <pre class="typescript"><code>import { Span, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 

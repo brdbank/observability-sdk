@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Troubleshooting &amp; FAQ — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="troubleshooting--faq">Troubleshooting &amp; FAQ</h1>
+    <p>Common issues, their causes, and how to fix them. If you don't find your answer here, check the <a href="getting-started.md">Getting Started</a> and <a href="sdk-explained.html">SDK Explained</a> guides.</p>
+    <hr />
+    <h2 id="startup-warnings">Startup Warnings</h2>
+    <p>These messages appear in the console when your application boots. They are <strong>informational</strong> — not errors.</p>
+    <h3 id="observability-install-opentelemetryinstrumentation-ioredis-for-redis-tracing"><code>[observability] Install @opentelemetry/instrumentation-ioredis for Redis tracing</code></h3>
+    <p>The SDK detected that your service uses Redis but the optional tracing package for Redis is not installed. Redis will work normally — you just won't get Redis spans in your traces.</p>
+    <p>To fix (optional):</p>
+    <pre class="bash"><code>npm install @opentelemetry/instrumentation-ioredis
+    </code></pre>
+    <h3 id="observability-install-opentelemetry-instrumentation-sequelize-for-sequelize-tracing"><code>[observability] Install opentelemetry-instrumentation-sequelize for Sequelize tracing</code></h3>
+    <p>Same idea, but for Sequelize. Your database queries will work fine — you just won't see them as spans in Tempo.</p>
+    <p>To fix (optional):</p>
+    <pre class="bash"><code>npm install opentelemetry-instrumentation-sequelize
+    </code></pre>
+    <h3 id="swagger-setup-failed--skipping"><code>Swagger setup failed — skipping</code></h3>
+    <p>This is <strong>not related to the observability SDK</strong>. It means your Swagger/OpenAPI configuration has an issue (missing <code>DocumentBuilder</code>, incorrect path, etc.). The SDK will continue to function normally regardless of this message.</p>
+    <hr />
+    <h2 id="no-logs-appearing">No Logs Appearing</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Symptom</th>
+    <th>Cause</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>No logs at all</td>
+    <td>Logger not wired in <code>main.ts</code></td>
+    <td>Add <code>app.useLogger(app.get(NestPinoLogger))</code> after creating the app</td>
+    </tr>
+    <tr class="even">
+    <td>Logs appear but no <code>trace_id</code></td>
+    <td>Tracing disabled or not initialized</td>
+    <td>Check that <code>tracing.enabled</code> is <code>true</code> in your config</td>
+    </tr>
+    <tr class="odd">
+    <td>Pretty logs in production</td>
+    <td><code>NODE_ENV</code> not set to <code>'production'</code></td>
+    <td>Set <code>NODE_ENV=production</code> in your PM2 ecosystem file or Dockerfile</td>
+    </tr>
+    <tr class="even">
+    <td>Health endpoint logs spam</td>
+    <td><code>excludeRoutes</code> not configured</td>
+    <td>Set <code>logger: { excludeRoutes: ['/health', '/metrics'] }</code> — this is the default on latest version</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="example-wiring-the-logger-in-maints">Example: Wiring the logger in main.ts</h3>
+    <pre class="typescript"><code>import { NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule, { bufferLogs: true });
+      app.useLogger(app.get(NestPinoLogger));
+      await app.listen(3000);
+    }
+    </code></pre>
+    <hr />
+    <h2 id="tracing-issues">Tracing Issues</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Symptom</th>
+    <th>Cause</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>No traces in Tempo</td>
+    <td>Exporter type is <code>'console'</code> or <code>'none'</code></td>
+    <td>Change to <code>'otlp-http'</code> in your tracing config</td>
+    </tr>
+    <tr class="even">
+    <td>Partial traces (missing services)</td>
+    <td>Trace context not propagated in outgoing HTTP</td>
+    <td>Add <code>propagation.inject(otelContext.active(), headers)</code> to your AxiosService</td>
+    </tr>
+    <tr class="odd">
+    <td>Missing DB spans</td>
+    <td>Instrumentation not registered</td>
+    <td>Add <code>sequelizeInstrumentation()</code> to your config's <code>instrumentations</code> array</td>
+    </tr>
+    <tr class="even">
+    <td>Missing spans on first request</td>
+    <td>Tracing started after module import</td>
+    <td>Call <code>setupTracing()</code> in <code>main.ts</code> <strong>before</strong> <code>NestFactory.create</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>trace_id</code> in logs but not in Tempo</td>
+    <td>Exporter not sending or collector down</td>
+    <td>Check <code>curl http://otel-collector:4318/v1/traces</code> returns a response</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="example-propagating-trace-context-in-outgoing-requests">Example: Propagating trace context in outgoing requests</h3>
+    <pre class="typescript"><code>import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
+
+    // In your AxiosService or HTTP client wrapper
+    async makeRequest(url: string, data: any) {
+      const headers = {};
+      propagation.inject(otelContext.active(), headers);
+
+      return this.httpService.post(url, data, { headers });
+    }
+    </code></pre>
+    <h3 id="example-calling-setuptracing-before-nestfactory">Example: Calling setupTracing() before NestFactory</h3>
+    <pre class="typescript"><code>import { setupTracing } from &#39;@brdrwanda/observability&#39;;
+
+    async function bootstrap() {
+      setupTracing({
+        serviceName: &#39;my-service&#39;,
+        tracing: { exporter: { type: &#39;otlp-http&#39; } },
+      }); // Must come BEFORE NestFactory.create
+      const app = await NestFactory.create(AppModule, { bufferLogs: true });
+      // ...
+    }
+    </code></pre>
+    <hr />
+    <h2 id="metrics-issues">Metrics Issues</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Symptom</th>
+    <th>Cause</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>/metrics</code> returns 404</td>
+    <td><code>metrics.enabled</code> is <code>false</code></td>
+    <td>Set <code>metrics: { enabled: true }</code> in your config</td>
+    </tr>
+    <tr class="even">
+    <td>No custom metrics appearing</td>
+    <td>Metric created but never incremented</td>
+    <td>Call <code>.inc()</code> or <code>.observe()</code> on your metric after creating it</td>
+    </tr>
+    <tr class="odd">
+    <td>Prometheus can't scrape</td>
+    <td>Wrong port or network</td>
+    <td>Check your <code>prometheus.yml</code> targets match the actual host and port</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="example-enabling-metrics">Example: Enabling metrics</h3>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      metrics: {
+        enabled: true,
+      },
+      // ...
+    });
+    </code></pre>
+    <hr />
+    <h2 id="pm2-issues">PM2 Issues</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Symptom</th>
+    <th>Cause</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Pretty-printed logs in PM2</td>
+    <td><code>NODE_ENV</code> not passed to child process</td>
+    <td>Use <code>ecosystem.config.js</code> with <code>env: { NODE_ENV: 'production' }</code></td>
+    </tr>
+    <tr class="even">
+    <td>Promtail not finding logs</td>
+    <td>Wrong log path</td>
+    <td>Point Promtail to <code>~/.pm2/logs/*-out.log</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Log files growing indefinitely</td>
+    <td>No log rotation</td>
+    <td>Install pm2-logrotate: <code>pm2 install pm2-logrotate</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="example-ecosystemconfigjs">Example: ecosystem.config.js</h3>
+    <pre class="javascript"><code>module.exports = {
+      apps: [
+        {
+          name: &#39;my-service&#39;,
+          script: &#39;dist/main.js&#39;,
+          env: {
+            NODE_ENV: &#39;production&#39;,
+          },
+        },
+      ],
+    };
+    </code></pre>
+    <h3 id="example-promtail-config-pointing-to-pm2-logs">Example: Promtail config pointing to PM2 logs</h3>
+    <pre class="yaml"><code>scrape_configs:
+      - job_name: pm2
+        static_configs:
+          - targets: [localhost]
+            labels:
+              job: pm2
+              __path__: ~/.pm2/logs/*-out.log
+    </code></pre>
+    <hr />
+    <h2 id="faq">FAQ</h2>
+    <p><strong>Q: Can I use this SDK with Express (no NestJS)?</strong> A: Yes, use the standalone API:</p>
+    <pre class="typescript"><code>import { createObservability } from &#39;@brdrwanda/observability&#39;;
+    </code></pre>
+    <hr />
+    <p><strong>Q: Do I need to remove my existing Winston/Morgan logger?</strong> A: Yes, during migration. The SDK replaces both. See the <a href="migration.html">Migration Guide</a>.</p>
+    <hr />
+    <p><strong>Q: Will this SDK work with NestJS 10 AND 11?</strong> A: Yes. Peer dependencies support both <code>^10.0.0 || ^11.0.0</code>.</p>
+    <hr />
+    <p><strong>Q: How do I add logging to a service that doesn't use the SDK yet?</strong> A: Follow the <a href="getting-started.html">Getting Started</a> guide — 3 steps, 10 minutes.</p>
+    <hr />
+    <p><strong>Q: Can I disable auto-request logging but keep error logging?</strong> A: Yes:</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      logger: {
+        autoRequestLogging: false,
+        autoErrorLogging: true,
+      },
+    });
+    </code></pre>
+    <hr />
+    <p><strong>Q: How much overhead does the SDK add?</strong> A: Roughly ~0.1ms per request for the logging interceptor. Tracing adds ~0.2ms. Both are negligible compared to business logic, database queries, and network calls.</p>
+    <hr />
+    <p><strong>Q: What happens if the OTel Collector is down?</strong> A: Traces are dropped silently. Logs and metrics continue working — they don't depend on the collector. Your application will not crash or hang.</p>
+    <hr />
+    <p><strong>Q: How do I see logs from multiple services for one request?</strong> A: Query Loki with the <code>trace_id</code>. In Grafana's Explore view, use:</p>
+    <pre><code>{service_name=~&quot;.+&quot;} | json | trace_id=&quot;your-trace-id&quot;
+    </code></pre>
+    <p>This returns every log line across all services that share that trace.</p>
+    <hr />
+    <h2 id="diagnostics">Diagnostics</h2>
+    <p>The SDK ships with a <code>DiagnosticsService</code> that reports its internal state. Use it to verify that the SDK is configured correctly in a running service.</p>
+    <pre class="typescript"><code>import { DiagnosticsService } from &#39;@brdrwanda/observability&#39;;
+
+    @Controller(&#39;debug&#39;)
+    export class DebugController {
+      constructor(private diagnostics: DiagnosticsService) {}
+
+      @Get(&#39;diagnostics&#39;)
+      getDiagnostics() {
+        return this.diagnostics.getReport();
+      }
+    }
+    </code></pre>
+    <p>The report includes:</p>
+    <ul>
+    <li><strong>SDK version</strong> — the installed version of <code>@brdrwanda/observability</code></li>
+    <li><strong>Service info</strong> — service name, environment, version</li>
+    <li><strong>Active instrumentations</strong> — which instrumentation plugins are loaded (HTTP, Redis, Kafka, Sequelize, etc.)</li>
+    <li><strong>Tracing config</strong> — exporter type, endpoint, sampling rate, whether tracing is enabled</li>
+    <li><strong>Metrics config</strong> — whether metrics are enabled, prefix, endpoint path</li>
+    </ul>
+    <p>Hit <code>GET /debug/diagnostics</code> to see the full report. This is the fastest way to verify that everything is wired up correctly.</p>
+    <blockquote>
+    <p><strong>Tip:</strong> Restrict access to the diagnostics endpoint in production — it may expose internal configuration details.</p>
+    </blockquote>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "troubleshooting";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>
