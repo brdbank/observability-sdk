@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How It Works — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="internal-observability-platform-sdk--architecture">Internal Observability Platform SDK — Architecture</h1>
+    <h2 id="overview">Overview</h2>
+    <p>Single-package observability SDK for distributed NestJS services. One install, one import, everything works.</p>
+    <p>Provides: structured logging, Prometheus metrics, distributed tracing, request context propagation, sensitive data redaction.</p>
+    <p>Design principles: pay-for-what-you-use, explicit over magic, driver-level DB instrumentation, zero vendor lock-in, simple + reliable.</p>
+    <hr />
+    <h2 id="repository-structure">Repository Structure</h2>
+    <pre><code>observability-platform-sdk/
+    ├── packages/
+    │   └── sdk/                               # @brdrwanda/observability (single publishable package)
+    │       └── src/
+    │           ├── core/                      # Types, config, AsyncLocalStorage context, constants
+    │           ├── logger/                    # Pino logger + NestJS adapter
+    │           ├── tracing/                   # OTel tracer init, tracer service, sampling
+    │           ├── metrics/                   # prom-client wrapper, /metrics controller
+    │           ├── security/                  # Redaction paths, header sanitization
+    │           ├── nestjs/                    # Module, middleware, interceptors, filters, decorators
+    │           ├── instrumentations/          # HTTP, Kafka, Redis, MySQL, PG
+    │           ├── health/                    # Health/readiness/liveness controller + module
+    │           ├── diagnostics/              # SDK self-health reporting
+    │           └── index.ts                   # All exports
+    ├── examples/
+    │   └── basic-nestjs/                      # Working example app
+    ├── sandbox/
+    │   ├── docker-compose.yml                 # Grafana + Loki + Tempo + Prometheus + OTel Collector
+    │   ├── otel-collector/config.yaml
+    │   ├── prometheus.yml
+    │   ├── tempo.yaml
+    │   └── grafana/provisioning/
+    ├── docs/
+    │   ├── architecture.md
+    │   ├── getting-started.md
+    │   └── adr/
+    ├── package.json                           # Workspace root
+    ├── pnpm-workspace.yaml
+    ├── turbo.json
+    ├── tsconfig.base.json
+    └── .npmrc
+    </code></pre>
+    <h3 id="why-single-package">Why single package</h3>
+    <p>Previous designs considered a multi-package monorepo (@obs/core, @obs/logger, etc). Rejected for simplicity:</p>
+    <ul>
+    <li>Consumer installs ONE package: <code>npm install @brdrwanda/observability</code></li>
+    <li>ONE version to track</li>
+    <li>ONE changelog</li>
+    <li>No cross-package version coordination</li>
+    <li>Instrumentations that aren't registered never initialize (same isolation benefit)</li>
+    <li>Optional OTel instrumentation packages are peer deps — consumer installs only what they use</li>
+    </ul>
+    <hr />
+    <h2 id="workspace-strategy">Workspace Strategy</h2>
+    <p><strong>Tooling:</strong> pnpm workspaces + Turborepo</p>
+    <p>pnpm workspace exists for the SDK + examples. Turborepo orchestrates build/test/lint. Minimal config.</p>
+    <hr />
+    <h2 id="module-architecture">Module Architecture</h2>
+    <pre><code>┌─────────────────────────────────────────────────────┐
+    │                  Consumer Service                    │
+    ├─────────────────────────────────────────────────────┤
+    │     ObservabilityModule.forRoot({ config })          │
+    │     ┌────────────┬───────────┬─────────────────┐    │
+    │     │ Logger     │ Tracer    │ Metrics         │    │
+    │     │ (Pino)     │ (OTel)    │ (prom-client)   │    │
+    │     └────────────┴───────────┴─────────────────┘    │
+    │     ┌────────────────────────────────────────────┐   │
+    │     │ Middleware  │ Interceptors │ Exception Filter│  │
+    │     │ (context)   │ (log+trace)  │ (error handling)│  │
+    │     └────────────────────────────────────────────┘   │
+    ├─────────────────────────────────────────────────────┤
+    │   AsyncLocalStorage Context (requestId, correlationId│
+    │   traceId, spanId, serviceName)                      │
+    ├─────────────────────────────────────────────────────┤
+    │   Instrumentations (loaded on demand):               │
+    │   httpInstrumentation() | kafkaInstrumentation()     │
+    │   redisInstrumentation() | mysqlInstrumentation()    │
+    │   pgInstrumentation()                                │
+    └─────────────────────────────────────────────────────┘
+    </code></pre>
+    <hr />
+    <h2 id="dependency-strategy">Dependency Strategy</h2>
+    <h3 id="bundled-always-installed">Bundled (always installed)</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Dependency</th>
+    <th>Why</th>
+    <th>Overhead</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>pino</code> v9</td>
+    <td>Fastest Node logger, JSON-native, async transports</td>
+    <td>~2MB, &lt;1ms init</td>
+    </tr>
+    <tr class="even">
+    <td><code>prom-client</code> v15</td>
+    <td>De facto Prometheus client</td>
+    <td>~3MB, lazy metric init</td>
+    </tr>
+    <tr class="odd">
+    <td><code>@opentelemetry/api</code> v1.x</td>
+    <td>Vendor-neutral tracing API</td>
+    <td>~500KB</td>
+    </tr>
+    <tr class="even">
+    <td><code>@opentelemetry/sdk-trace-node</code></td>
+    <td>Span creation + batch export</td>
+    <td>~4MB</td>
+    </tr>
+    <tr class="odd">
+    <td><code>@opentelemetry/exporter-trace-otlp-http</code></td>
+    <td>OTLP HTTP export (lightweight)</td>
+    <td>~1MB</td>
+    </tr>
+    <tr class="even">
+    <td><code>@opentelemetry/instrumentation-http</code></td>
+    <td>HTTP auto-instrumentation</td>
+    <td>~200KB</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="peer-dependencies-consumer-provides">Peer dependencies (consumer provides)</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Dependency</th>
+    <th>Required</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>@nestjs/common</code>, <code>@nestjs/core</code>, <code>rxjs</code></td>
+    <td>Always</td>
+    </tr>
+    <tr class="even">
+    <td><code>ioredis</code>, <code>kafkajs</code>, <code>mysql2</code>, <code>pg</code></td>
+    <td>Optional — only if using that instrumentation</td>
+    </tr>
+    <tr class="odd">
+    <td><code>@opentelemetry/instrumentation-*</code></td>
+    <td>Optional — only for Redis/Kafka/MySQL/PG tracing</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="total-sdk-footprint">Total SDK footprint</h3>
+    <ul>
+    <li>Install: ~12MB</li>
+    <li>Memory at idle: ~8MB</li>
+    <li>Startup overhead: &lt;50ms</li>
+    </ul>
+    <h3 id="rejected">Rejected</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Dependency</th>
+    <th>Why</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>winston</code></td>
+    <td>5x slower than Pino</td>
+    </tr>
+    <tr class="even">
+    <td><code>@opentelemetry/auto-instrumentations-node</code></td>
+    <td>Loads ~40 instrumentations, massive startup cost</td>
+    </tr>
+    <tr class="odd">
+    <td><code>cls-hooked</code></td>
+    <td>Deprecated — AsyncLocalStorage is native</td>
+    </tr>
+    <tr class="even">
+    <td><code>@opentelemetry/sdk-node</code></td>
+    <td>Bundles OTel metrics SDK we don't need</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="database-instrumentation-strategy">Database Instrumentation Strategy</h2>
+    <p><strong>Instrument at driver level, not ORM level.</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Instrumentation</th>
+    <th>Driver</th>
+    <th>Covers</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>mysqlInstrumentation()</code></td>
+    <td><code>mysql2</code></td>
+    <td>Sequelize, TypeORM, Prisma, Drizzle, Knex, raw mysql2</td>
+    </tr>
+    <tr class="even">
+    <td><code>pgInstrumentation()</code></td>
+    <td><code>pg</code></td>
+    <td>Sequelize, TypeORM, Prisma, Drizzle, Knex, raw pg</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>ORMs change. Drivers don't. Switch from Sequelize to Drizzle → zero SDK changes.</p>
+    <hr />
+    <h2 id="instrumentation-loading">Instrumentation Loading</h2>
+    <p>Explicit registration. No auto-discovery.</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;order-service&#39;,
+      instrumentations: [
+        httpInstrumentation(),
+        mysqlInstrumentation(),
+        // Redis NOT listed = NOT loaded = zero cost
+      ],
+    })
+    </code></pre>
+    <p>Loading order:</p>
+    <ol>
+    <li><code>forRoot()</code> resolves config with defaults</li>
+    <li>OTel tracing provider initialized (synchronous, before NestJS providers)</li>
+    <li>OTel instrumentations registered via <code>registerInstrumentations()</code></li>
+    <li>Custom plugins (Kafka helpers) initialized</li>
+    <li>NestJS middleware, interceptors, filters registered globally</li>
+    </ol>
+    <p>Missing optional peer → debug log + skip. Never crash.</p>
+    <hr />
+    <h2 id="telemetry-pipeline">Telemetry Pipeline</h2>
+    <pre><code>Application
+      → stdout/stderr (Pino structured JSON)
+      → log collector (FluentBit/Promtail/Vector)
+      → Loki/ELK/OpenSearch → Grafana
+
+    Application
+      → OTLP HTTP/gRPC
+      → OpenTelemetry Collector
+      → Tempo/Jaeger → Grafana
+
+    Application
+      → /metrics endpoint (Prometheus format)
+      → Prometheus scrape
+      → Grafana
+    </code></pre>
+    <p>SDK emits telemetry. Infrastructure collects, stores, queries. Clean separation.</p>
+    <hr />
+    <h2 id="log-format">Log Format</h2>
+    <p>Every log entry:</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;info&quot;,
+      &quot;time&quot;: &quot;2026-05-19T10:00:00.000Z&quot;,
+      &quot;service_name&quot;: &quot;workflow-service&quot;,
+      &quot;environment&quot;: &quot;production&quot;,
+      &quot;version&quot;: &quot;1.2.3&quot;,
+      &quot;trace_id&quot;: &quot;abc123def456&quot;,
+      &quot;span_id&quot;: &quot;789ghi&quot;,
+      &quot;request_id&quot;: &quot;req-uuid&quot;,
+      &quot;correlation_id&quot;: &quot;corr-uuid&quot;,
+      &quot;msg&quot;: &quot;order created&quot;,
+      &quot;orderId&quot;: &quot;ord-123&quot;
+    }
+    </code></pre>
+    <p>Context fields injected automatically via Pino mixin + AsyncLocalStorage. No manual enrichment needed.</p>
+    <hr />
+    <h2 id="security">Security</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Concern</th>
+    <th>Mitigation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Credentials in logs</td>
+    <td>Pino redaction: <code>*.password</code>, <code>*.token</code>, <code>*.secret</code>, <code>req.headers.authorization</code>, etc.</td>
+    </tr>
+    <tr class="even">
+    <td>Credentials in traces</td>
+    <td><code>sanitizeHeaders()</code> strips Authorization, Cookie, API keys from span attributes</td>
+    </tr>
+    <tr class="odd">
+    <td>Log injection</td>
+    <td>Pino JSON serialization escapes by default</td>
+    </tr>
+    <tr class="even">
+    <td>Metric endpoint</td>
+    <td><code>/metrics</code> — deploy behind internal network or auth middleware</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Default redaction paths cover: passwords, tokens, API keys, connection strings, credit cards, SSNs. Extensible via config.</p>
+    <hr />
+    <h2 id="runtime-overhead">Runtime Overhead</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Technique</th>
+    <th>Where</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Single AsyncLocalStorage</td>
+    <td>Context — one ALS, not per-subsystem</td>
+    </tr>
+    <tr class="even">
+    <td>Pino mixin (not per-log clone)</td>
+    <td>Logger — context fields injected at serialization time</td>
+    </tr>
+    <tr class="odd">
+    <td>BatchSpanProcessor (512 spans / 5s)</td>
+    <td>Tracing — amortized export cost</td>
+    </tr>
+    <tr class="even">
+    <td>Lazy serialization</td>
+    <td>Logger — Pino skips work below log level threshold</td>
+    </tr>
+    <tr class="odd">
+    <td>Parent-based sampling (10% prod)</td>
+    <td>Tracing — reduces trace volume without losing correlated traces</td>
+    </tr>
+    <tr class="even">
+    <td>prom-client lazy init</td>
+    <td>Metrics — metrics created on first use</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="deployment">Deployment</h2>
+    <p>Works with:</p>
+    <ul>
+    <li><strong>Kubernetes</strong>: sidecar OTel collector, stdout → log collector DaemonSet</li>
+    <li><strong>Docker Compose</strong>: direct OTLP to collector service</li>
+    <li><strong>PM2 / bare-metal</strong>: direct OTLP export, stdout to file → log shipper</li>
+    </ul>
+    <p>No deployment-specific code. Exporter config + env vars handle transport differences.</p>
+    <hr />
+    <h2 id="future-extensibility">Future Extensibility</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Extension point</th>
+    <th>Mechanism</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Custom instrumentations</td>
+    <td><code>InstrumentationPlugin</code> interface</td>
+    </tr>
+    <tr class="even">
+    <td>Custom log transports</td>
+    <td>Pino transport protocol</td>
+    </tr>
+    <tr class="odd">
+    <td>Custom trace exporters</td>
+    <td>OTel <code>SpanExporter</code> interface</td>
+    </tr>
+    <tr class="even">
+    <td>Custom context fields</td>
+    <td>Override <code>createRequestContext()</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Custom health checks</td>
+    <td>Extend <code>HealthController</code></td>
+    </tr>
+    <tr class="even">
+    <td>New frameworks</td>
+    <td>Same core, new module adapter (Express, Fastify)</td>
+    </tr>
+    </tbody>
+    </table>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "architecture";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

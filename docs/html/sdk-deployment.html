@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDK Publishing — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="sdk-deployment--distribution-guide">SDK Deployment &amp; Distribution Guide</h1>
+    <p>How to build, publish, and consume <code>@brdrwanda/observability</code> across your services.</p>
+    <hr />
+    <h2 id="deployment-options">Deployment Options</h2>
+    <pre><code>Option A: Private npm Registry     Option B: Git-based Install
+    ┌─────────────────────┐            ┌─────────────────────┐
+    │ Build SDK            │            │ Build SDK            │
+    │ npm publish          │            │ git push / tag       │
+    │ → Verdaccio/GitHub   │            │                     │
+    │   Packages/GitLab    │            │ Services install via │
+    │                      │            │ git+ssh:// or        │
+    │ Services install via │            │ file: path           │
+    │ npm install @brdrwanda │            └─────────────────────┘
+    │   /observability     │
+    └─────────────────────┘
+
+    Option C: Monorepo Workspace
+    ┌─────────────────────────────────┐
+    │ All services + SDK in one repo  │
+    │ pnpm workspace links SDK        │
+    │ No publish step needed          │
+    └─────────────────────────────────┘
+    </code></pre>
+    <hr />
+    <h2 id="option-a-private-npm-registry-recommended-for-multi-repo">Option A: Private npm Registry (Recommended for multi-repo)</h2>
+    <h3 id="1-choose-a-registry">1. Choose a registry</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Registry</th>
+    <th>Hosting</th>
+    <th>Cost</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><strong>Verdaccio</strong></td>
+    <td>Self-hosted (Docker)</td>
+    <td>Free</td>
+    </tr>
+    <tr class="even">
+    <td><strong>GitHub Packages</strong></td>
+    <td>GitHub-hosted</td>
+    <td>Free for private repos</td>
+    </tr>
+    <tr class="odd">
+    <td><strong>GitLab Packages</strong></td>
+    <td>GitLab-hosted</td>
+    <td>Free</td>
+    </tr>
+    <tr class="even">
+    <td><strong>npm (org)</strong></td>
+    <td>npmjs.com</td>
+    <td>$7/user/mo for private</td>
+    </tr>
+    <tr class="odd">
+    <td><strong>AWS CodeArtifact</strong></td>
+    <td>AWS-hosted</td>
+    <td>Usage-based</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="2-build-the-sdk">2. Build the SDK</h3>
+    <pre class="bash"><code>cd packages/sdk
+    pnpm build
+    </code></pre>
+    <p>Output lands in <code>dist/</code>:</p>
+    <pre><code>dist/
+      index.js      # CJS (require)
+      index.mjs     # ESM (import)
+      index.d.ts    # TypeScript types
+      index.js.map  # Source maps
+    </code></pre>
+    <h3 id="3-publish">3. Publish</h3>
+    <h4 id="verdaccio-self-hosted-simplest">Verdaccio (self-hosted, simplest)</h4>
+    <pre class="bash"><code># Run Verdaccio
+    docker run -d --name verdaccio -p 4873:4873 verdaccio/verdaccio
+
+    # Point npm to it
+    npm set registry http://localhost:4873
+    npm adduser --registry http://localhost:4873
+
+    # Publish
+    cd packages/sdk
+    npm publish --registry http://localhost:4873
+    </code></pre>
+    <h4 id="github-packages">GitHub Packages</h4>
+    <pre class="bash"><code># .npmrc in SDK root
+    @brdrwanda:registry=https://npm.pkg.github.com
+    //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+
+    # Update package.json
+    # &quot;name&quot;: &quot;@your-gh-org/observability&quot;
+    # &quot;publishConfig&quot;: { &quot;registry&quot;: &quot;https://npm.pkg.github.com&quot; }
+
+    npm publish
+    </code></pre>
+    <h4 id="gitlab-packages">GitLab Packages</h4>
+    <pre class="bash"><code># .npmrc
+    @brdrwanda:registry=https://gitlab.com/api/v4/projects/&lt;PROJECT_ID&gt;/packages/npm/
+    //gitlab.com/api/v4/projects/&lt;PROJECT_ID&gt;/packages/npm/:_authToken=${GITLAB_TOKEN}
+
+    npm publish
+    </code></pre>
+    <h3 id="4-consume-in-services">4. Consume in services</h3>
+    <pre class="bash"><code># In each service repo, point to your registry
+    echo &quot;@brdrwanda:registry=http://your-verdaccio:4873&quot; &gt;&gt; .npmrc
+
+    # Install
+    pnpm add @brdrwanda/observability
+    </code></pre>
+    <h3 id="5-version-bumps">5. Version bumps</h3>
+    <pre class="bash"><code>cd packages/sdk
+
+    # Patch (bug fix): 0.1.0 → 0.1.1
+    npm version patch
+
+    # Minor (new feature): 0.1.0 → 0.2.0
+    npm version minor
+
+    # Major (breaking change): 0.1.0 → 1.0.0
+    npm version major
+
+    # Build &amp; publish
+    pnpm build &amp;&amp; npm publish
+    </code></pre>
+    <hr />
+    <h2 id="option-b-git-based-install-no-registry-needed">Option B: Git-based Install (No registry needed)</h2>
+    <p>Install directly from git. No registry setup required.</p>
+    <h3 id="from-githubgitlab">From GitHub/GitLab</h3>
+    <pre class="bash"><code># SSH
+    pnpm add git+ssh://git@github.com:your-org/internal-observability-platform.git#v0.1.0
+
+    # HTTPS
+    pnpm add git+https://github.com/your-org/internal-observability-platform.git#v0.1.0
+    </code></pre>
+    <p><strong>Important</strong>: package.json <code>main</code>/<code>types</code> point to <code>dist/</code>, so you must commit built files or use a <code>prepare</code> script:</p>
+    <pre class="jsonc"><code>// packages/sdk/package.json
+    {
+      &quot;scripts&quot;: {
+        &quot;prepare&quot;: &quot;tsup&quot;  // auto-builds on install
+      }
+    }
+    </code></pre>
+    <h3 id="from-a-tagrelease">From a tag/release</h3>
+    <pre class="bash"><code># Tag a release
+    git tag v0.1.0
+    git push origin v0.1.0
+
+    # Install from tag
+    pnpm add git+ssh://git@github.com:your-org/observability-platform.git#v0.1.0
+    </code></pre>
+    <h3 id="from-local-path-development">From local path (development)</h3>
+    <pre class="bash"><code># Service repo sits next to SDK repo
+    pnpm add file:../internal-observability-platform/packages/sdk
+    </code></pre>
+    <hr />
+    <h2 id="option-c-monorepo-workspace-all-services-in-one-repo">Option C: Monorepo Workspace (All services in one repo)</h2>
+    <p>If all services live in the same repo, no publishing needed.</p>
+    <h3 id="structure">Structure</h3>
+    <pre><code>monorepo/
+      packages/
+        observability/          # The SDK
+      services/
+        api-gateway/
+        workflow-service/
+        crm-service/
+    </code></pre>
+    <h3 id="pnpm-workspaceyaml">pnpm-workspace.yaml</h3>
+    <pre class="yaml"><code>packages:
+      - &quot;packages/*&quot;
+      - &quot;services/*&quot;
+    </code></pre>
+    <h3 id="service-packagejson">Service package.json</h3>
+    <pre class="jsonc"><code>{
+      &quot;dependencies&quot;: {
+        &quot;@brdrwanda/observability&quot;: &quot;workspace:*&quot;
+      }
+    }
+    </code></pre>
+    <p><code>pnpm install</code> automatically links the SDK. Changes to SDK are immediately available — no build/publish cycle during development.</p>
+    <p>Build order handled by Turborepo:</p>
+    <pre class="bash"><code>turbo build  # builds SDK first, then services
+    </code></pre>
+    <hr />
+    <h2 id="cicd-pipeline">CI/CD Pipeline</h2>
+    <h3 id="github-actions-example">GitHub Actions example</h3>
+    <pre class="yaml"><code># .github/workflows/publish-sdk.yml
+    name: Publish SDK
+
+    on:
+      push:
+        tags: [&quot;v*&quot;]
+
+    jobs:
+      publish:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+
+          - uses: pnpm/action-setup@v4
+            with:
+              version: 9
+
+          - uses: actions/setup-node@v4
+            with:
+              node-version: 20
+              registry-url: &quot;https://npm.pkg.github.com&quot;
+
+          - run: pnpm install --frozen-lockfile
+          - run: pnpm --filter @brdrwanda/observability build
+          - run: pnpm --filter @brdrwanda/observability test
+
+          - run: pnpm --filter @brdrwanda/observability publish --no-git-checks
+            env:
+              NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    </code></pre>
+    <h3 id="workflow">Workflow</h3>
+    <pre><code>Developer pushes SDK change
+        → PR review + merge to main
+        → Tag release: git tag v0.2.0 &amp;&amp; git push origin v0.2.0
+        → CI runs tests + publishes to registry
+        → Services update: pnpm update @brdrwanda/observability
+    </code></pre>
+    <hr />
+    <h2 id="service-integration-checklist">Service Integration Checklist</h2>
+    <p>After SDK is available, each service needs:</p>
+    <h3 id="1-install">1. Install</h3>
+    <pre class="bash"><code>pnpm add @brdrwanda/observability
+
+    # Add instrumentations you need
+    pnpm add mysql2 @opentelemetry/instrumentation-mysql2   # if using MySQL
+    pnpm add ioredis @opentelemetry/instrumentation-ioredis  # if using Redis
+    pnpm add kafkajs @opentelemetry/instrumentation-kafkajs  # if using Kafka
+    </code></pre>
+    <h3 id="2-configure-module">2. Configure module</h3>
+    <pre class="typescript"><code>// app.module.ts
+    import {
+      ObservabilityModule,
+      ObservabilityHealthModule,
+      httpInstrumentation,
+      mysqlInstrumentation,    // add what you need
+      redisInstrumentation,
+      kafkaInstrumentation,
+    } from &#39;@brdrwanda/observability&#39;;
+
+    @Module({
+      imports: [
+        ObservabilityModule.forRoot({
+          serviceName: &#39;api-gateway&#39;,
+          tracing: {
+            exporter: { type: &#39;otlp-http&#39; },  // endpoint from env var
+            sampling: { ratio: 0.1 },
+          },
+          metrics: { prefix: &#39;apigateway&#39; },
+          instrumentations: [
+            httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
+            mysqlInstrumentation(),
+            redisInstrumentation(),
+            kafkaInstrumentation(),
+          ],
+        }),
+        ObservabilityHealthModule,
+      ],
+    })
+    export class AppModule {}
+    </code></pre>
+    <h3 id="3-replace-nestjs-logger">3. Replace NestJS logger</h3>
+    <pre class="typescript"><code>// main.ts
+    import { NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule);
+      app.useLogger(app.get(NestPinoLogger));
+      await app.listen(3000);
+    }
+    </code></pre>
+    <h3 id="4-set-environment-variables">4. Set environment variables</h3>
+    <pre class="bash"><code># PM2 ecosystem or .env or K8s configmap
+    NODE_ENV=production
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    </code></pre>
+    <h3 id="5-verify">5. Verify</h3>
+    <pre class="bash"><code># Health check
+    curl http://localhost:3000/health
+
+    # Metrics endpoint
+    curl http://localhost:3000/metrics
+
+    # Check traces in Grafana → Explore → Tempo
+    # Search by service.name = &quot;api-gateway&quot;
+    </code></pre>
+    <hr />
+    <h2 id="updating-the-sdk-across-services">Updating the SDK Across Services</h2>
+    <h3 id="breaking-change-workflow">Breaking change workflow</h3>
+    <pre><code>1. Bump major version in SDK (npm version major)
+    2. Update CHANGELOG with migration notes
+    3. Publish new version
+    4. Update services one at a time:
+       pnpm add @brdrwanda/observability@^1.0.0
+    5. Test each service before moving to next
+    </code></pre>
+    <h3 id="non-breaking-change">Non-breaking change</h3>
+    <pre><code>1. Bump patch/minor in SDK
+    2. Publish
+    3. Services pick it up on next pnpm update
+    </code></pre>
+    <h3 id="pin-versions-in-production">Pin versions in production</h3>
+    <pre class="jsonc"><code>// service package.json — pin exact version for stability
+    {
+      &quot;dependencies&quot;: {
+        &quot;@brdrwanda/observability&quot;: &quot;0.1.0&quot;    // exact, not ^0.1.0
+      }
+    }
+    </code></pre>
+    <hr />
+    <h2 id="recommendation">Recommendation</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Situation</th>
+    <th>Use</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Services in separate repos, small team</td>
+    <td><strong>Verdaccio</strong> (5min Docker setup)</td>
+    </tr>
+    <tr class="even">
+    <td>Services in separate repos, using GitHub</td>
+    <td><strong>GitHub Packages</strong> (free, no infra)</td>
+    </tr>
+    <tr class="odd">
+    <td>All services in one repo</td>
+    <td><strong>Workspace</strong> (zero publish overhead)</td>
+    </tr>
+    <tr class="even">
+    <td>Quick prototyping / early development</td>
+    <td><strong>Git install</strong> or <strong>file: path</strong></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>For your PM2 setup with multiple NestJS services: <strong>Verdaccio</strong> or <strong>GitHub Packages</strong>. Run Verdaccio on the same server as your observability stack, publish once, install everywhere.</p>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "sdk-deployment";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

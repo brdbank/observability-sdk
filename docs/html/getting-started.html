@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="getting-started">Getting Started</h1>
+    <p>Add structured logging, distributed tracing, and Prometheus metrics to any BRD NestJS service in 3 steps. Takes about 10 minutes.</p>
+    <hr />
+    <h2 id="step-1-install">Step 1: Install</h2>
+    <pre class="bash"><code>npm install @brdrwanda/observability
+
+    # Pretty logs for development (recommended)
+    npm install -D pino-pretty
+    </code></pre>
+    <p>Your NestJS peer dependencies (<code>@nestjs/common</code>, <code>@nestjs/core</code>, <code>rxjs</code>, <code>reflect-metadata</code>) are already in your project. No extra setup needed.</p>
+    <hr />
+    <h2 id="step-2-wire-the-module">Step 2: Wire the module</h2>
+    <h3 id="appmodulets">app.module.ts</h3>
+    <p>Import <code>ObservabilityModule</code> and add it to your imports. Pick only the instrumentations your service uses.</p>
+    <pre class="typescript"><code>import {
+      ObservabilityModule,
+      ObservabilityHealthModule,
+      httpInstrumentation,
+      kafkaInstrumentation,
+      redisInstrumentation,
+    } from &#39;@brdrwanda/observability&#39;;
+
+    @Module({
+      imports: [
+        ObservabilityModule.forRoot({
+          serviceName: &#39;your-service-name&#39;,
+          instrumentations: [
+            httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
+            kafkaInstrumentation(),
+            redisInstrumentation(),
+          ],
+        }),
+        ObservabilityHealthModule,
+        // ... your other modules
+      ],
+    })
+    export class AppModule {}
+    </code></pre>
+    <h3 id="maints">main.ts</h3>
+    <p>Add <code>setupProcessErrorHandlers</code> at the top to catch bootstrap crashes (missing modules, connection failures, bad config) as structured JSON. Then add <code>bufferLogs: true</code> and set the SDK logger.</p>
+    <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
+    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+    import { AppModule } from &#39;./app.module&#39;;
+
+    setupProcessErrorHandlers({ serviceName: &#39;your-service-name&#39; });
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule, { bufferLogs: true });
+      app.useLogger(app.get(NestPinoLogger));
+      await app.listen(3000);
+    }
+    bootstrap();
+    </code></pre>
+    <p><code>setupProcessErrorHandlers</code> catches <code>uncaughtException</code> and <code>unhandledRejection</code> events that happen before or outside NestJS — like missing modules, database connection failures during import, or Kafka broker unreachable errors. These are output as structured JSON to stderr so your log aggregator can parse them.</p>
+    <p>That's it. Start your service and you'll see structured logs with <code>service_name</code>, <code>environment</code>, and <code>version</code> on every line.</p>
+    <hr />
+    <h2 id="step-3-use-in-brd-services">Step 3: Use in BRD services</h2>
+    <p>Inject <code>ObservabilityLogger</code> anywhere you need logging. It's globally available from the module — no extra providers needed.</p>
+    <pre class="typescript"><code>import { Injectable } from &#39;@nestjs/common&#39;;
+    import { ObservabilityLogger, Span } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class PaymentService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      @Span(&#39;process-payment&#39;)
+      async processPayment(orderId: string) {
+        this.logger.info(&#39;processing payment&#39;, { orderId });
+        const result = await this.gateway.charge(orderId);
+        this.logger.info(&#39;payment completed&#39;, { orderId, status: result.status });
+        return result;
+      }
+    }
+    </code></pre>
+    <p>Every log line automatically includes <code>trace_id</code>, <code>request_id</code>, <code>correlation_id</code>, and <code>span_id</code>. No manual wiring.</p>
+    <hr />
+    <h2 id="what-you-get">What you get</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Feature</th>
+    <th>How</th>
+    <th>Endpoint</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Structured JSON logs</td>
+    <td>Pino with trace correlation</td>
+    <td>stdout</td>
+    </tr>
+    <tr class="even">
+    <td>Distributed tracing</td>
+    <td>OpenTelemetry with W3C propagation</td>
+    <td>configurable exporter</td>
+    </tr>
+    <tr class="odd">
+    <td>Prometheus metrics</td>
+    <td>Auto-registered process + HTTP metrics</td>
+    <td><code>GET /metrics</code></td>
+    </tr>
+    <tr class="even">
+    <td>Health checks</td>
+    <td>Liveness, readiness, and startup probes</td>
+    <td><code>GET /health</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Sensitive data redaction</td>
+    <td>Passwords, tokens, keys auto-censored</td>
+    <td>automatic</td>
+    </tr>
+    <tr class="even">
+    <td>Request context</td>
+    <td>Request ID, correlation ID via AsyncLocalStorage</td>
+    <td>automatic</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="available-instrumentations">Available instrumentations</h2>
+    <p>Install only what your service uses:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Instrumentation</th>
+    <th>When to use</th>
+    <th>Optional dependency</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>httpInstrumentation()</code></td>
+    <td>Always (traces HTTP requests)</td>
+    <td>built-in</td>
+    </tr>
+    <tr class="even">
+    <td><code>kafkaInstrumentation()</code></td>
+    <td>Service uses KafkaJS</td>
+    <td><code>@opentelemetry/instrumentation-kafkajs</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>redisInstrumentation()</code></td>
+    <td>Service uses Redis/ioredis</td>
+    <td><code>@opentelemetry/instrumentation-ioredis</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>mysqlInstrumentation()</code></td>
+    <td>Service uses MySQL</td>
+    <td><code>@opentelemetry/instrumentation-mysql2</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>pgInstrumentation()</code></td>
+    <td>Service uses PostgreSQL</td>
+    <td><code>@opentelemetry/instrumentation-pg</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>sequelizeInstrumentation()</code></td>
+    <td>Service uses Sequelize ORM</td>
+    <td><code>opentelemetry-instrumentation-sequelize</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>The SDK logs a helpful message if an optional dependency is missing — it won't crash.</p>
+    <hr />
+    <h2 id="configuration-reference">Configuration reference</h2>
+    <p>All fields except <code>serviceName</code> are optional with sensible defaults.</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,        // required — identifies your service
+      environment: &#39;production&#39;,        // defaults to NODE_ENV
+      version: &#39;1.2.3&#39;,                 // defaults to npm_package_version
+
+      logger: {
+        level: &#39;info&#39;,                  // debug | info | warn | error | fatal
+        prettyPrint: false,             // auto: true in dev, false in prod
+        redaction: {
+          paths: [&#39;*.password&#39;, &#39;*.ssn&#39;],
+          censor: &#39;[REDACTED]&#39;,
+        },
+      },
+
+      tracing: {
+        enabled: true,
+        exporter: {
+          type: &#39;otlp-http&#39;,           // otlp-http | otlp-grpc | console | none
+          endpoint: &#39;http://otel-collector:4318&#39;,
+        },
+        sampling: {
+          ratio: 0.1,                  // 10% in prod (auto: 100% in dev)
+        },
+      },
+
+      metrics: {
+        enabled: true,
+        prefix: &#39;myservice&#39;,           // metric name prefix
+        defaultMetrics: true,           // Node.js process metrics
+        labels: { team: &#39;platform&#39; },
+      },
+
+      instrumentations: [ /* ... */ ],
+    })
+    </code></pre>
+    <h3 id="local-development-tip">Local development tip</h3>
+    <p>Use <code>console</code> exporter to see traces in your terminal without running an OTel collector:</p>
+    <pre class="typescript"><code>tracing: {
+      exporter: { type: &#39;console&#39; },
+    }
+    </code></pre>
+    <hr />
+    <h2 id="migrating-from-winston--morgan--custom-loggers">Migrating from Winston / Morgan / custom loggers</h2>
+    <h3 id="what-to-change">What to change</h3>
+    <p>Migration touches 3 files: <code>app.module.ts</code>, <code>main.ts</code>, and any service that injects your old logger.</p>
+    <h4 id="1-appmodulets--comment-out-old-logging">1. app.module.ts — comment out old logging</h4>
+    <pre class="typescript"><code>// Before
+    import LoggerModule from &#39;./logger/logger.module&#39;;
+    import MorganMiddleware from &#39;./middlewares/morgan.middleware&#39;;
+
+    @Module({
+      imports: [LoggerModule.register(&#39;App&#39;), ...],
+    })
+    class AppModule implements NestModule {
+      configure(consumer: MiddlewareConsumer) {
+        consumer.apply(MorganMiddleware).forRoutes(&#39;*&#39;);
+      }
+    }
+
+    // After
+    // import LoggerModule from &#39;./logger/logger.module&#39;;
+    // import MorganMiddleware from &#39;./middlewares/morgan.middleware&#39;;
+    import { ObservabilityModule, ObservabilityHealthModule, httpInstrumentation } from &#39;@brdrwanda/observability&#39;;
+
+    @Module({
+      imports: [
+        ObservabilityModule.forRoot({ serviceName: &#39;my-service&#39;, instrumentations: [httpInstrumentation()] }),
+        ObservabilityHealthModule,
+        // LoggerModule.register(&#39;App&#39;),   &lt;-- commented out
+        ...
+      ],
+    })
+    class AppModule implements NestModule {
+      configure(consumer: MiddlewareConsumer) {
+        // consumer.apply(MorganMiddleware).forRoutes(&#39;*&#39;);   &lt;-- commented out
+      }
+    }
+    </code></pre>
+    <h4 id="2-maints--swap-the-logger-and-add-process-error-handling">2. main.ts — swap the logger and add process error handling</h4>
+    <pre class="typescript"><code>// Before
+    const app = await NestFactory.create(AppModule);
+
+    // After
+    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+
+    setupProcessErrorHandlers({ serviceName: &#39;my-service&#39; });
+
+    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    app.useLogger(app.get(NestPinoLogger));
+    </code></pre>
+    <h4 id="3-services--replace-logger-injection">3. Services — replace logger injection</h4>
+    <pre class="typescript"><code>// Before
+    import LoggerService from &#39;./logger/logger.service&#39;;
+
+    @Injectable()
+    export class MyService {
+      constructor(private loggerService: LoggerService) {}
+
+      doWork() {
+        this.loggerService.handleInfoLog(&#39;doing work&#39;);
+      }
+    }
+
+    // After
+    import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class MyService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      doWork() {
+        this.logger.info(&#39;doing work&#39;);
+      }
+    }
+    </code></pre>
+    <h3 id="logger-method-mapping">Logger method mapping</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Winston / custom</th>
+    <th>SDK equivalent</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>logger.log(msg)</code></td>
+    <td><code>logger.info(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.handleInfoLog(msg)</code></td>
+    <td><code>logger.info(msg)</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>logger.handleErrorLog(msg)</code></td>
+    <td><code>logger.error(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.warn(msg)</code></td>
+    <td><code>logger.warn(msg)</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>logger.debug(msg)</code></td>
+    <td><code>logger.debug(msg)</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>console.log(msg)</code></td>
+    <td><code>logger.info(msg)</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="adding-context-to-logs">Adding context to logs</h3>
+    <pre class="typescript"><code>// Before — manual string concatenation
+    console.log(`Order ${orderId} created by user ${userId}`);
+
+    // After — structured context (searchable, filterable)
+    this.logger.info(&#39;order created&#39;, { orderId, userId });
+    </code></pre>
+    <hr />
+    <h2 id="kafka-context-propagation">Kafka context propagation</h2>
+    <p>Trace context flows automatically across Kafka when you add <code>kafkaInstrumentation()</code>.</p>
+    <p>For manual control over headers:</p>
+    <pre class="typescript"><code>import { injectKafkaHeaders, withKafkaContext } from &#39;@brdrwanda/observability&#39;;
+
+    // Producer: inject trace context into headers
+    await producer.send({
+      topic: &#39;events&#39;,
+      messages: [{
+        value: JSON.stringify(data),
+        headers: injectKafkaHeaders(),
+      }],
+    });
+
+    // Consumer: extract trace context from headers
+    await consumer.run({
+      eachMessage: async ({ message }) =&gt; {
+        await withKafkaContext(message.headers, &#39;process-event&#39;, async () =&gt; {
+          await processEvent(message);
+        });
+      },
+    });
+    </code></pre>
+    <hr />
+    <h2 id="custom-spans">Custom spans</h2>
+    <p>Use the <code>@Span</code> decorator for automatic span management, or <code>ObservabilityTracer</code> for manual control.</p>
+    <pre class="typescript"><code>import { ObservabilityTracer, Span } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class OrderService {
+      constructor(private tracer: ObservabilityTracer) {}
+
+      // Automatic: decorator creates and closes span
+      @Span(&#39;validate-order&#39;)
+      async validateOrder(data: CreateOrderDto) {
+        return this.validator.check(data);
+      }
+
+      // Manual: full control over span attributes and lifecycle
+      async processOrder(orderId: string) {
+        return this.tracer.startActiveSpan(&#39;process-order&#39;, async (span) =&gt; {
+          span.setAttribute(&#39;order.id&#39;, orderId);
+          const result = await this.process(orderId);
+          span.setAttribute(&#39;order.status&#39;, result.status);
+          return result;
+        });
+      }
+    }
+    </code></pre>
+    <hr />
+    <h2 id="verify-it-works">Verify it works</h2>
+    <p>Start your service and hit any endpoint:</p>
+    <pre class="bash"><code># Health check
+    curl http://localhost:3000/health
+
+    # Prometheus metrics
+    curl http://localhost:3000/metrics
+
+    # Your own endpoints — check terminal for structured logs and trace spans
+    curl http://localhost:3000/api/your-endpoint
+    </code></pre>
+    <p>You should see in your terminal:</p>
+    <pre><code>[15:58:07.768] INFO (your-service/12345): request completed
+        service_name: &quot;your-service&quot;
+        environment: &quot;development&quot;
+        version: &quot;0.0.1&quot;
+        trace_id: &quot;abc123...&quot;
+        request_id: &quot;req-456...&quot;
+        duration: 12
+    </code></pre>
+    <hr />
+    <h2 id="local-development-sandbox">Local development sandbox</h2>
+    <p>For a full observability stack (Grafana, Prometheus, Loki, Tempo):</p>
+    <pre class="bash"><code>pnpm sandbox:up    # start
+    pnpm sandbox:down  # stop
+    </code></pre>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Tool</th>
+    <th>URL</th>
+    <th>Credentials</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Grafana</td>
+    <td><a href="http://localhost:3000">http://localhost:3000</a></td>
+    <td>admin / admin</td>
+    </tr>
+    <tr class="even">
+    <td>Prometheus</td>
+    <td><a href="http://localhost:9090">http://localhost:9090</a></td>
+    <td>-</td>
+    </tr>
+    <tr class="odd">
+    <td>Traces</td>
+    <td>Grafana &gt; Explore &gt; Tempo</td>
+    <td>-</td>
+    </tr>
+    <tr class="even">
+    <td>Logs</td>
+    <td>Grafana &gt; Explore &gt; Loki</td>
+    <td>-</td>
+    </tr>
+    </tbody>
+    </table>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "getting-started";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

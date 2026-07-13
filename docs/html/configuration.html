@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuration Reference — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="configuration-reference">Configuration Reference</h1>
+    <p>Complete reference for every configuration option available in <code>@brdrwanda/observability</code>.</p>
+    <p>The SDK is configured through <code>ObservabilityModule.forRoot(config)</code>, where <code>config</code> implements the <code>ObservabilityConfig</code> interface. Every option except <code>serviceName</code> has a sensible default, so you can start with a single line and add options as needed.</p>
+    <hr />
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ul>
+    <li><a href="#minimal-configuration">Minimal Configuration</a></li>
+    <li><a href="#full-configuration-example">Full Configuration Example</a></li>
+    <li><a href="#environment-aware-defaults">Environment-Aware Defaults</a></li>
+    <li><a href="#logger-options">Logger Options</a></li>
+    <li><a href="#tracing-options">Tracing Options</a></li>
+    <li><a href="#metrics-options">Metrics Options</a></li>
+    <li><a href="#health-options">Health Options</a></li>
+    <li><a href="#redaction-options">Redaction Options</a></li>
+    <li><a href="#instrumentation-plugins">Instrumentation Plugins</a></li>
+    <li><a href="#client-origins">Client Origins</a></li>
+    </ul>
+    <hr />
+    <h2 id="minimal-configuration">Minimal Configuration</h2>
+    <pre class="typescript"><code>import { ObservabilityModule } from &#39;@brdrwanda/observability&#39;;
+
+    @Module({
+      imports: [
+        ObservabilityModule.forRoot({
+          serviceName: &#39;my-service&#39;,
+        }),
+      ],
+    })
+    export class AppModule {}
+    </code></pre>
+    <p><code>serviceName</code> is the only required option. Everything else is assigned a sensible default based on the current environment. In development you get pretty-printed logs at <code>debug</code> level with console trace export; in production you get structured JSON logs at <code>info</code> level with OTLP export and 10% sampling.</p>
+    <hr />
+    <h2 id="full-configuration-example">Full Configuration Example</h2>
+    <pre class="typescript"><code>import {
+      ObservabilityModule,
+      httpInstrumentation,
+      sequelizeInstrumentation,
+      kafkaInstrumentation,
+      redisInstrumentation,
+    } from &#39;@brdrwanda/observability&#39;;
+
+    ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      environment: &#39;production&#39;,        // default: process.env.NODE_ENV || &#39;development&#39;
+      version: &#39;1.2.3&#39;,                 // default: process.env.npm_package_version || &#39;0.0.0&#39;
+
+      logger: {
+        level: &#39;info&#39;,                  // &#39;debug&#39; | &#39;info&#39; | &#39;warn&#39; | &#39;error&#39; | &#39;fatal&#39;
+        prettyPrint: false,             // true in dev, false in prod
+        autoRequestLogging: true,       // log request_start/request_complete automatically
+        autoErrorLogging: true,         // log errors from exception filter
+        logRequestBody: false,          // include req.body in request_start
+        logResponseBody: false,         // include response body in request_complete
+        excludeRoutes: [&#39;/health&#39;, &#39;/metrics&#39;],  // skip these routes
+        redaction: {
+          paths: [&#39;password&#39;, &#39;token&#39;], // JSON paths to redact from logs
+          censor: &#39;[REDACTED]&#39;,         // replacement string for redacted values
+        },
+      },
+
+      tracing: {
+        enabled: true,
+        exporter: {
+          type: &#39;otlp-http&#39;,           // &#39;otlp-http&#39; | &#39;otlp-grpc&#39; | &#39;console&#39; | &#39;none&#39;
+          endpoint: &#39;http://otel-collector:4318&#39;,
+          headers: {},                  // additional headers (e.g. auth tokens)
+        },
+        sampling: {
+          type: &#39;parent-based&#39;,        // &#39;always&#39; | &#39;never&#39; | &#39;probabilistic&#39; | &#39;parent-based&#39;
+          ratio: 0.1,                  // 0-1, used by probabilistic and parent-based
+        },
+      },
+
+      metrics: {
+        enabled: true,
+        prefix: &#39;&#39;,
+        defaultMetrics: true,
+        endpoint: &#39;/metrics&#39;,
+        labels: { team: &#39;lending&#39; },
+      },
+
+      health: {
+        enabled: true,
+        endpoint: &#39;/health&#39;,
+      },
+
+      instrumentations: [
+        httpInstrumentation(),
+        sequelizeInstrumentation({ slowQueryThreshold: 1000 }),
+        kafkaInstrumentation(),
+        redisInstrumentation(),
+      ],
+
+      clientOrigins: {
+        &#39;http://localhost:3000&#39;: &#39;admin-frontend&#39;,
+        &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39;,
+      },
+
+      redaction: {
+        paths: [&#39;password&#39;, &#39;token&#39;, &#39;authorization&#39;],
+        censor: &#39;[REDACTED]&#39;,
+      },
+    })
+    </code></pre>
+    <hr />
+    <h2 id="environment-aware-defaults">Environment-Aware Defaults</h2>
+    <p>The SDK detects the environment from <code>config.environment</code>, falling back to <code>process.env.NODE_ENV</code>, then <code>'development'</code>. Several defaults change automatically between development and production:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Setting</th>
+    <th>Development</th>
+    <th>Production</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>logger.level</code></td>
+    <td><code>'debug'</code></td>
+    <td><code>'info'</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>logger.prettyPrint</code></td>
+    <td><code>true</code></td>
+    <td><code>false</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>tracing.exporter.type</code></td>
+    <td><code>'console'</code></td>
+    <td><code>'otlp-http'</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>tracing.sampling.ratio</code></td>
+    <td><code>1.0</code> (all traces)</td>
+    <td><code>0.1</code> (10% of traces)</td>
+    </tr>
+    <tr class="odd">
+    <td>Span processor</td>
+    <td><code>SimpleSpanProcessor</code></td>
+    <td><code>BatchSpanProcessor</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Any explicit value you provide always takes precedence over these environment-based defaults.</p>
+    <hr />
+    <h2 id="logger-options">Logger Options</h2>
+    <p>Configured under the <code>logger</code> key. The logger is built on <a href="https://github.com/pinojs/pino">pino</a> and automatically enriches every log entry with <code>service_name</code>, <code>environment</code>, <code>version</code>, <code>request_id</code>, <code>correlation_id</code>, <code>trace_id</code>, <code>span_id</code>, and <code>client_app</code>.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>level</code></td>
+    <td><code>'debug' | 'info' | 'warn' | 'error' | 'fatal'</code></td>
+    <td><code>'debug'</code> in dev, <code>'info'</code> in prod</td>
+    <td>Minimum log level that will be emitted</td>
+    </tr>
+    <tr class="even">
+    <td><code>prettyPrint</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code> in dev, <code>false</code> in prod</td>
+    <td>Enable colorized, human-readable output via <code>pino-pretty</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>autoRequestLogging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Automatically log <code>request_start</code> and <code>request_complete</code> for every HTTP request</td>
+    </tr>
+    <tr class="even">
+    <td><code>autoErrorLogging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Automatically log errors caught by the global exception filter</td>
+    </tr>
+    <tr class="odd">
+    <td><code>logRequestBody</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include <code>req.body</code> in the <code>request_start</code> log entry</td>
+    </tr>
+    <tr class="even">
+    <td><code>logResponseBody</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include the response body in the <code>request_complete</code> log entry</td>
+    </tr>
+    <tr class="odd">
+    <td><code>excludeRoutes</code></td>
+    <td><code>string[]</code></td>
+    <td><code>['/health', '/metrics']</code></td>
+    <td>Routes to skip entirely — no request lifecycle logs emitted</td>
+    </tr>
+    <tr class="even">
+    <td><code>redaction.paths</code></td>
+    <td><code>string[]</code></td>
+    <td><code>DEFAULT_REDACTION_PATHS</code> (see <a href="#redaction-options">Redaction Options</a>)</td>
+    <td>JSON paths to redact from log output</td>
+    </tr>
+    <tr class="odd">
+    <td><code>redaction.censor</code></td>
+    <td><code>string</code></td>
+    <td><code>'[REDACTED]'</code></td>
+    <td>Replacement string used for redacted values</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Redaction precedence:</strong> <code>logger.redaction</code> takes priority over the top-level <code>redaction</code> config. If <code>logger.redaction</code> is not set, the logger falls back to the top-level <code>redaction</code>, then to <code>DEFAULT_REDACTION_PATHS</code>.</p>
+    <hr />
+    <h2 id="tracing-options">Tracing Options</h2>
+    <p>Configured under the <code>tracing</code> key. Tracing uses OpenTelemetry under the hood.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>enabled</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable or disable distributed tracing entirely</td>
+    </tr>
+    <tr class="even">
+    <td><code>exporter.type</code></td>
+    <td><code>'otlp-http' | 'otlp-grpc' | 'console' | 'none'</code></td>
+    <td><code>'console'</code> in dev, <code>'otlp-http'</code> in prod</td>
+    <td>How trace data is exported</td>
+    </tr>
+    <tr class="odd">
+    <td><code>exporter.endpoint</code></td>
+    <td><code>string</code></td>
+    <td><code>process.env.OTEL_EXPORTER_OTLP_ENDPOINT</code> or <code>'http://localhost:4318'</code></td>
+    <td>The OpenTelemetry collector endpoint</td>
+    </tr>
+    <tr class="even">
+    <td><code>exporter.headers</code></td>
+    <td><code>Record&lt;string, string&gt;</code></td>
+    <td><code>{}</code></td>
+    <td>Additional HTTP headers sent with each export (e.g. authentication)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>sampling.type</code></td>
+    <td><code>'always' | 'never' | 'probabilistic' | 'parent-based'</code></td>
+    <td><code>'parent-based'</code></td>
+    <td>Sampling strategy for root spans</td>
+    </tr>
+    <tr class="even">
+    <td><code>sampling.ratio</code></td>
+    <td><code>number</code> (0 to 1)</td>
+    <td><code>1.0</code> in dev, <code>0.1</code> in prod</td>
+    <td>Fraction of traces to sample (used by <code>probabilistic</code> and <code>parent-based</code>)</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="sampling-strategies">Sampling Strategies</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Type</th>
+    <th>Behavior</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>always</code></td>
+    <td>Every trace is recorded (<code>AlwaysOnSampler</code>)</td>
+    </tr>
+    <tr class="even">
+    <td><code>never</code></td>
+    <td>No traces are recorded (<code>AlwaysOffSampler</code>)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>probabilistic</code></td>
+    <td>Each trace has a <code>ratio</code> chance of being recorded (<code>TraceIdRatioBasedSampler</code>)</td>
+    </tr>
+    <tr class="even">
+    <td><code>parent-based</code></td>
+    <td>Respects the parent span's sampling decision; root spans use <code>ratio</code> (<code>ParentBasedSampler</code> wrapping <code>TraceIdRatioBasedSampler</code>)</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="exporter-types">Exporter Types</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Type</th>
+    <th>Package Required</th>
+    <th>Notes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>otlp-http</code></td>
+    <td><code>@opentelemetry/exporter-trace-otlp-http</code> (included)</td>
+    <td>Sends traces over HTTP to the collector's <code>/v1/traces</code> path</td>
+    </tr>
+    <tr class="even">
+    <td><code>otlp-grpc</code></td>
+    <td><code>@opentelemetry/exporter-trace-otlp-grpc</code> (install separately)</td>
+    <td>Sends traces over gRPC</td>
+    </tr>
+    <tr class="odd">
+    <td><code>console</code></td>
+    <td>None (built-in)</td>
+    <td>Prints spans to stdout; useful for local development</td>
+    </tr>
+    <tr class="even">
+    <td><code>none</code></td>
+    <td>None</td>
+    <td>Disables trace export entirely (tracing still creates spans in-process)</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="metrics-options">Metrics Options</h2>
+    <p>Configured under the <code>metrics</code> key. Metrics are exposed via a Prometheus-compatible HTTP endpoint.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>enabled</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable or disable the metrics system and endpoint</td>
+    </tr>
+    <tr class="even">
+    <td><code>prefix</code></td>
+    <td><code>string</code></td>
+    <td><code>''</code></td>
+    <td>Prefix prepended to all metric names (e.g. <code>'myapp_'</code>)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>defaultMetrics</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Collect default Node.js process metrics (CPU, memory, event loop, etc.)</td>
+    </tr>
+    <tr class="even">
+    <td><code>endpoint</code></td>
+    <td><code>string</code></td>
+    <td><code>'/metrics'</code></td>
+    <td>HTTP path where Prometheus can scrape metrics</td>
+    </tr>
+    <tr class="odd">
+    <td><code>labels</code></td>
+    <td><code>Record&lt;string, string&gt;</code></td>
+    <td><code>{ service: serviceName, environment }</code></td>
+    <td>Default labels attached to every metric</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Note:</strong> The <code>service</code> and <code>environment</code> labels are always added automatically from the top-level config. Any labels you provide in <code>metrics.labels</code> are merged on top.</p>
+    <hr />
+    <h2 id="health-options">Health Options</h2>
+    <p>Configured under the <code>health</code> key. Provides a simple health check endpoint.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>enabled</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable or disable the health check endpoint</td>
+    </tr>
+    <tr class="even">
+    <td><code>endpoint</code></td>
+    <td><code>string</code></td>
+    <td><code>'/health'</code></td>
+    <td>HTTP path for the health check</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="redaction-options">Redaction Options</h2>
+    <p>Configured at the top-level <code>redaction</code> key. These settings act as the global default for redaction across the SDK. The <code>logger.redaction</code> option can override these for log output specifically.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>paths</code></td>
+    <td><code>string[]</code></td>
+    <td><code>DEFAULT_REDACTION_PATHS</code> (see below)</td>
+    <td>JSON paths whose values will be replaced with the censor string</td>
+    </tr>
+    <tr class="even">
+    <td><code>censor</code></td>
+    <td><code>string</code></td>
+    <td><code>'[REDACTED]'</code></td>
+    <td>The replacement string used in place of sensitive values</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="default-redaction-paths">Default Redaction Paths</h3>
+    <p>The SDK ships with 17 default redaction paths that cover common sensitive fields:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>#</th>
+    <th>Path</th>
+    <th>What It Catches</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>1</td>
+    <td><code>req.headers.authorization</code></td>
+    <td>Authorization header on incoming requests</td>
+    </tr>
+    <tr class="even">
+    <td>2</td>
+    <td><code>req.headers.cookie</code></td>
+    <td>Cookie header on incoming requests</td>
+    </tr>
+    <tr class="odd">
+    <td>3</td>
+    <td><code>req.headers["set-cookie"]</code></td>
+    <td>Set-Cookie header on incoming requests</td>
+    </tr>
+    <tr class="even">
+    <td>4</td>
+    <td><code>*.password</code></td>
+    <td>Password fields at any depth</td>
+    </tr>
+    <tr class="odd">
+    <td>5</td>
+    <td><code>*.secret</code></td>
+    <td>Secret fields at any depth</td>
+    </tr>
+    <tr class="even">
+    <td>6</td>
+    <td><code>*.token</code></td>
+    <td>Token fields at any depth</td>
+    </tr>
+    <tr class="odd">
+    <td>7</td>
+    <td><code>*.accessToken</code></td>
+    <td>Access token fields (camelCase)</td>
+    </tr>
+    <tr class="even">
+    <td>8</td>
+    <td><code>*.refreshToken</code></td>
+    <td>Refresh token fields (camelCase)</td>
+    </tr>
+    <tr class="odd">
+    <td>9</td>
+    <td><code>*.access_token</code></td>
+    <td>Access token fields (snake_case)</td>
+    </tr>
+    <tr class="even">
+    <td>10</td>
+    <td><code>*.refresh_token</code></td>
+    <td>Refresh token fields (snake_case)</td>
+    </tr>
+    <tr class="odd">
+    <td>11</td>
+    <td><code>*.apiKey</code></td>
+    <td>API key fields (camelCase)</td>
+    </tr>
+    <tr class="even">
+    <td>12</td>
+    <td><code>*.api_key</code></td>
+    <td>API key fields (snake_case)</td>
+    </tr>
+    <tr class="odd">
+    <td>13</td>
+    <td><code>*.connectionString</code></td>
+    <td>Database connection strings (camelCase)</td>
+    </tr>
+    <tr class="even">
+    <td>14</td>
+    <td><code>*.connection_string</code></td>
+    <td>Database connection strings (snake_case)</td>
+    </tr>
+    <tr class="odd">
+    <td>15</td>
+    <td><code>*.creditCard</code></td>
+    <td>Credit card numbers (camelCase)</td>
+    </tr>
+    <tr class="even">
+    <td>16</td>
+    <td><code>*.credit_card</code></td>
+    <td>Credit card numbers (snake_case)</td>
+    </tr>
+    <tr class="odd">
+    <td>17</td>
+    <td><code>*.ssn</code></td>
+    <td>Social security numbers</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>In addition to path-based redaction, the SDK sanitizes these HTTP headers at the middleware level (replaced with the censor string regardless of redaction config):</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Header</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>authorization</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>cookie</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>set-cookie</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>x-api-key</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>x-auth-token</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>proxy-authorization</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="overriding-redaction">Overriding Redaction</h3>
+    <p>To replace the defaults entirely, set <code>redaction.paths</code> to your own array. To extend the defaults, import and spread them:</p>
+    <pre class="typescript"><code>import { DEFAULT_REDACTION_PATHS } from &#39;@brdrwanda/observability&#39;;
+
+    ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      redaction: {
+        paths: [...DEFAULT_REDACTION_PATHS, &#39;*.nationalId&#39;, &#39;*.bankAccount&#39;],
+      },
+    })
+    </code></pre>
+    <hr />
+    <h2 id="instrumentation-plugins">Instrumentation Plugins</h2>
+    <p>Configured under the <code>instrumentations</code> array. Each plugin wraps an OpenTelemetry instrumentation library and registers it with the tracer provider. Plugins that depend on an optional package will log a debug message and gracefully degrade if the package is not installed.</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Factory Function</th>
+    <th>Plugin Name</th>
+    <th>What It Instruments</th>
+    <th>Required Peer Dependency</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>httpInstrumentation()</code></td>
+    <td><code>http</code></td>
+    <td>Inbound and outbound HTTP requests</td>
+    <td><code>@opentelemetry/instrumentation-http</code> (included)</td>
+    </tr>
+    <tr class="even">
+    <td><code>sequelizeInstrumentation()</code></td>
+    <td><code>sequelize</code></td>
+    <td>Sequelize ORM queries</td>
+    <td><code>opentelemetry-instrumentation-sequelize</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>kafkaInstrumentation()</code></td>
+    <td><code>kafka</code></td>
+    <td>KafkaJS producer/consumer</td>
+    <td><code>@opentelemetry/instrumentation-kafkajs</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>redisInstrumentation()</code></td>
+    <td><code>redis</code></td>
+    <td>ioredis client commands</td>
+    <td><code>@opentelemetry/instrumentation-ioredis</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>pgInstrumentation()</code></td>
+    <td><code>pg</code></td>
+    <td>PostgreSQL queries via <code>pg</code></td>
+    <td><code>@opentelemetry/instrumentation-pg</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>mysqlInstrumentation()</code></td>
+    <td><code>mysql</code></td>
+    <td>MySQL queries via <code>mysql2</code></td>
+    <td><code>@opentelemetry/instrumentation-mysql2</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="http-instrumentation-options">HTTP Instrumentation Options</h3>
+    <pre class="typescript"><code>httpInstrumentation({
+      ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;, /^\/internal\//],
+      ignoreOutgoingUrls: [&#39;metadata.google.internal&#39;],
+    })
+    </code></pre>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>ignoreIncomingPaths</code></td>
+    <td><code>(string | RegExp)[]</code></td>
+    <td><code>undefined</code></td>
+    <td>Incoming request paths to exclude from tracing</td>
+    </tr>
+    <tr class="even">
+    <td><code>ignoreOutgoingUrls</code></td>
+    <td><code>(string | RegExp)[]</code></td>
+    <td><code>undefined</code></td>
+    <td>Outgoing request URLs to exclude from tracing</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="sequelize-instrumentation-options">Sequelize Instrumentation Options</h3>
+    <pre class="typescript"><code>sequelizeInstrumentation({
+      slowQueryThreshold: 1000,
+      captureSqlText: true,
+      sanitizeQueries: true,
+    })
+    </code></pre>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>logging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable structured query logging via the SDK logger</td>
+    </tr>
+    <tr class="even">
+    <td><code>tracing</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Enable OpenTelemetry span creation for queries</td>
+    </tr>
+    <tr class="odd">
+    <td><code>sanitizeQueries</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Strip literal values from SQL before logging</td>
+    </tr>
+    <tr class="even">
+    <td><code>captureSqlText</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include the SQL statement text in log metadata</td>
+    </tr>
+    <tr class="odd">
+    <td><code>slowQueryThreshold</code></td>
+    <td><code>number</code> (ms)</td>
+    <td><code>500</code></td>
+    <td>Queries slower than this emit a <code>db.slow_query</code> warning</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="kafka-helpers">Kafka Helpers</h3>
+    <p>Beyond the instrumentation plugin, the SDK exports two helper functions for Kafka context propagation:</p>
+    <pre class="typescript"><code>import { injectKafkaHeaders, withKafkaContext } from &#39;@brdrwanda/observability&#39;;
+
+    // Producer: inject trace context into message headers
+    await producer.send({
+      topic: &#39;orders&#39;,
+      messages: [{ value: payload, headers: injectKafkaHeaders() }],
+    });
+
+    // Consumer: extract trace context from message headers
+    await withKafkaContext(message.headers, &#39;process-order&#39;, async () =&gt; {
+      // this code runs inside a CONSUMER span linked to the producer trace
+    });
+    </code></pre>
+    <hr />
+    <h2 id="client-origins">Client Origins</h2>
+    <p>Configured under the <code>clientOrigins</code> key as a <code>Record&lt;string, string&gt;</code>.</p>
+    <p>This mapping translates raw <code>Origin</code> or <code>Referer</code> request headers into human-readable application names. The resolved name is stored as <code>client_app</code> in the request context and automatically appears in every log entry for that request.</p>
+    <pre class="typescript"><code>clientOrigins: {
+      &#39;http://localhost:3000&#39;: &#39;admin-frontend&#39;,
+      &#39;https://admin.brd.rw&#39;: &#39;admin-web&#39;,
+      &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39;,
+      &#39;https://mobile-api.brd.rw&#39;: &#39;mobile-app&#39;,
+    }
+    </code></pre>
+    <h3 id="how-resolution-works">How Resolution Works</h3>
+    <ol>
+    <li>The <code>ContextMiddleware</code> checks the <code>x-client-app</code> header first — if present, it wins immediately.</li>
+    <li>If <code>x-client-app</code> is not set, it reads the <code>Origin</code> header.</li>
+    <li>If <code>Origin</code> is not present, it extracts the origin from the <code>Referer</code> header.</li>
+    <li>The resolved origin string is looked up in the <code>clientOrigins</code> map.</li>
+    <li>If a match is found, the friendly name becomes <code>client_app</code>.</li>
+    <li>If no match is found, the raw origin string is used as <code>client_app</code>.</li>
+    </ol>
+    <p>This makes it easy to filter and group logs by the calling application:</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;info&quot;,
+      &quot;msg&quot;: &quot;request completed&quot;,
+      &quot;service_name&quot;: &quot;loan-service&quot;,
+      &quot;client_app&quot;: &quot;tugane-web&quot;,
+      &quot;request_id&quot;: &quot;abc-123&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/loans&quot;,
+      &quot;statusCode&quot;: 201,
+      &quot;duration_ms&quot;: 42.17
+    }
+    </code></pre>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "configuration";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

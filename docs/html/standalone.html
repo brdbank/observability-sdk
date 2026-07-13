@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standalone Mode — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="standalone-mode-express--fastify--plain-nodejs">Standalone Mode (Express / Fastify / Plain Node.js)</h1>
+    <p>Use the SDK without NestJS. The <code>createObservability()</code> function gives you a logger, tracer, metrics, and middleware — no dependency injection required.</p>
+    <hr />
+    <h2 id="quick-start">Quick Start</h2>
+    <pre class="typescript"><code>import { createObservability } from &#39;@brdrwanda/observability&#39;;
+
+    const obs = createObservability({
+      serviceName: &#39;my-worker&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39; } },
+    });
+    </code></pre>
+    <h3 id="what-you-get-back">What you get back</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Property</th>
+    <th>Type</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>obs.logger</code></td>
+    <td><code>ObservabilityLogger</code></td>
+    <td>Structured logger with <code>info</code>, <code>warn</code>, <code>error</code>, <code>debug</code>, <code>fatal</code>, <code>logCaughtError</code>, <code>child</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.tracer</code></td>
+    <td><code>ObservabilityTracer</code></td>
+    <td>Create custom spans, start active spans</td>
+    </tr>
+    <tr class="odd">
+    <td><code>obs.metrics</code></td>
+    <td><code>ObservabilityMetrics</code></td>
+    <td>Create counters, histograms, gauges</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.config</code></td>
+    <td><code>ResolvedConfig</code></td>
+    <td>The resolved configuration</td>
+    </tr>
+    <tr class="odd">
+    <td><code>obs.middleware()</code></td>
+    <td>Express-compatible middleware</td>
+    <td>Adds request context, logs request_start/request_complete</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.metricsHandler</code></td>
+    <td>HTTP handler</td>
+    <td>Serves <code>/metrics</code> endpoint for Prometheus scraping</td>
+    </tr>
+    <tr class="odd">
+    <td><code>obs.healthHandler</code></td>
+    <td>HTTP handler</td>
+    <td>Serves health check endpoint</td>
+    </tr>
+    <tr class="even">
+    <td><code>obs.shutdown()</code></td>
+    <td><code>Promise&lt;void&gt;</code></td>
+    <td>Graceful shutdown — flushes traces and plugins</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="express-integration">Express Integration</h2>
+    <pre class="typescript"><code>import express from &#39;express&#39;;
+    import { createObservability } from &#39;@brdrwanda/observability&#39;;
+
+    const app = express();
+    const obs = createObservability({
+      serviceName: &#39;loan-api&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39;, endpoint: &#39;http://otel-collector:4318&#39; } },
+    });
+
+    // Add request context middleware (trace_id, request_id, request logging)
+    app.use(obs.middleware());
+
+    // Expose metrics for Prometheus
+    app.get(&#39;/metrics&#39;, (req, res) =&gt; obs.metricsHandler(req, res));
+
+    // Expose health check
+    app.get(&#39;/health&#39;, (req, res) =&gt; obs.healthHandler(req, res));
+
+    // Use the logger in your routes
+    app.post(&#39;/api/loans&#39;, (req, res) =&gt; {
+      obs.logger.info(&#39;loan application received&#39;, { applicantId: req.body.applicantId });
+      // ... business logic
+      res.status(201).json({ status: &#39;created&#39; });
+    });
+
+    // Graceful shutdown
+    process.on(&#39;SIGTERM&#39;, async () =&gt; {
+      await obs.shutdown();
+      process.exit(0);
+    });
+
+    app.listen(3000, () =&gt; {
+      obs.logger.info(&#39;server started&#39;, { port: 3000 });
+    });
+    </code></pre>
+    <hr />
+    <h2 id="worker--cli-usage">Worker / CLI Usage</h2>
+    <p>For Kafka consumers, cron jobs, or CLI scripts that don't serve HTTP:</p>
+    <pre class="typescript"><code>import { createObservability } from &#39;@brdrwanda/observability&#39;;
+    import { withKafkaContext } from &#39;@brdrwanda/observability&#39;;
+
+    const obs = createObservability({
+      serviceName: &#39;notification-worker&#39;,
+      tracing: { exporter: { type: &#39;otlp-http&#39; } },
+    });
+
+    async function processMessage(message: KafkaMessage) {
+      await withKafkaContext(message.headers, &#39;process-notification&#39;, async () =&gt; {
+        obs.logger.info(&#39;processing notification&#39;, { topic: message.topic });
+        // ... business logic
+      });
+    }
+
+    // Graceful shutdown
+    process.on(&#39;SIGTERM&#39;, async () =&gt; {
+      await obs.shutdown();
+      process.exit(0);
+    });
+    </code></pre>
+    <hr />
+    <h2 id="configuration">Configuration</h2>
+    <p>Standalone mode accepts the same <code>ObservabilityConfig</code> as the NestJS version. See the <a href="configuration.html">Configuration Reference</a> for all options.</p>
+    <pre class="typescript"><code>const obs = createObservability({
+      serviceName: &#39;my-service&#39;,
+      environment: &#39;production&#39;,
+      logger: { level: &#39;info&#39;, prettyPrint: false },
+      tracing: {
+        exporter: { type: &#39;otlp-http&#39;, endpoint: &#39;http://otel-collector:4318&#39; },
+        sampling: { ratio: 0.1 },
+      },
+      metrics: { enabled: true },
+      instrumentations: [httpInstrumentation()],
+      clientOrigins: { &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39; },
+    });
+    </code></pre>
+    <hr />
+    <h2 id="what-the-middleware-does">What the Middleware Does</h2>
+    <p><code>obs.middleware()</code> returns an Express-compatible <code>(req, res, next)</code> function that:</p>
+    <ol>
+    <li>Creates a request context (request_id, correlation_id, client_app)</li>
+    <li>Reads <code>x-client-app</code> header and resolves via <code>clientOrigins</code></li>
+    <li>Logs <code>request started</code> with method and URL</li>
+    <li>On response finish, logs <code>request completed</code> with statusCode and duration_ms</li>
+    <li>Runs the handler inside <code>runWithContext()</code> so trace_id propagates to all logs</li>
+    </ol>
+    <hr />
+    <h2 id="limitations-vs-nestjs-mode">Limitations vs NestJS Mode</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Feature</th>
+    <th>NestJS</th>
+    <th>Standalone</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Auto-registered interceptors (request logging, metrics)</td>
+    <td>Yes</td>
+    <td>Use <code>obs.middleware()</code> manually</td>
+    </tr>
+    <tr class="even">
+    <td>Auto-registered exception filter</td>
+    <td>Yes</td>
+    <td>No — handle errors yourself</td>
+    </tr>
+    <tr class="odd">
+    <td>Dependency injection</td>
+    <td>Yes</td>
+    <td>No — use <code>obs.logger</code> / <code>obs.tracer</code> directly</td>
+    </tr>
+    <tr class="even">
+    <td>Health endpoint auto-registered</td>
+    <td>Yes</td>
+    <td>Use <code>obs.healthHandler</code> manually</td>
+    </tr>
+    <tr class="odd">
+    <td>Metrics endpoint auto-registered</td>
+    <td>Yes</td>
+    <td>Use <code>obs.metricsHandler</code> manually</td>
+    </tr>
+    <tr class="even">
+    <td>Graceful shutdown</td>
+    <td>Module handles it</td>
+    <td>Call <code>obs.shutdown()</code> on process exit</td>
+    </tr>
+    <tr class="odd">
+    <td>Controller/handler names in logs</td>
+    <td>Yes</td>
+    <td>No — middleware only has req.method/url</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="see-also">See Also</h2>
+    <ul>
+    <li><a href="getting-started.html">Getting Started</a> — NestJS setup</li>
+    <li><a href="configuration.html">Configuration Reference</a> — all config options</li>
+    <li><a href="logging.html">Structured Logging</a> — logger API and Loki queries</li>
+    </ul>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "standalone";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

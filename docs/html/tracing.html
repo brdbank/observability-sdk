@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distributed Tracing — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="distributed-tracing-guide">Distributed Tracing Guide</h1>
+    <p>This guide covers how to set up, configure, and use distributed tracing with the <code>@brdrwanda/observability</code> SDK.</p>
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ul>
+    <li><a href="#what-is-distributed-tracing">What is distributed tracing?</a></li>
+    <li><a href="#how-the-sdk-implements-tracing">How the SDK implements tracing</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#http-trace-propagation">HTTP trace propagation</a></li>
+    <li><a href="#kafka-trace-propagation">Kafka trace propagation</a></li>
+    <li><a href="#custom-spans">Custom spans</a></li>
+    <li><a href="#external-api-tracing">External API tracing</a></li>
+    <li><a href="#sampling-strategies">Sampling strategies</a></li>
+    <li><a href="#early-tracing-init">Early tracing init</a></li>
+    <li><a href="#viewing-traces-in-grafana-tempo">Viewing traces in Grafana Tempo</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+    <hr />
+    <h2 id="what-is-distributed-tracing">What is distributed tracing?</h2>
+    <p>When a user request hits <code>api-gateway</code>, it may call <code>authentication-service</code>, which calls <code>application-service</code>, which queries a database and calls an external API. Without tracing, each service logs independently — there is no way to follow a single request across services.</p>
+    <p>Distributed tracing assigns a single <code>trace_id</code> to the entire request chain. Each unit of work within that chain is a <strong>span</strong> (with its own <code>span_id</code>). Spans have parent-child relationships, forming a tree:</p>
+    <pre><code>HTTP POST /api/loans/apply                        ─── 3200ms   (api-gateway)
+      ├─ POST /api/auth/validate-token                ─── 120ms    (authentication-service)
+      ├─ POST /api/applications/create                ─── 2800ms   (application-service)
+      │   ├─ SELECT FROM applications                 ─── 15ms     (database)
+      │   ├─ esri-lookup                              ─── 1800ms   (external API)
+      │   └─ credit-score-submit                      ─── 320ms    (external API)
+      └─ kafka: notifications send                    ─── 5ms      (kafka produce)
+          └─ kafka: process-notifications             ─── 120ms    (notification-service)
+    </code></pre>
+    <p>Every log line in every service carries the same <code>trace_id</code>, so you can query Loki with <code>{trace_id="abc123"}</code> and see all logs from all services for that one request.</p>
+    <hr />
+    <h2 id="how-the-sdk-implements-tracing">How the SDK implements tracing</h2>
+    <p>The SDK uses <a href="https://opentelemetry.io/">OpenTelemetry</a> with the W3C TraceContext standard:</p>
+    <ol>
+    <li><strong>TracingInterceptor</strong> — creates a span named <code>ControllerName.methodName</code> for each incoming HTTP request, adding NestJS-specific attributes (controller, handler)</li>
+    <li><strong>AsyncLocalStorage</strong> — propagates trace context through async boundaries automatically</li>
+    <li><strong>Pino mixin</strong> — injects <code>trace_id</code> and <code>span_id</code> into every log entry</li>
+    <li><strong>Metric exemplars</strong> — attaches <code>trace_id</code> to Prometheus histogram observations</li>
+    <li><strong>Auto-instrumentations</strong> — HTTP, Kafka, database drivers create spans automatically</li>
+    <li><strong>HTTP Instrumentation</strong> — <code>httpInstrumentation()</code> handles <code>traceparent</code> header extraction/injection for incoming and outgoing HTTP requests</li>
+    </ol>
+    <h3 id="propagation-header">Propagation header</h3>
+    <p>The SDK uses the W3C <code>traceparent</code> header:</p>
+    <pre><code>traceparent: 00-&lt;trace_id&gt;-&lt;span_id&gt;-&lt;flags&gt;
+    Example:    00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+    </code></pre>
+    <p>This replaces the custom <code>x-trace-id</code> header used by services before the SDK. The SDK still reads <code>x-trace-id</code> for backwards compatibility, but <code>traceparent</code> is the source of truth.</p>
+    <hr />
+    <h2 id="configuration">Configuration</h2>
+    <h3 id="basic-use-defaults">Basic (use defaults)</h3>
+    <pre class="typescript"><code>// app.module.ts
+    ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      // tracing enabled by default with sensible defaults
+    })
+    </code></pre>
+    <h3 id="full-configuration">Full configuration</h3>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      tracing: {
+        enabled: true,                    // default: true
+
+        exporter: {
+          type: &#39;otlp-http&#39;,             // otlp-http | otlp-grpc | console | none
+          endpoint: &#39;http://otel-collector:4318&#39;,
+          headers: {                      // optional auth headers
+            &#39;Authorization&#39;: &#39;Bearer &lt;token&gt;&#39;,
+          },
+        },
+
+        sampling: {
+          type: &#39;parent-based&#39;,           // always | never | probabilistic | parent-based
+          ratio: 0.1,                     // 10% of root spans sampled
+        },
+      },
+    })
+    </code></pre>
+    <h3 id="environment-aware-defaults">Environment-aware defaults</h3>
+    <p>The SDK picks sensible defaults based on <code>NODE_ENV</code>:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Setting</th>
+    <th>Development (<code>NODE_ENV</code> != production)</th>
+    <th>Production</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>exporter.type</code></td>
+    <td><code>console</code> (print to terminal)</td>
+    <td><code>otlp-http</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>sampling.ratio</code></td>
+    <td><code>1.0</code> (100% — all traces)</td>
+    <td><code>0.1</code> (10%)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>exporter.endpoint</code></td>
+    <td><code>http://localhost:4318</code></td>
+    <td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code> env var</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="exporter-types">Exporter types</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Type</th>
+    <th>Use case</th>
+    <th>Notes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>otlp-http</code></td>
+    <td><strong>Production.</strong> Send to OTEL Collector, Tempo, or any OTLP backend</td>
+    <td>Default in production. Bundled with the SDK</td>
+    </tr>
+    <tr class="even">
+    <td><code>otlp-grpc</code></td>
+    <td>Production, when collector only accepts gRPC</td>
+    <td>Install <code>@opentelemetry/exporter-trace-otlp-grpc</code> separately</td>
+    </tr>
+    <tr class="odd">
+    <td><code>console</code></td>
+    <td><strong>Local development.</strong> Spans print to terminal</td>
+    <td>No collector needed</td>
+    </tr>
+    <tr class="even">
+    <td><code>none</code></td>
+    <td>Disable trace export entirely</td>
+    <td>Spans still created (for context propagation) but not shipped</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="environment-variables">Environment variables</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Variable</th>
+    <th>Purpose</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td>
+    <td>Collector endpoint</td>
+    <td><code>http://otel-collector:4318</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>NODE_ENV</code></td>
+    <td>Controls default exporter and sampling</td>
+    <td><code>production</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="http-trace-propagation">HTTP trace propagation</h2>
+    <p>When Service A calls Service B via HTTP, trace context must be propagated so both services share the same <code>trace_id</code>.</p>
+    <h3 id="automatic-incoming-requests">Automatic (incoming requests)</h3>
+    <p>The SDK automatically extracts <code>traceparent</code> from incoming HTTP requests. No code needed.</p>
+    <h3 id="manual-outgoing-requests">Manual (outgoing requests)</h3>
+    <p>When your service calls another service, inject the current trace context:</p>
+    <pre class="typescript"><code>import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
+
+    // In your HTTP client / AxiosService / buildHeaders:
+    const headers: Record&lt;string, any&gt; = {
+      authorization: req.headers.authorization,
+      &#39;content-type&#39;: &#39;application/json&#39;,
+    };
+
+    // This one line propagates the trace
+    propagation.inject(otelContext.active(), headers);
+
+    // Now headers contains: { ..., traceparent: &#39;00-&lt;trace_id&gt;-&lt;span_id&gt;-01&#39; }
+    const response = await axios.post(url, body, { headers });
+    </code></pre>
+    <h3 id="where-to-add-this-in-brd-services">Where to add this in BRD services</h3>
+    <p>Most services have an <code>AxiosService</code> at <code>src/axios/axios.service.ts</code> with a <code>buildHeaders()</code> or similar method. Add the <code>propagation.inject()</code> call there — it covers all outgoing HTTP requests in one place.</p>
+    <pre class="typescript"><code>// src/axios/axios.service.ts
+    import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
+
+    buildHeaders(req: Request): Record&lt;string, any&gt; {
+      const headers: Record&lt;string, any&gt; = {
+        authorization: req.headers.authorization,
+        &#39;x-trace-id&#39;: req.headers[&#39;x-trace-id&#39;],
+      };
+
+      // Inject W3C traceparent for distributed tracing
+      propagation.inject(otelContext.active(), headers);
+
+      return headers;
+    }
+    </code></pre>
+    <h3 id="verify-propagation-works">Verify propagation works</h3>
+    <ol>
+    <li>Send a request that crosses services (e.g., api-gateway → authentication-service)</li>
+    <li>Check logs — both services should show the <strong>same</strong> <code>trace_id</code>:
+    <pre><code># api-gateway log
+    trace_id: &quot;8cf631b00df8e35a403e57823ac58eee&quot;
+
+    # authentication-service log
+    trace_id: &quot;8cf631b00df8e35a403e57823ac58eee&quot;
+    </code></pre></li>
+    <li>In Grafana Tempo, search for that <code>trace_id</code> — spans from both services appear in one trace</li>
+    </ol>
+    <hr />
+    <h2 id="kafka-trace-propagation">Kafka trace propagation</h2>
+    <p>Kafka messages are fire-and-forget. Without trace propagation, the consumer has no idea which HTTP request triggered the message.</p>
+    <h3 id="producer-side">Producer side</h3>
+    <pre class="typescript"><code>import { injectKafkaHeaders, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class NotificationProducer {
+      constructor(private logger: ObservabilityLogger) {}
+
+      async publishEvent(topic: string, payload: any) {
+        await this.producer.send({
+          topic,
+          messages: [{
+            key: payload.id,
+            value: JSON.stringify(payload),
+            headers: injectKafkaHeaders({ &#39;x-event-type&#39;: payload.type }),
+          }],
+        });
+
+        this.logger.info(&#39;Event published&#39;, { topic, eventType: payload.type });
+      }
+    }
+    </code></pre>
+    <h3 id="consumer-side">Consumer side</h3>
+    <pre class="typescript"><code>import { withKafkaContext, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class EventConsumer {
+      constructor(private logger: ObservabilityLogger) {}
+
+      async onModuleInit() {
+        await this.consumer.run({
+          eachMessage: async ({ topic, message }) =&gt; {
+            await withKafkaContext(message.headers, `process-${topic}`, async () =&gt; {
+              const payload = JSON.parse(message.value.toString());
+              this.logger.info(&#39;Processing event&#39;, { topic, type: payload.type });
+              await this.handle(payload);
+            });
+          },
+        });
+      }
+    }
+    </code></pre>
+    <h3 id="auto-instrumentation-alternative">Auto-instrumentation alternative</h3>
+    <p>If you use <code>kafkaInstrumentation()</code> in your module config, KafkaJS is instrumented automatically — spans are created for every <code>producer.send()</code> and <code>consumer.run()</code>. Use <code>injectKafkaHeaders</code>/<code>withKafkaContext</code> only for custom Kafka clients or <code>@nestjs/microservices</code> <code>ClientKafka</code>.</p>
+    <hr />
+    <h2 id="custom-spans">Custom spans</h2>
+    <p>The SDK auto-creates spans for HTTP requests, database queries, and Kafka operations. Custom spans let you trace <strong>business logic</strong>.</p>
+    <h3 id="when-to-add-custom-spans">When to add custom spans</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Scenario</th>
+    <th>Why</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>External API calls</td>
+    <td>Third-party latency is invisible without a span</td>
+    <td>ESRI lookup, credit score API, iBank</td>
+    </tr>
+    <tr class="even">
+    <td>Multi-step business logic</td>
+    <td>One handler does several things</td>
+    <td>Validate → score → decide → notify</td>
+    </tr>
+    <tr class="odd">
+    <td>Background/async work</td>
+    <td>No HTTP context to auto-trace</td>
+    <td>Cron jobs, queue workers</td>
+    </tr>
+    <tr class="even">
+    <td>Conditional branches</td>
+    <td>Different code paths with different performance</td>
+    <td>Cache hit vs DB lookup</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="span-decorator-recommended"><code>@Span</code> decorator (recommended)</h3>
+    <pre class="typescript"><code>import { Span, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class LoanService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      @Span(&#39;validate-loan-application&#39;)
+      async validateApplication(data: CreateLoanDto) {
+        return this.validator.check(data);
+      }
+
+      @Span(&#39;check-credit-score&#39;)
+      async getCreditScore(nationalId: string): Promise&lt;number&gt; {
+        const response = await this.httpService.get(`/api/credit/${nationalId}`);
+        return response.data.score;
+      }
+    }
+    </code></pre>
+    <h3 id="manual-spans-with-observabilitytracer">Manual spans with <code>ObservabilityTracer</code></h3>
+    <p>Use when you need custom attributes:</p>
+    <pre class="typescript"><code>import { ObservabilityTracer, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class PaymentService {
+      constructor(
+        private tracer: ObservabilityTracer,
+        private logger: ObservabilityLogger,
+      ) {}
+
+      async processPayment(orderId: string, amount: number) {
+        return this.tracer.startActiveSpan(&#39;process-payment&#39;, async (span) =&gt; {
+          span.setAttribute(&#39;order.id&#39;, orderId);
+          span.setAttribute(&#39;payment.amount&#39;, amount);
+
+          const result = await this.gateway.charge(orderId, amount);
+          span.setAttribute(&#39;payment.status&#39;, result.status);
+          return result;
+        });
+      }
+    }
+    </code></pre>
+    <hr />
+    <h2 id="external-api-tracing">External API tracing</h2>
+    <p>your services call several external systems. Each external call should be a separate span.</p>
+    <h3 id="pattern">Pattern</h3>
+    <pre class="typescript"><code>import { Span, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class ExternalIntegrationService {
+      constructor(
+        private readonly axiosService: AxiosService,
+        private readonly logger: ObservabilityLogger,
+      ) {}
+
+      @Span(&#39;esri-lookup&#39;)
+      async getESRIInfo(upi: string) {
+        try {
+          this.logger.info(&#39;fetching ESRI data&#39;, { upi });
+          const result = await this.axiosService.request(&#39;GET&#39;, `${url}/api/external/esri/upi`, ...);
+          this.logger.info(&#39;ESRI data received&#39;, { upi });
+          return result;
+        } catch (error) {
+          this.logger.logCaughtError(error);
+          return null;
+        }
+      }
+    }
+    </code></pre>
+    <h3 id="recommended-span-names-for-brd-integrations">Recommended span names for BRD integrations</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Integration</th>
+    <th>Span name</th>
+    <th>Why trace it</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Access control login</td>
+    <td><code>access-control-login</code></td>
+    <td>Auth token fetch, can timeout</td>
+    </tr>
+    <tr class="even">
+    <td>ESRI / GIS lookup</td>
+    <td><code>esri-lookup</code></td>
+    <td>External GIS service, 15s timeout</td>
+    </tr>
+    <tr class="odd">
+    <td>Land center lookup</td>
+    <td><code>land-center-lookup</code></td>
+    <td>Government land registry</td>
+    </tr>
+    <tr class="even">
+    <td>Credit score submission</td>
+    <td><code>credit-score-submit</code></td>
+    <td>Cross-service, affects loan decisions</td>
+    </tr>
+    <tr class="odd">
+    <td>iBank budget lookup</td>
+    <td><code>ibank-budget-lookup</code></td>
+    <td>Core banking integration</td>
+    </tr>
+    <tr class="even">
+    <td>Minecofin loan submit</td>
+    <td><code>minecofin-loan-submit</code></td>
+    <td>Government system, slow and flaky</td>
+    </tr>
+    <tr class="odd">
+    <td>Workflow start/resume</td>
+    <td><code>workflow-start</code>, <code>workflow-resume</code></td>
+    <td>Workflow engine, multi-step</td>
+    </tr>
+    <tr class="even">
+    <td>NID/TIN lookup</td>
+    <td><code>nid-lookup</code>, <code>tin-lookup</code></td>
+    <td>Identity verification, external service</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="what-you-see-in-tempo">What you see in Tempo</h3>
+    <p>Without spans:</p>
+    <pre><code>HTTP POST /api/loans/apply  ─────────────────────── 3200ms
+    </code></pre>
+    <p>With <code>@Span</code> on each external call:</p>
+    <pre><code>HTTP POST /api/loans/apply  ─────────────────────── 3200ms
+      ├─ access-control-login  ────── 450ms
+      ├─ esri-lookup  ─────────────── 1800ms   ← bottleneck
+      ├─ credit-score-submit  ─────── 320ms
+      └─ workflow-start  ──────────── 180ms
+    </code></pre>
+    <hr />
+    <h2 id="sampling-strategies">Sampling strategies</h2>
+    <p>In production, tracing 100% of requests generates too much data. Sampling controls which traces are recorded.</p>
+    <h3 id="types">Types</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Strategy</th>
+    <th>Behavior</th>
+    <th>Config</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>always</code></td>
+    <td>Every request traced</td>
+    <td><code>{ type: 'always' }</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>never</code></td>
+    <td>No traces recorded</td>
+    <td><code>{ type: 'never' }</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>probabilistic</code></td>
+    <td>Random sampling at <code>ratio</code></td>
+    <td><code>{ type: 'probabilistic', ratio: 0.1 }</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>parent-based</code></td>
+    <td>Follow parent's decision; for root spans use <code>ratio</code></td>
+    <td><code>{ type: 'parent-based', ratio: 0.1 }</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="recommended-settings">Recommended settings</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Environment</th>
+    <th>Strategy</th>
+    <th>Ratio</th>
+    <th>Why</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Development</td>
+    <td><code>always</code> (default)</td>
+    <td>1.0</td>
+    <td>See every trace while debugging</td>
+    </tr>
+    <tr class="even">
+    <td>Staging</td>
+    <td><code>parent-based</code></td>
+    <td>0.5</td>
+    <td>Balanced coverage for testing</td>
+    </tr>
+    <tr class="odd">
+    <td>Production</td>
+    <td><code>parent-based</code></td>
+    <td>0.1</td>
+    <td>10% sampling keeps costs manageable</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="parent-based-sampling-explained">Parent-based sampling explained</h3>
+    <p>When Service B receives a request from Service A:</p>
+    <ul>
+    <li>If Service A <strong>sampled</strong> the trace → Service B also samples it (preserves the full chain)</li>
+    <li>If Service A <strong>dropped</strong> the trace → Service B also drops it</li>
+    <li>If there's no parent (root span) → Service B uses its <code>ratio</code> to decide</li>
+    </ul>
+    <p>This ensures you always get complete traces — never a partial chain where some services sampled and others didn't.</p>
+    <hr />
+    <h2 id="early-tracing-init">Early tracing init</h2>
+    <p>OpenTelemetry instruments Node.js modules by monkey-patching <code>require()</code>. If NestJS imports <code>http</code>, <code>sequelize</code>, or <code>kafkajs</code> <strong>before</strong> tracing starts, those modules won't be instrumented.</p>
+    <p>In most cases, the SDK's <code>onModuleInit</code> starts tracing early enough. But if you notice missing spans on startup requests, add <code>setupTracing()</code> at the top of <code>main.ts</code>:</p>
+    <pre class="typescript"><code>import { setupTracing, setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+
+    // These run BEFORE NestJS bootstraps
+    setupProcessErrorHandlers({ serviceName: &#39;my-service&#39; });
+    setupTracing({
+      serviceName: &#39;my-service&#39;,
+      tracing: {
+        exporter: { type: &#39;otlp-http&#39;, endpoint: &#39;http://otel-collector:4318&#39; },
+        sampling: { ratio: 0.1 },
+      },
+    });
+
+    async function bootstrap() {
+      const app = await NestFactory.create(AppModule, { bufferLogs: true });
+      app.useLogger(app.get(NestPinoLogger));
+      await app.listen(3000);
+    }
+    bootstrap();
+    </code></pre>
+    <hr />
+    <h2 id="viewing-traces-in-grafana-tempo">Viewing traces in Grafana Tempo</h2>
+    <h3 id="from-logs--trace">From logs → trace</h3>
+    <ol>
+    <li>In Grafana, go to <strong>Explore</strong> → select <strong>Loki</strong></li>
+    <li>Query: <code>{service_name="api-gateway"} |= "error"</code></li>
+    <li>Expand a log line → click the <code>trace_id</code> value</li>
+    <li>Grafana jumps to <strong>Tempo</strong> showing the full trace</li>
+    </ol>
+    <h3 id="from-metrics--trace">From metrics → trace</h3>
+    <ol>
+    <li>In a Grafana dashboard, view a histogram panel (e.g., request duration)</li>
+    <li>Click an <strong>exemplar dot</strong> on the graph</li>
+    <li>Grafana jumps to the specific trace that caused that data point</li>
+    </ol>
+    <h3 id="direct-trace-search">Direct trace search</h3>
+    <ol>
+    <li>Go to <strong>Explore</strong> → select <strong>Tempo</strong></li>
+    <li>Search by:
+    <ul>
+    <li><code>trace_id</code> — exact trace</li>
+    <li>Service name + operation — e.g., <code>api-gateway</code> + <code>POST /api/loans/apply</code></li>
+    <li>Duration — e.g., traces longer than 2 seconds</li>
+    <li>Status — error traces only</li>
+    </ul></li>
+    </ol>
+    <hr />
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <h3 id="no-traces-appearing-in-tempo">No traces appearing in Tempo</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Symptom</th>
+    <th>Cause</th>
+    <th>Fix</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Zero traces</td>
+    <td>Exporter type is <code>console</code> or <code>none</code></td>
+    <td>Change to <code>otlp-http</code></td>
+    </tr>
+    <tr class="even">
+    <td>Zero traces</td>
+    <td>Collector endpoint wrong or unreachable</td>
+    <td>Check <code>OTEL_EXPORTER_OTLP_ENDPOINT</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Partial traces</td>
+    <td>Sampling ratio too low</td>
+    <td>Increase ratio or use <code>always</code> for debugging</td>
+    </tr>
+    <tr class="even">
+    <td>Missing spans for HTTP calls</td>
+    <td><code>propagation.inject()</code> not called in outgoing requests</td>
+    <td>Add to <code>AxiosService.buildHeaders()</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Missing DB spans</td>
+    <td>Instrumentation not registered</td>
+    <td>Add <code>sequelizeInstrumentation()</code> to config</td>
+    </tr>
+    <tr class="even">
+    <td>Missing spans on first request</td>
+    <td>Tracing started after module import</td>
+    <td>Use <code>setupTracing()</code> in main.ts</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="trace_id-in-logs-but-not-in-tempo">trace_id in logs but not in Tempo</h3>
+    <p>Logs use Pino's mixin to inject <code>trace_id</code> — this works even if tracing export is disabled. If logs show <code>trace_id</code> but Tempo has no trace:</p>
+    <ol>
+    <li>Check exporter config: <code>tracing.exporter.type</code> must not be <code>console</code> or <code>none</code></li>
+    <li>Check collector is running: <code>curl http://otel-collector:4318/v1/traces</code> should not timeout</li>
+    <li>Check Tempo datasource in Grafana is configured correctly</li>
+    </ol>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "tracing";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="changelog">Changelog</h1>
+    <p>All notable changes to <code>@brdrwanda/observability</code> will be documented in this file.</p>
+    <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>, and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+    <h2 id="unreleased">[Unreleased]</h2>
+    <h3 id="added">Added</h3>
+    <ul>
+    <li>Configurable auto-request logging: <code>autoRequestLogging</code>, <code>autoErrorLogging</code>, <code>logRequestBody</code>, <code>logResponseBody</code> options</li>
+    <li>Route exclusion: <code>excludeRoutes</code> option (defaults to <code>['/health', '/metrics']</code>)</li>
+    <li>Controller and handler names in request lifecycle logs</li>
+    <li>Consistent <code>request_start</code> / <code>request_complete</code> / <code>request_error</code> message format</li>
+    </ul>
+    <h2 id="100---2026-06-29">[1.0.0] - 2026-06-29</h2>
+    <h3 id="changed">Changed</h3>
+    <ul>
+    <li>Upgraded OpenTelemetry to v2 API</li>
+    <li>Upgraded NestJS peer dependency to support v11</li>
+    <li>Migrated npm scope from <code>@brd-rw</code> to <code>@brdrwanda</code></li>
+    </ul>
+    <h3 id="security">Security</h3>
+    <ul>
+    <li>Resolved security vulnerabilities in OpenTelemetry v1 dependencies</li>
+    </ul>
+    <h2 id="020---2026-06-25">[0.2.0] - 2026-06-25</h2>
+    <h3 id="added-1">Added</h3>
+    <ul>
+    <li><code>logCaughtError()</code> method on <code>ObservabilityLogger</code> — auto-classifies caught exceptions (4xx → warn, 5xx → error with stack)</li>
+    <li><code>setupProcessErrorHandlers()</code> — catches <code>uncaughtException</code> and <code>unhandledRejection</code>, logs as fatal JSON</li>
+    <li>Tracing configuration documentation and process error handler options</li>
+    <li>"Why this SDK" section in documentation</li>
+    </ul>
+    <h2 id="010---2026-06-22">[0.1.0] - 2026-06-22</h2>
+    <h3 id="added-2">Added</h3>
+    <ul>
+    <li><code>ObservabilityModule.forRoot()</code> — single module wires up logging, tracing, metrics, and health</li>
+    <li><code>ObservabilityLogger</code> — structured JSON logging via Pino with trace context enrichment</li>
+    <li><code>ObservabilityTracer</code> — OpenTelemetry tracing with <code>@Span</code> decorator and manual span API</li>
+    <li><code>ObservabilityMetrics</code> — Prometheus metrics with <code>createCounter</code>, <code>createHistogram</code>, <code>createGauge</code></li>
+    <li><code>ObservabilityExceptionFilter</code> — global exception filter with error classification (bad_request, authentication_failed, server_error, etc.)</li>
+    <li><code>LoggingInterceptor</code> — auto logs request started / request completed with duration</li>
+    <li><code>MetricsInterceptor</code> — auto records <code>http_requests_total</code> and <code>http_request_duration_seconds</code></li>
+    <li><code>TracingInterceptor</code> — creates <code>ControllerName.methodName</code> spans for each request</li>
+    <li><code>ContextMiddleware</code> — request context via AsyncLocalStorage (request_id, correlation_id, trace_id, client_app)</li>
+    <li>Instrumentation plugins: <code>httpInstrumentation</code>, <code>sequelizeInstrumentation</code>, <code>kafkaInstrumentation</code>, <code>redisInstrumentation</code>, <code>mysqlInstrumentation</code>, <code>pgInstrumentation</code></li>
+    <li>Kafka helpers: <code>injectKafkaHeaders</code>, <code>withKafkaContext</code> for trace propagation</li>
+    <li>Sequelize helpers: <code>createSequelizeLogging</code>, <code>createSequelizeErrorLogging</code> for structured query logging</li>
+    <li><code>DiagnosticsService</code> — runtime diagnostic report (SDK version, config, active instrumentations)</li>
+    <li><code>NestPinoLogger</code> — NestJS LoggerService adapter for Pino</li>
+    <li>Standalone mode: <code>createObservability()</code> for Express/Fastify/plain Node.js</li>
+    <li>Sensitive data redaction with 17 default paths (passwords, tokens, credit cards, SSNs, etc.)</li>
+    <li>Health module: <code>ObservabilityHealthModule</code> with liveness endpoint</li>
+    <li>Metric exemplars: automatic <code>trace_id</code> attachment on histogram observations</li>
+    <li>Client origin resolution: <code>clientOrigins</code> config maps Origin/Referer to friendly app names</li>
+    <li>Environment-aware defaults (dev: debug + pretty + console export, prod: info + JSON + OTLP + 10% sampling)</li>
+    <li>SQL query sanitizer: strips literals from SQL before logging</li>
+    <li>Sandbox environment: Docker Compose with Grafana, Loki, Tempo, Prometheus, Alertmanager, Teams forwarder</li>
+    </ul>
+    <h3 id="infrastructure">Infrastructure</h3>
+    <ul>
+    <li>Prometheus alert rules: ServiceDown, HighErrorRate, HighLatencyP95, HighLatencyP99, HighMemoryUsage, HighEventLoopLag</li>
+    <li>Alertmanager with Microsoft Teams webhook forwarding</li>
+    <li>Promtail config for log collection from PM2 or file-based logs</li>
+    <li>GitHub Actions workflow for auto-deploying docs to GitHub Pages</li>
+    </ul>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "CHANGELOG";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

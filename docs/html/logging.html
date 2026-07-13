@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Structured Logging — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="structured-logging">Structured Logging</h1>
+    <p>Every log line is JSON. The SDK uses <a href="https://github.com/pinojs/pino">Pino</a> under the hood and enriches each line with service metadata, request context, and trace IDs automatically.</p>
+    <hr />
+    <h2 id="what-you-get-for-free">What You Get for Free</h2>
+    <p>Once <code>ObservabilityModule.forRoot()</code> is wired up, every HTTP request automatically produces structured logs with zero application code:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Log event</th>
+    <th>When it fires</th>
+    <th>Key fields</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>request started</code></td>
+    <td>Request enters the interceptor</td>
+    <td><code>method</code>, <code>url</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>request completed</code></td>
+    <td>Response sent successfully</td>
+    <td><code>method</code>, <code>url</code>, <code>statusCode</code>, <code>duration_ms</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>request failed</code></td>
+    <td>Unhandled error thrown</td>
+    <td><code>method</code>, <code>url</code>, <code>error</code>, <code>duration_ms</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Every log line also includes these context fields (injected via Pino's <code>mixin</code>):</p>
+    <ul>
+    <li><code>service_name</code> -- from your config</li>
+    <li><code>environment</code> -- <code>production</code>, <code>staging</code>, etc.</li>
+    <li><code>version</code> -- your package version</li>
+    <li><code>request_id</code> -- from <code>X-Request-Id</code> header (or generated)</li>
+    <li><code>correlation_id</code> -- from <code>X-Correlation-Id</code> header (or falls back to <code>request_id</code>)</li>
+    <li><code>trace_id</code>, <code>span_id</code> -- from the active OpenTelemetry span</li>
+    <li><code>client_app</code> -- resolved from <code>X-Client-App</code> header or <code>Origin</code>/<code>Referer</code></li>
+    </ul>
+    <p>Unhandled exceptions are caught by the global <code>ObservabilityExceptionFilter</code>. It classifies errors by status code:</p>
+    <ul>
+    <li><strong>4xx</strong> -- logged at <code>warn</code> level with a descriptive event (<code>bad_request</code>, <code>authentication_failed</code>, <code>authorization_failed</code>, <code>not_found</code>, <code>validation_failed</code>, <code>rate_limited</code>, etc.)</li>
+    <li><strong>5xx</strong> -- logged at <code>error</code> level as <code>server_error</code>, with the full stack trace attached</li>
+    </ul>
+    <p>Health (<code>/health</code>) and metrics (<code>/metrics</code>) are excluded by default via <code>excludeRoutes</code>.</p>
+    <h3 id="what-you-can-delete">What You Can Delete</h3>
+    <p>With auto-request logging enabled, you <strong>no longer need</strong> manual request lifecycle logging in your controllers or middleware. Remove this code if you have it:</p>
+    <p><strong>Before (manual logging you can delete):</strong></p>
+    <pre class="typescript"><code>@Controller(&#39;loans&#39;)
+    export class LoanController {
+      constructor(private logger: ObservabilityLogger) {}
+
+      @Post()
+      async createLoan(@Body() dto: CreateLoanDto) {
+        this.logger.info(&#39;request started&#39;, { method: &#39;POST&#39;, url: &#39;/loans&#39; });  // DELETE THIS
+        const start = Date.now();                                                  // DELETE THIS
+
+        try {
+          const result = await this.loanService.create(dto);
+
+          this.logger.info(&#39;request completed&#39;, {                                // DELETE THIS
+            method: &#39;POST&#39;, url: &#39;/loans&#39;,                                        // DELETE THIS
+            statusCode: 201, duration_ms: Date.now() - start,                     // DELETE THIS
+          });                                                                      // DELETE THIS
+
+          return result;
+        } catch (error) {
+          this.logger.error(&#39;request failed&#39;, {                                   // DELETE THIS
+            method: &#39;POST&#39;, url: &#39;/loans&#39;,                                        // DELETE THIS
+            error: error.message, duration_ms: Date.now() - start,                // DELETE THIS
+          });                                                                      // DELETE THIS
+          throw error;
+        }
+      }
+    }
+    </code></pre>
+    <p><strong>After (the SDK handles it all):</strong></p>
+    <pre class="typescript"><code>@Controller(&#39;loans&#39;)
+    export class LoanController {
+      constructor(private logger: ObservabilityLogger) {}
+
+      @Post()
+      async createLoan(@Body() dto: CreateLoanDto) {
+        // Auto-logged: request_start with method, route, controller, handler
+        const result = await this.loanService.create(dto);
+        // Auto-logged: request_complete with statusCode, duration_ms
+        // Auto-logged on error: request_error with error message, duration_ms
+
+        // Only log BUSINESS events — things the SDK can&#39;t know about:
+        this.logger.info(&#39;loan created&#39;, { loanId: result.id, amount: dto.amount });
+
+        return result;
+      }
+    }
+    </code></pre>
+    <p>The interceptor automatically captures: method, route, controller name (<code>LoanController</code>), handler name (<code>createLoan</code>), statusCode, and duration_ms. You only need to log domain-specific events.</p>
+    <hr />
+    <h2 id="auto-request-logging-configuration">Auto-Request Logging Configuration</h2>
+    <p>The logging interceptor and exception filter are registered as global providers automatically. You can configure logger behavior through the <code>logger</code> key:</p>
+    <pre class="typescript"><code>import { ObservabilityModule } from &#39;@brdrwanda/observability&#39;;
+
+    @Module({
+      imports: [
+        ObservabilityModule.forRoot({
+          serviceName: &#39;my-service&#39;,
+          logger: {
+            level: &#39;info&#39;,                // default: &#39;debug&#39; in dev, &#39;info&#39; in production
+            prettyPrint: true,            // default: true in dev, false in production
+            autoRequestLogging: true,     // default: true — log request_start/request_complete automatically
+            autoErrorLogging: true,       // default: true — log errors from exception filter automatically
+            logRequestBody: false,        // default: false — include req.body in request_start log
+            logResponseBody: false,       // default: false — include response body in request_complete log
+            excludeRoutes: [&#39;/health&#39;, &#39;/metrics&#39;],  // default: [&#39;/health&#39;, &#39;/metrics&#39;] — skip these routes
+            redaction: {
+              paths: [&#39;*.password&#39;, &#39;*.token&#39;],  // default: see Sensitive Data Redaction section
+              censor: &#39;[REDACTED]&#39;,              // default: &#39;[REDACTED]&#39;
+            },
+          },
+        }),
+      ],
+    })
+    export class AppModule {}
+    </code></pre>
+    <h3 id="auto-request-logging-options">Auto-Request Logging Options</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Option</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>autoRequestLogging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Log <code>request_start</code> and <code>request_complete</code> for every HTTP request</td>
+    </tr>
+    <tr class="even">
+    <td><code>autoErrorLogging</code></td>
+    <td><code>boolean</code></td>
+    <td><code>true</code></td>
+    <td>Log errors caught by the global exception filter</td>
+    </tr>
+    <tr class="odd">
+    <td><code>logRequestBody</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include <code>req.body</code> in the <code>request_start</code> log entry</td>
+    </tr>
+    <tr class="even">
+    <td><code>logResponseBody</code></td>
+    <td><code>boolean</code></td>
+    <td><code>false</code></td>
+    <td>Include the response body in the <code>request_complete</code> log entry</td>
+    </tr>
+    <tr class="odd">
+    <td><code>excludeRoutes</code></td>
+    <td><code>string[]</code></td>
+    <td><code>['/health', '/metrics']</code></td>
+    <td>Routes to skip entirely (no request_start/request_complete)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Set <code>autoRequestLogging: false</code> to disable automatic request lifecycle logs while keeping your manual <code>logger.info()</code> calls. Set <code>autoErrorLogging: false</code> to disable exception filter logging while keeping the JSON error response and span recording.</p>
+    <h3 id="example-log-output">Example log output</h3>
+    <p><strong><code>request started</code></strong> (info):</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;info&quot;,
+      &quot;time&quot;: &quot;2025-06-15T10:32:01.456Z&quot;,
+      &quot;name&quot;: &quot;my-service&quot;,
+      &quot;msg&quot;: &quot;request started&quot;,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;environment&quot;: &quot;production&quot;,
+      &quot;version&quot;: &quot;1.2.0&quot;,
+      &quot;request_id&quot;: &quot;req-abc-123&quot;,
+      &quot;correlation_id&quot;: &quot;corr-xyz-789&quot;,
+      &quot;trace_id&quot;: &quot;a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4&quot;,
+      &quot;span_id&quot;: &quot;1a2b3c4d5e6f7a8b&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/loans&quot;
+    }
+    </code></pre>
+    <p><strong><code>request completed</code></strong> (info):</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;info&quot;,
+      &quot;time&quot;: &quot;2025-06-15T10:32:01.612Z&quot;,
+      &quot;msg&quot;: &quot;request completed&quot;,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;trace_id&quot;: &quot;a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/loans&quot;,
+      &quot;statusCode&quot;: 201,
+      &quot;duration_ms&quot;: 156.23
+    }
+    </code></pre>
+    <p><strong><code>request_error</code></strong> -- 4xx (warn):</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;warn&quot;,
+      &quot;time&quot;: &quot;2025-06-15T10:32:05.891Z&quot;,
+      &quot;msg&quot;: &quot;authentication_failed&quot;,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;trace_id&quot;: &quot;f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4&quot;,
+      &quot;event&quot;: &quot;authentication_failed&quot;,
+      &quot;statusCode&quot;: 401,
+      &quot;message&quot;: &quot;Invalid credentials&quot;,
+      &quot;method&quot;: &quot;POST&quot;,
+      &quot;url&quot;: &quot;/api/auth/login&quot;
+    }
+    </code></pre>
+    <p><strong><code>request_error</code></strong> -- 5xx (error):</p>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;error&quot;,
+      &quot;time&quot;: &quot;2025-06-15T10:32:10.334Z&quot;,
+      &quot;msg&quot;: &quot;server_error&quot;,
+      &quot;service_name&quot;: &quot;my-service&quot;,
+      &quot;trace_id&quot;: &quot;d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1&quot;,
+      &quot;event&quot;: &quot;server_error&quot;,
+      &quot;statusCode&quot;: 500,
+      &quot;message&quot;: &quot;Connection refused&quot;,
+      &quot;method&quot;: &quot;GET&quot;,
+      &quot;url&quot;: &quot;/api/accounts/ACC-001&quot;,
+      &quot;stack&quot;: &quot;Error: Connection refused\n    at TCPConnectWrap...&quot;
+    }
+    </code></pre>
+    <hr />
+    <h2 id="business-event-logging">Business Event Logging</h2>
+    <p>Inject <code>ObservabilityLogger</code> into any service or controller to add domain-specific logs. The logger is registered globally, so it's available everywhere without extra imports.</p>
+    <pre class="typescript"><code>import { Injectable } from &#39;@nestjs/common&#39;;
+    import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class LoanService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      async approveLoan(loanId: string, amount: number, nationalId: string) {
+        // ... business logic ...
+
+        this.logger.info(&#39;loan approved&#39;, {
+          loanId: &#39;LN-001&#39;,
+          amount: 5000000,
+          applicant: nationalId,
+        });
+      }
+
+      async checkCreditScore(applicantId: string) {
+        const score = await this.creditBureau.getScore(applicantId);
+
+        if (score &lt; 500) {
+          this.logger.warn(&#39;credit score below threshold&#39;, {
+            score: 320,
+            threshold: 500,
+          });
+        }
+      }
+
+      async fetchPropertyData(propertyId: string) {
+        try {
+          return await this.esriClient.lookup(propertyId);
+        } catch (err) {
+          this.logger.error(&#39;external API timeout&#39;, {
+            service: &#39;ESRI&#39;,
+            timeout_ms: 15000,
+          });
+          throw err;
+        }
+      }
+    }
+    </code></pre>
+    <p>Every call to <code>info</code>, <code>warn</code>, <code>error</code>, etc. automatically includes all the context fields (service name, trace ID, request ID) -- you only pass the business-relevant metadata.</p>
+    <hr />
+    <h2 id="child-loggers">Child Loggers</h2>
+    <p>Use <code>child()</code> to create a logger with persistent bindings. Every log from the child includes the bound fields without you passing them each time.</p>
+    <pre class="typescript"><code>@Injectable()
+    export class OrderService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      async processOrder(orderId: string) {
+        const log = this.logger.child({ orderId });
+
+        log.info(&#39;order processing started&#39;);
+        // =&gt; { ..., &quot;orderId&quot;: &quot;ORD-456&quot;, &quot;msg&quot;: &quot;order processing started&quot; }
+
+        await this.validateInventory(orderId);
+        log.info(&#39;inventory validated&#39;);
+        // =&gt; { ..., &quot;orderId&quot;: &quot;ORD-456&quot;, &quot;msg&quot;: &quot;inventory validated&quot; }
+
+        await this.chargePayment(orderId);
+        log.info(&#39;payment charged&#39;);
+        // =&gt; { ..., &quot;orderId&quot;: &quot;ORD-456&quot;, &quot;msg&quot;: &quot;payment charged&quot; }
+      }
+    }
+    </code></pre>
+    <p>Child loggers are useful when a single request touches multiple steps and you want the same entity ID on every log line without repeating it.</p>
+    <hr />
+    <h2 id="error-logging">Error Logging</h2>
+    <p>Use <code>logCaughtError()</code> for exceptions you catch yourself (e.g., in a try/catch). It extracts the status code and message, then routes to the correct log level:</p>
+    <ul>
+    <li><strong>4xx</strong> -- logged at <code>warn</code> as <code>request_error</code></li>
+    <li><strong>5xx</strong> (or unknown) -- logged at <code>error</code> as <code>request_error</code>, with the full stack trace</li>
+    </ul>
+    <pre class="typescript"><code>import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+
+    @Injectable()
+    export class PaymentService {
+      constructor(private logger: ObservabilityLogger) {}
+
+      async charge(accountId: string, amount: number) {
+        try {
+          await this.gateway.charge(accountId, amount);
+        } catch (error) {
+          this.logger.logCaughtError(error);
+          // 4xx =&gt; warn-level log with statusCode and message
+          // 5xx =&gt; error-level log with statusCode, message, and stack trace
+          throw error;
+        }
+      }
+    }
+    </code></pre>
+    <p><code>logCaughtError</code> works with NestJS <code>HttpException</code> instances (calls <code>getStatus()</code>), plain errors with a <code>statusCode</code> property, and unknown errors (defaults to 500).</p>
+    <hr />
+    <h2 id="log-levels">Log Levels</h2>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Level</th>
+    <th>When to use</th>
+    <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>debug</code></td>
+    <td>Verbose detail, development only. Never enable in production.</td>
+    <td><code>this.logger.debug('SQL query executed', { query, rows: 42 })</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>info</code></td>
+    <td>Normal operations. Business events, request lifecycle.</td>
+    <td><code>this.logger.info('loan approved', { loanId })</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>warn</code></td>
+    <td>Degraded but not broken. 4xx errors, approaching limits.</td>
+    <td><code>this.logger.warn('rate limit approaching', { current: 95, max: 100 })</code></td>
+    </tr>
+    <tr class="even">
+    <td><code>error</code></td>
+    <td>Something failed. 5xx errors, broken integrations.</td>
+    <td><code>this.logger.error('database connection lost', { host })</code></td>
+    </tr>
+    <tr class="odd">
+    <td><code>fatal</code></td>
+    <td>Process is about to die. Use sparingly.</td>
+    <td><code>this.logger.fatal('out of memory, shutting down')</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Set the level in config:</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      logger: { level: &#39;info&#39; },  // suppresses debug logs
+    })
+    </code></pre>
+    <p>Default: <code>debug</code> in development, <code>info</code> in production (based on <code>NODE_ENV</code>).</p>
+    <hr />
+    <h2 id="querying-logs-in-grafana--loki">Querying Logs in Grafana / Loki</h2>
+    <p>All logs ship as JSON, which means Loki can parse fields with <code>| json</code>. Here are the queries you'll use most:</p>
+    <p><strong>All logs from one service:</strong></p>
+    <pre class="logql"><code>{service_name=&quot;api-gateway&quot;}
+    </code></pre>
+    <p><strong>Only errors:</strong></p>
+    <pre class="logql"><code>{service_name=&quot;api-gateway&quot;, level=&quot;error&quot;}
+    </code></pre>
+    <p><strong>Filter by controller (parsed from JSON):</strong></p>
+    <pre class="logql"><code>{service_name=&quot;api-gateway&quot;} | json | controller=&quot;LoanController&quot;
+    </code></pre>
+    <p><strong>Slow requests (&gt; 1 second):</strong></p>
+    <pre class="logql"><code>{service_name=&quot;api-gateway&quot;} |= &quot;request completed&quot; | json | duration_ms &gt; 1000
+    </code></pre>
+    <p><strong>Trace a single request across all services:</strong></p>
+    <pre class="logql"><code>{service_name=~&quot;.+&quot;} | json | trace_id=&quot;a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4&quot;
+    </code></pre>
+    <p><strong>Errors for a specific endpoint:</strong></p>
+    <pre class="logql"><code>{service_name=&quot;loan-service&quot;} | json | level=&quot;error&quot; | url=&quot;/api/loans&quot;
+    </code></pre>
+    <p><strong>Validation failures:</strong></p>
+    <pre class="logql"><code>{service_name=&quot;api-gateway&quot;} | json | event=&quot;validation_failed&quot;
+    </code></pre>
+    <p>Tip: click any trace ID in Grafana to jump from logs to the full distributed trace in Tempo.</p>
+    <hr />
+    <h2 id="sensitive-data-redaction">Sensitive Data Redaction</h2>
+    <p>Pino's built-in redaction removes sensitive fields before they reach the log output. The SDK ships with safe defaults.</p>
+    <h3 id="default-redacted-paths">Default redacted paths</h3>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Path pattern</th>
+    <th>What it covers</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>req.headers.authorization</code></td>
+    <td>Bearer tokens, Basic auth</td>
+    </tr>
+    <tr class="even">
+    <td><code>req.headers.cookie</code></td>
+    <td>Session cookies</td>
+    </tr>
+    <tr class="odd">
+    <td><code>req.headers["set-cookie"]</code></td>
+    <td>Response cookies</td>
+    </tr>
+    <tr class="even">
+    <td><code>*.password</code></td>
+    <td>Password fields at any depth</td>
+    </tr>
+    <tr class="odd">
+    <td><code>*.secret</code></td>
+    <td>Secret fields at any depth</td>
+    </tr>
+    <tr class="even">
+    <td><code>*.token</code>, <code>*.accessToken</code>, <code>*.refreshToken</code></td>
+    <td>Auth tokens</td>
+    </tr>
+    <tr class="odd">
+    <td><code>*.access_token</code>, <code>*.refresh_token</code></td>
+    <td>Snake-case auth tokens</td>
+    </tr>
+    <tr class="even">
+    <td><code>*.apiKey</code>, <code>*.api_key</code></td>
+    <td>API keys</td>
+    </tr>
+    <tr class="odd">
+    <td><code>*.connectionString</code>, <code>*.connection_string</code></td>
+    <td>Database connection strings</td>
+    </tr>
+    <tr class="even">
+    <td><code>*.creditCard</code>, <code>*.credit_card</code></td>
+    <td>Card numbers</td>
+    </tr>
+    <tr class="odd">
+    <td><code>*.ssn</code></td>
+    <td>National ID / Social Security numbers</td>
+    </tr>
+    </tbody>
+    </table>
+    <h3 id="adding-custom-redaction-paths">Adding custom redaction paths</h3>
+    <p>Add your own paths alongside the defaults:</p>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;my-service&#39;,
+      logger: {
+        redaction: {
+          paths: [
+            // Add your custom paths
+            &#39;body.creditCard&#39;,
+            &#39;body.ssn&#39;,
+            &#39;headers.x-api-key&#39;,
+            // You can also use wildcards
+            &#39;*.nationalId&#39;,
+            &#39;*.phoneNumber&#39;,
+          ],
+          censor: &#39;[REDACTED]&#39;,
+        },
+      },
+    })
+    </code></pre>
+    <blockquote>
+    <p><strong>Note:</strong> When you provide custom <code>paths</code>, they <strong>replace</strong> the defaults. If you want to keep the defaults and add more, spread them in:</p>
+    <pre class="typescript"><code>import { DEFAULT_REDACTION_PATHS } from &#39;@brdrwanda/observability&#39;;
+
+    redaction: {
+      paths: [...DEFAULT_REDACTION_PATHS, &#39;body.nationalId&#39;, &#39;*.phoneNumber&#39;],
+    }
+    </code></pre>
+    </blockquote>
+    <h3 id="what-redacted-output-looks-like">What redacted output looks like</h3>
+    <pre class="json"><code>{
+      &quot;level&quot;: &quot;info&quot;,
+      &quot;msg&quot;: &quot;user registered&quot;,
+      &quot;password&quot;: &quot;[REDACTED]&quot;,
+      &quot;token&quot;: &quot;[REDACTED]&quot;,
+      &quot;email&quot;: &quot;user@example.com&quot;,
+      &quot;name&quot;: &quot;Jean Claude&quot;
+    }
+    </code></pre>
+    <p>The <code>censor</code> value defaults to <code>[REDACTED]</code>. You can change it to any string (e.g., <code>***</code>, <code>[FILTERED]</code>).</p>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "logging";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>
