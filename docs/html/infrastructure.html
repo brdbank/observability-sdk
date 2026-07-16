@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infrastructure Guide — @brdrwanda/observability</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --sidebar-bg: #f8fafc;
+      --code-bg: #f1f5f9;
+      --code-block-bg: #0f172a;
+      --code-block-text: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 8px 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text);
+      background: var(--accent-light);
+    }
+
+    .sidebar-nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+      margin-left: 280px;
+      max-width: 900px;
+      padding: 48px 60px 80px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 48px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    p { margin-bottom: 16px; font-size: 15px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    td {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: var(--accent-light); }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li { margin-bottom: 6px; font-size: 15px; }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    blockquote p { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    strong { font-weight: 600; }
+
+    /* Checkboxes in tables */
+    td:has(code) code { font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
+      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
+      .sidebar-nav a.active { border-left: none; }
+      body { flex-direction: column; }
+      .content { margin-left: 0; padding: 24px; }
+    }
+
+    @media print {
+      .sidebar { display: none; }
+      .content { margin-left: 0; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>@brdrwanda/observability</h2>
+      <p>SDK Documentation</p>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" id="nav-index">Home</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
+      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
+      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
+      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
+      <a href="logging.html" id="nav-logging">Structured Logging</a>
+      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
+      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
+      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
+      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
+      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
+      <a href="migration.html" id="nav-migration">Migration Guide</a>
+      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
+      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
+      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
+      <a href="infrastructure.html" id="nav-infrastructure">Infrastructure Guide</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
+      <a href="architecture.html" id="nav-architecture">How It Works</a>
+      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
+      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
+
+      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
+      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
+      <a href="testing.html" id="nav-testing">Testing</a>
+      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+    </div>
+  </nav>
+  <main class="content">
+    <h1 id="observability-infrastructure-guide">Observability Infrastructure Guide</h1>
+    <p>This guide documents the full observability stack running on Kubernetes, how each component fits together, and how to add Grafana Tempo for distributed tracing.</p>
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ul>
+    <li><a href="#stack-overview">Stack overview</a></li>
+    <li><a href="#architecture-diagram">Architecture diagram</a></li>
+    <li><a href="#component-reference">Component reference</a>
+    <ul>
+    <li><a href="#prometheus">Prometheus</a></li>
+    <li><a href="#loki">Loki</a></li>
+    <li><a href="#promtail">Promtail</a></li>
+    <li><a href="#tempo">Tempo</a></li>
+    <li><a href="#grafana">Grafana</a></li>
+    </ul></li>
+    <li><a href="#installing-tempo">Installing Tempo</a></li>
+    <li><a href="#connecting-tempo-to-grafana">Connecting Tempo to Grafana</a></li>
+    <li><a href="#connecting-loki-and-tempo">Connecting Loki and Tempo</a></li>
+    <li><a href="#sdk-exporter-configuration">SDK exporter configuration</a></li>
+    <li><a href="#verifying-the-pipeline">Verifying the pipeline</a></li>
+    <li><a href="#service-endpoints-reference">Service endpoints reference</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+    <hr />
+    <h2 id="stack-overview">Stack overview</h2>
+    <p>All observability components run in the <code>observability</code> namespace. The stack collects three signal types:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Signal</th>
+    <th>Collector</th>
+    <th>Storage</th>
+    <th>Query</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><strong>Metrics</strong></td>
+    <td>Prometheus scrapes <code>/metrics</code> endpoints</td>
+    <td>Prometheus TSDB</td>
+    <td>PromQL via Grafana</td>
+    </tr>
+    <tr class="even">
+    <td><strong>Logs</strong></td>
+    <td>Promtail ships container stdout/stderr</td>
+    <td>Loki</td>
+    <td>LogQL via Grafana</td>
+    </tr>
+    <tr class="odd">
+    <td><strong>Traces</strong></td>
+    <td>SDK sends OTLP to Tempo</td>
+    <td>Tempo</td>
+    <td>TraceQL via Grafana</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>Grafana is the single pane of glass — it queries all three backends and can correlate between them (click a trace ID in logs → see the full trace, click a trace → see matching logs).</p>
+    <hr />
+    <h2 id="architecture-diagram">Architecture diagram</h2>
+    <pre><code>┌─────────────────────────────────────────────────────────────┐
+    │  Kubernetes Cluster                                         │
+    │                                                             │
+    │  ┌─────────────────┐  ┌─────────────────┐                   │
+    │  │  api-gateway     │  │  auth-service    │  ... (services)  │
+    │  │                  │  │                  │                   │
+    │  │  stdout (logs) ──┼──┼── Promtail ─────────► Loki          │
+    │  │  /metrics ───────┼──┼── Prometheus ◄──────┐               │
+    │  │  OTLP (traces) ──┼──┼──────────────────► Tempo           │
+    │  └─────────────────┘  └─────────────────┘                   │
+    │                                                             │
+    │                     ┌────────────┐                           │
+    │                     │  Grafana   │                           │
+    │                     │            │                           │
+    │                     │  Loki DS ──┼── LogQL                   │
+    │                     │  Prom DS ──┼── PromQL                  │
+    │                     │  Tempo DS ─┼── TraceQL                 │
+    │                     └────────────┘                           │
+    │                                                             │
+    │  Namespace: observability                                   │
+    └─────────────────────────────────────────────────────────────┘
+    </code></pre>
+    <hr />
+    <h2 id="component-reference">Component reference</h2>
+    <h3 id="prometheus">Prometheus</h3>
+    <p><strong>What it does:</strong> Scrapes metrics endpoints (<code>/metrics</code>) from all services at regular intervals and stores time-series data. Also scrapes node-level metrics via <code>node-exporter</code> on every cluster node.</p>
+    <p><strong>Helm chart:</strong> <code>kube-prometheus-stack</code> (includes Prometheus, Grafana, node-exporter, kube-state-metrics, and the Prometheus Operator)</p>
+    <p><strong>Key pods:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Pod</th>
+    <th>Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>prometheus-prometheus-kube-prometheus-prometheus-0</code></td>
+    <td>Prometheus server — scrapes and stores metrics</td>
+    </tr>
+    <tr class="even">
+    <td><code>prometheus-kube-prometheus-operator-*</code></td>
+    <td>Manages Prometheus CRDs (ServiceMonitor, PodMonitor, PrometheusRule)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>prometheus-kube-state-metrics-*</code></td>
+    <td>Exports Kubernetes object state as metrics (pod count, deployment status, etc.)</td>
+    </tr>
+    <tr class="even">
+    <td><code>prometheus-prometheus-node-exporter-*</code></td>
+    <td>DaemonSet — one per node, exports CPU/memory/disk/network metrics</td>
+    </tr>
+    <tr class="odd">
+    <td><code>prometheus-grafana-*</code></td>
+    <td>Grafana instance (bundled with kube-prometheus-stack)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Services:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Service</th>
+    <th>Port</th>
+    <th>Purpose</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>prometheus-kube-prometheus-prometheus</code></td>
+    <td>9090</td>
+    <td>Prometheus query API (PromQL)</td>
+    </tr>
+    <tr class="even">
+    <td><code>prometheus-grafana</code></td>
+    <td>80</td>
+    <td>Grafana web UI</td>
+    </tr>
+    <tr class="odd">
+    <td><code>prometheus-kube-state-metrics</code></td>
+    <td>8080</td>
+    <td>Kubernetes state metrics exporter</td>
+    </tr>
+    <tr class="even">
+    <td><code>prometheus-prometheus-node-exporter</code></td>
+    <td>9100</td>
+    <td>Node hardware metrics</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>How the SDK connects:</strong> The SDK exposes a <code>/metrics</code> endpoint on each service (via <code>MetricsController</code>). Prometheus discovers and scrapes these endpoints. No push configuration needed — Prometheus pulls.</p>
+    <p><strong>Adding a new service to Prometheus:</strong> Create a <code>ServiceMonitor</code> CRD:</p>
+    <pre class="yaml"><code>apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: api-gateway
+      namespace: observability
+      labels:
+        release: prometheus
+    spec:
+      namespaceSelector:
+        matchNames: [default]
+      selector:
+        matchLabels:
+          app: api-gateway
+      endpoints:
+        - port: http
+          path: /metrics
+          interval: 30s
+    </code></pre>
+    <hr />
+    <h3 id="loki">Loki</h3>
+    <p><strong>What it does:</strong> Log aggregation system. Receives logs from Promtail, indexes them by labels (namespace, pod, container), and serves log queries via LogQL.</p>
+    <p><strong>Helm chart:</strong> <code>loki</code> (Grafana Loki)</p>
+    <p><strong>Key pods:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Pod</th>
+    <th>Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>loki-0</code>, <code>loki-1</code>, <code>loki-2</code></td>
+    <td>Loki instances (3-replica StatefulSet for HA)</td>
+    </tr>
+    <tr class="even">
+    <td><code>loki-gateway-*</code></td>
+    <td>Nginx gateway — routes read/write traffic to Loki instances</td>
+    </tr>
+    <tr class="odd">
+    <td><code>loki-chunks-cache-0</code></td>
+    <td>Memcached — caches log chunks for faster queries</td>
+    </tr>
+    <tr class="even">
+    <td><code>loki-results-cache-0</code></td>
+    <td>Memcached — caches query results</td>
+    </tr>
+    <tr class="odd">
+    <td><code>loki-canary-*</code></td>
+    <td>DaemonSet — writes test logs and verifies they can be read back (health check)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Services:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Service</th>
+    <th>Port</th>
+    <th>Purpose</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>loki</code></td>
+    <td>3100</td>
+    <td>Loki HTTP API (direct)</td>
+    </tr>
+    <tr class="even">
+    <td><code>loki-gateway</code></td>
+    <td>80</td>
+    <td>Nginx gateway (use this for Grafana datasource)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>loki-headless</code></td>
+    <td>3100</td>
+    <td>Headless service for StatefulSet peer discovery</td>
+    </tr>
+    <tr class="even">
+    <td><code>loki-memberlist</code></td>
+    <td>7946</td>
+    <td>Memberlist gossip protocol for ring coordination</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Grafana datasource URL:</strong> <code>http://loki-gateway.observability.svc.cluster.local:80</code></p>
+    <hr />
+    <h3 id="promtail">Promtail</h3>
+    <p><strong>What it does:</strong> DaemonSet agent that runs on every node. Tails container log files from <code>/var/log/pods</code>, attaches Kubernetes labels (namespace, pod name, container name), and ships them to Loki.</p>
+    <p><strong>Helm chart:</strong> <code>promtail</code></p>
+    <p><strong>Key pods:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Pod</th>
+    <th>Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>promtail-*</code> (6 pods)</td>
+    <td>DaemonSet — one per node, ships logs to Loki</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>How it works:</strong> Promtail reads container stdout/stderr from the node filesystem. When the SDK's <code>ObservabilityLogger</code> writes structured JSON to stdout, Promtail picks it up automatically — no service-level configuration needed. The JSON fields (<code>trace_id</code>, <code>span_id</code>, <code>request_id</code>, <code>level</code>, <code>msg</code>) are preserved and queryable in Loki via LogQL:</p>
+    <pre class="logql"><code>{namespace=&quot;default&quot;, app=&quot;api-gateway&quot;} | json | trace_id != &quot;&quot; | level = &quot;error&quot;
+    </code></pre>
+    <hr />
+    <h3 id="tempo">Tempo</h3>
+    <p><strong>What it does:</strong> Distributed tracing backend. Receives trace data via OTLP (OpenTelemetry Protocol), stores it, and serves trace queries. Integrates with Grafana for trace visualization and with Loki for log-to-trace correlation.</p>
+    <p><strong>Helm chart:</strong> <code>tempo</code> (Grafana Tempo)</p>
+    <p><strong>Key pods:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Pod</th>
+    <th>Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>tempo-0</code></td>
+    <td>Tempo server (single-binary mode) — ingests, stores, and queries traces</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Services:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Service</th>
+    <th>Port</th>
+    <th>Protocol</th>
+    <th>Purpose</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>tempo</code></td>
+    <td>3100</td>
+    <td>HTTP</td>
+    <td><strong>Tempo query API</strong> — use this for Grafana datasource</td>
+    </tr>
+    <tr class="even">
+    <td><code>tempo</code></td>
+    <td>4317</td>
+    <td>gRPC</td>
+    <td><strong>OTLP gRPC receiver</strong> — services send traces here</td>
+    </tr>
+    <tr class="odd">
+    <td><code>tempo</code></td>
+    <td>4318</td>
+    <td>HTTP</td>
+    <td><strong>OTLP HTTP receiver</strong> — services send traces here</td>
+    </tr>
+    <tr class="even">
+    <td><code>tempo</code></td>
+    <td>9411</td>
+    <td>HTTP</td>
+    <td>Zipkin receiver (compatibility)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>tempo</code></td>
+    <td>14268</td>
+    <td>HTTP</td>
+    <td>Jaeger HTTP receiver (compatibility)</td>
+    </tr>
+    <tr class="even">
+    <td><code>tempo</code></td>
+    <td>14250</td>
+    <td>gRPC</td>
+    <td>Jaeger gRPC receiver (compatibility)</td>
+    </tr>
+    <tr class="odd">
+    <td><code>tempo</code></td>
+    <td>6831</td>
+    <td>UDP</td>
+    <td>Jaeger compact thrift (compatibility)</td>
+    </tr>
+    <tr class="even">
+    <td><code>tempo</code></td>
+    <td>6832</td>
+    <td>UDP</td>
+    <td>Jaeger binary thrift (compatibility)</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>SDK sends traces to:</strong> <code>http://tempo.observability.svc.cluster.local:4318</code> (OTLP HTTP)</p>
+    <p><strong>Grafana datasource URL:</strong> <code>http://tempo.observability.svc.cluster.local:3100</code></p>
+    <hr />
+    <h3 id="grafana">Grafana</h3>
+    <p><strong>What it does:</strong> Visualization and dashboarding. Queries all three backends (Prometheus, Loki, Tempo) and provides a unified UI for metrics, logs, and traces.</p>
+    <p><strong>Deployed by:</strong> <code>kube-prometheus-stack</code> Helm chart (bundled)</p>
+    <p><strong>Key pods:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Pod</th>
+    <th>Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>prometheus-grafana-*</code></td>
+    <td>Grafana web server</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Service:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Service</th>
+    <th>Port</th>
+    <th>Purpose</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td><code>prometheus-grafana</code></td>
+    <td>80</td>
+    <td>Grafana web UI</td>
+    </tr>
+    </tbody>
+    </table>
+    <p><strong>Access:</strong> <code>kubectl port-forward svc/prometheus-grafana -n observability 3000:80</code></p>
+    <p><strong>Default credentials:</strong> Check the Helm values or:</p>
+    <pre class="bash"><code>kubectl get secret prometheus-grafana -n observability -o jsonpath=&quot;{.data.admin-password}&quot; | base64 -d
+    </code></pre>
+    <p><strong>Required datasources:</strong></p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Datasource</th>
+    <th>Type</th>
+    <th>URL</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Prometheus</td>
+    <td>Prometheus</td>
+    <td><code>http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090</code></td>
+    </tr>
+    <tr class="even">
+    <td>Loki</td>
+    <td>Loki</td>
+    <td><code>http://loki-gateway.observability.svc.cluster.local:80</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Tempo</td>
+    <td>Tempo</td>
+    <td><code>http://tempo.observability.svc.cluster.local:3100</code></td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="installing-tempo">Installing Tempo</h2>
+    <h3 id="prerequisites">Prerequisites</h3>
+    <ul>
+    <li>Kubernetes cluster with <code>observability</code> namespace</li>
+    <li>Helm 3 installed</li>
+    <li><code>grafana</code> Helm repo added (<code>helm repo add grafana https://grafana.github.io/helm-charts</code>)</li>
+    </ul>
+    <h3 id="install-via-helm">Install via Helm</h3>
+    <pre class="bash"><code>helm repo update grafana
+
+    helm install tempo grafana/tempo \
+      --namespace observability \
+      --set tempo.receivers.otlp.protocols.http.endpoint=&quot;0.0.0.0:4318&quot; \
+      --set tempo.receivers.otlp.protocols.grpc.endpoint=&quot;0.0.0.0:4317&quot;
+    </code></pre>
+    <p><strong>If <code>helm repo update</code> fails</strong> (e.g., network restrictions), download the chart manually:</p>
+    <ol>
+    <li>Download <code>tempo-*.tgz</code> from <a href="https://github.com/grafana/helm-charts/releases?q=tempo">https://github.com/grafana/helm-charts/releases?q=tempo</a></li>
+    <li>Install from file:</li>
+    </ol>
+    <pre class="bash"><code>helm install tempo ./tempo-1.18.0.tgz --namespace observability \
+      --set tempo.receivers.otlp.protocols.http.endpoint=&quot;0.0.0.0:4318&quot; \
+      --set tempo.receivers.otlp.protocols.grpc.endpoint=&quot;0.0.0.0:4317&quot;
+    </code></pre>
+    <h3 id="verify-installation">Verify installation</h3>
+    <pre class="bash"><code># Check pod is running
+    kubectl get pods -n observability -l app.kubernetes.io/name=tempo
+
+    # Check logs for errors
+    kubectl logs tempo-0 -n observability --tail=20
+
+    # Verify service endpoints
+    kubectl get svc tempo -n observability
+    </code></pre>
+    <p>Expected output: pod <code>1/1 Running</code>, logs show <code>"Tempo started"</code>, service exposes ports 3100, 4317, 4318.</p>
+    <hr />
+    <h2 id="connecting-tempo-to-grafana">Connecting Tempo to Grafana</h2>
+    <h3 id="add-tempo-datasource">Add Tempo datasource</h3>
+    <ol>
+    <li>Port-forward Grafana: <code>kubectl port-forward svc/prometheus-grafana -n observability 3000:80</code></li>
+    <li>Open <code>http://localhost:3000</code> → Configuration → Data Sources → Add data source</li>
+    <li>Select <strong>Tempo</strong></li>
+    <li>URL: <code>http://tempo.observability.svc.cluster.local:3100</code></li>
+    <li>Click <strong>Save &amp; Test</strong> — should show "Data source successfully connected"</li>
+    </ol>
+    <hr />
+    <h2 id="connecting-loki-and-tempo">Connecting Loki and Tempo</h2>
+    <p>This enables clicking between logs and traces in Grafana.</p>
+    <h3 id="tempo--loki-trace-to-logs">Tempo → Loki (trace to logs)</h3>
+    <p>In the <strong>Tempo</strong> datasource settings, scroll to <strong>Trace to logs</strong>:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Setting</th>
+    <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Data source</td>
+    <td>Loki</td>
+    </tr>
+    <tr class="even">
+    <td>Tags</td>
+    <td><code>service.name</code> → <code>app</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Filter by trace ID</td>
+    <td>Enabled</td>
+    </tr>
+    <tr class="even">
+    <td>Filter by span ID</td>
+    <td>Enabled</td>
+    </tr>
+    </tbody>
+    </table>
+    <p>This adds a "Logs" button on every trace — clicking it queries Loki for logs matching that trace's service and trace ID.</p>
+    <h3 id="loki--tempo-logs-to-trace">Loki → Tempo (logs to trace)</h3>
+    <p>In the <strong>Loki</strong> datasource settings, scroll to <strong>Derived fields</strong>:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Setting</th>
+    <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Name</td>
+    <td><code>TraceID</code></td>
+    </tr>
+    <tr class="even">
+    <td>Regex</td>
+    <td><code>"trace_id":"([a-f0-9]+)"</code></td>
+    </tr>
+    <tr class="odd">
+    <td>Internal link</td>
+    <td>Enabled → select <strong>Tempo</strong></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>This makes <code>trace_id</code> values in log lines clickable — clicking one opens the full distributed trace in Tempo.</p>
+    <hr />
+    <h2 id="sdk-exporter-configuration">SDK exporter configuration</h2>
+    <p>Once Tempo is running, update each service's <code>ObservabilityModule.forRoot()</code> to send traces to it:</p>
+    <h3 id="before-console--traces-go-nowhere">Before (console — traces go nowhere)</h3>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;api-gateway&#39;,
+      tracing: {
+        exporter: { type: &#39;console&#39; },
+        sampling: { ratio: 1.0 },
+      },
+    })
+    </code></pre>
+    <h3 id="after-otlp-to-tempo">After (OTLP to Tempo)</h3>
+    <pre class="typescript"><code>ObservabilityModule.forRoot({
+      serviceName: &#39;api-gateway&#39;,
+      version: process.env.npm_package_version || &#39;1.0.0&#39;,
+      environment: process.env.NODE_ENV || &#39;development&#39;,
+      tracing: {
+        exporter: {
+          type: process.env.NODE_ENV === &#39;development&#39; ? &#39;console&#39; : &#39;otlp-http&#39;,
+          endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+            || &#39;http://tempo.observability.svc.cluster.local:4318&#39;,
+        },
+        sampling: {
+          ratio: process.env.NODE_ENV === &#39;production&#39; ? 0.1 : 1.0,
+        },
+      },
+      instrumentations: [
+        httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
+        kafkaInstrumentation(),
+        // Add per service:
+        // sequelizeInstrumentation(),  // if service uses Sequelize
+        // redisInstrumentation(),      // if service uses Redis
+      ],
+    })
+    </code></pre>
+    <h3 id="environment-variable-override">Environment variable override</h3>
+    <p>Set <code>OTEL_EXPORTER_OTLP_ENDPOINT</code> in your Kubernetes deployment manifest or ConfigMap to override the endpoint without code changes:</p>
+    <pre class="yaml"><code>env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: &quot;http://tempo.observability.svc.cluster.local:4318&quot;
+      - name: NODE_ENV
+        value: &quot;production&quot;
+    </code></pre>
+    <hr />
+    <h2 id="verifying-the-pipeline">Verifying the pipeline</h2>
+    <h3 id="1-send-a-test-trace-to-tempo">1. Send a test trace to Tempo</h3>
+    <pre class="bash"><code>kubectl run test-trace --rm -it --restart=Never \
+      --image=curlimages/curl -n observability -- \
+      -X POST http://tempo.observability.svc.cluster.local:4318/v1/traces \
+      -H &quot;Content-Type: application/json&quot; \
+      -d &#39;{&quot;resourceSpans&quot;:[{&quot;resource&quot;:{&quot;attributes&quot;:[{&quot;key&quot;:&quot;service.name&quot;,&quot;value&quot;:{&quot;stringValue&quot;:&quot;test&quot;}}]},&quot;scopeSpans&quot;:[{&quot;spans&quot;:[{&quot;traceId&quot;:&quot;d4cda95b652f4a1592b449d5929fda1b&quot;,&quot;spanId&quot;:&quot;6e0c63257de34c92&quot;,&quot;name&quot;:&quot;test-span&quot;,&quot;kind&quot;:1,&quot;startTimeUnixNano&quot;:&quot;1721000000000000000&quot;,&quot;endTimeUnixNano&quot;:&quot;1721000001000000000&quot;,&quot;status&quot;:{}}]}]}]}&#39;
+    </code></pre>
+    <h3 id="2-query-the-test-trace-in-grafana">2. Query the test trace in Grafana</h3>
+    <p>Open Grafana → Explore → select <strong>Tempo</strong> → Search by trace ID: <code>d4cda95b652f4a1592b449d5929fda1b</code></p>
+    <h3 id="3-verify-a-real-service">3. Verify a real service</h3>
+    <p>After redeploying a service with the OTLP exporter:</p>
+    <pre class="bash"><code># Make a request to the service
+    curl http://&lt;service-url&gt;/api/health
+
+    # Check Tempo received it
+    kubectl logs tempo-0 -n observability --tail=10 | grep -i &quot;ingester\|trace&quot;
+    </code></pre>
+    <p>Then in Grafana → Explore → Tempo → search by <code>service.name = api-gateway</code>.</p>
+    <h3 id="4-verify-log-trace-correlation">4. Verify log-trace correlation</h3>
+    <p>In Grafana → Explore → Loki → run:</p>
+    <pre class="logql"><code>{namespace=&quot;default&quot;, app=&quot;api-gateway&quot;} | json | trace_id != &quot;&quot;
+    </code></pre>
+    <p>Each log line should have a clickable <code>trace_id</code> that opens the corresponding trace in Tempo.</p>
+    <hr />
+    <h2 id="service-endpoints-reference">Service endpoints reference</h2>
+    <p>Quick reference for all internal service URLs used by the observability stack:</p>
+    <table>
+    <thead>
+    <tr class="header">
+    <th>Component</th>
+    <th>Internal URL</th>
+    <th>Used by</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>Prometheus</td>
+    <td><code>http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090</code></td>
+    <td>Grafana (datasource)</td>
+    </tr>
+    <tr class="even">
+    <td>Loki Gateway</td>
+    <td><code>http://loki-gateway.observability.svc.cluster.local:80</code></td>
+    <td>Grafana (datasource)</td>
+    </tr>
+    <tr class="odd">
+    <td>Loki Direct</td>
+    <td><code>http://loki.observability.svc.cluster.local:3100</code></td>
+    <td>Promtail (push logs)</td>
+    </tr>
+    <tr class="even">
+    <td>Tempo Query</td>
+    <td><code>http://tempo.observability.svc.cluster.local:3100</code></td>
+    <td>Grafana (datasource)</td>
+    </tr>
+    <tr class="odd">
+    <td>Tempo OTLP HTTP</td>
+    <td><code>http://tempo.observability.svc.cluster.local:4318</code></td>
+    <td>Application services (send traces)</td>
+    </tr>
+    <tr class="even">
+    <td>Tempo OTLP gRPC</td>
+    <td><code>tempo.observability.svc.cluster.local:4317</code></td>
+    <td>Application services (send traces, gRPC)</td>
+    </tr>
+    <tr class="odd">
+    <td>Grafana</td>
+    <td><code>http://prometheus-grafana.observability.svc.cluster.local:80</code></td>
+    <td>Browser via port-forward</td>
+    </tr>
+    </tbody>
+    </table>
+    <hr />
+    <h2 id="troubleshooting">Troubleshooting</h2>
+    <h3 id="traces-not-appearing-in-tempo">Traces not appearing in Tempo</h3>
+    <ol>
+    <li><strong>Is the service exporter set to <code>otlp-http</code>?</strong> Check <code>app.module.ts</code> — if it's still <code>'console'</code>, traces only print to stdout.</li>
+    <li><strong>Can the service reach Tempo?</strong> Exec into the pod and test:
+    <pre class="bash"><code>kubectl exec -it &lt;pod&gt; -- wget -q -O- http://tempo.observability.svc.cluster.local:3100/ready
+    </code></pre></li>
+    <li><strong>Is Tempo healthy?</strong>
+    <pre class="bash"><code>kubectl logs tempo-0 -n observability --tail=20
+    </code></pre></li>
+    <li><strong>Check for network policies</strong> blocking traffic from the service namespace to the observability namespace.</li>
+    </ol>
+    <h3 id="logs-missing-trace_id">Logs missing trace_id</h3>
+    <ul>
+    <li>The service is using the legacy <code>LoggerService</code> instead of <code>ObservabilityLogger</code>. Only the SDK's pino logger auto-injects <code>trace_id</code>/<code>span_id</code>.</li>
+    <li>Check the log output — if it's Winston format (not JSON), it's the old logger.</li>
+    </ul>
+    <h3 id="prometheus-not-scraping-a-service">Prometheus not scraping a service</h3>
+    <ol>
+    <li>Verify the service has a <code>ServiceMonitor</code> with <code>release: prometheus</code> label.</li>
+    <li>Check Prometheus targets: port-forward to 9090 → Status → Targets → look for the service.</li>
+    <li>Verify the <code>/metrics</code> endpoint responds: <code>curl http://&lt;service&gt;:&lt;port&gt;/metrics</code></li>
+    </ol>
+    <h3 id="grafana-unable-to-connect-to-a-datasource">Grafana "Unable to connect" to a datasource</h3>
+    <ul>
+    <li>Verify the service is running: <code>kubectl get svc -n observability</code></li>
+    <li>Check you're using the correct port (3100 for Tempo query, not 4318)</li>
+    <li>Test from within the cluster: <code>kubectl run test --rm -it --image=curlimages/curl -- http://tempo.observability.svc.cluster.local:3100/ready</code></li>
+    </ul>
+  </main>
+  <script>
+    // Highlight active nav item
+    var current = "infrastructure";
+    var el = document.getElementById("nav-" + current);
+    if (el) el.classList.add("active");
+  </script>
+</body>
+</html>

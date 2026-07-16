@@ -30,9 +30,10 @@ TITLES[instrumentations]="Instrumentations"
 TITLES[alerting]="Alerting & Monitoring"
 TITLES[testing]="Testing"
 TITLES[CHANGELOG]="Changelog"
+TITLES[infrastructure]="Infrastructure Guide"
 
-SLUGS=(README getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
-OUT_NAMES=(index getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
+SLUGS=(README getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment infrastructure architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
+OUT_NAMES=(index getting-started configuration standalone logging tracing metrics error-handling instrumentations alerting migration migration-per-service deployment-pm2 sdk-deployment infrastructure architecture architecture-decisions sdk-explained troubleshooting testing CHANGELOG)
 
 for i in "${!SLUGS[@]}"; do
   slug="${SLUGS[$i]}"
