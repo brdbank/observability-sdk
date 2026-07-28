@@ -1,0 +1,1955 @@
+<title>Observability SDK Migration — Project Plan</title>
+<style>
+  @font-face {
+    font-family: 'Plan';
+    src: local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI'), local('Roboto'), local('Helvetica Neue');
+  }
+
+  :root {
+    --navy: #1E3A5F;
+    --steel: #2E86AB;
+    --ink: #1A202C;
+    --body: #334155;
+    --muted: #64748B;
+    --faint: #94A3B8;
+    --border: #E2E8F0;
+    --surface: #FFFFFF;
+    --wash: #F7F8FA;
+    --sidebar-bg: #F1F4F8;
+    --toc-active: #EBF4FF;
+    --ok: #059669;
+    --ok-bg: #ECFDF5;
+    --warn: #D97706;
+    --warn-bg: #FFFBEB;
+    --err: #DC2626;
+    --err-bg: #FEF2F2;
+    --info-bg: #EFF6FF;
+    --tag-bg: #E0E7FF;
+    --tag-text: #3730A3;
+    --code-bg: #F1F5F9;
+    --shadow: 0 1px 3px rgba(0,0,0,.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --navy: #93C5FD;
+      --steel: #60A5FA;
+      --ink: #F1F5F9;
+      --body: #CBD5E1;
+      --muted: #94A3B8;
+      --faint: #64748B;
+      --border: #334155;
+      --surface: #0F172A;
+      --wash: #1E293B;
+      --sidebar-bg: #1A2332;
+      --toc-active: #1E3A5F;
+      --ok: #34D399;
+      --ok-bg: #064E3B;
+      --warn: #FBBF24;
+      --warn-bg: #78350F;
+      --err: #F87171;
+      --err-bg: #7F1D1D;
+      --info-bg: #1E3A5F;
+      --tag-bg: #312E81;
+      --tag-text: #A5B4FC;
+      --code-bg: #1E293B;
+      --shadow: 0 1px 3px rgba(0,0,0,.3);
+      --shadow-lg: 0 4px 12px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --navy: #93C5FD;
+    --steel: #60A5FA;
+    --ink: #F1F5F9;
+    --body: #CBD5E1;
+    --muted: #94A3B8;
+    --faint: #64748B;
+    --border: #334155;
+    --surface: #0F172A;
+    --wash: #1E293B;
+    --sidebar-bg: #1A2332;
+    --toc-active: #1E3A5F;
+    --ok: #34D399;
+    --ok-bg: #064E3B;
+    --warn: #FBBF24;
+    --warn-bg: #78350F;
+    --err: #F87171;
+    --err-bg: #7F1D1D;
+    --info-bg: #1E3A5F;
+    --tag-bg: #312E81;
+    --tag-text: #A5B4FC;
+    --code-bg: #1E293B;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"] {
+    --navy: #1E3A5F;
+    --steel: #2E86AB;
+    --ink: #1A202C;
+    --body: #334155;
+    --muted: #64748B;
+    --faint: #94A3B8;
+    --border: #E2E8F0;
+    --surface: #FFFFFF;
+    --wash: #F7F8FA;
+    --sidebar-bg: #F1F4F8;
+    --toc-active: #EBF4FF;
+    --ok: #059669;
+    --ok-bg: #ECFDF5;
+    --warn: #D97706;
+    --warn-bg: #FFFBEB;
+    --err: #DC2626;
+    --err-bg: #FEF2F2;
+    --info-bg: #EFF6FF;
+    --tag-bg: #E0E7FF;
+    --tag-text: #3730A3;
+    --code-bg: #F1F5F9;
+    --shadow: 0 1px 3px rgba(0,0,0,.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 15px; scroll-behavior: smooth; scroll-padding-top: 2rem; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--body);
+    background: var(--surface);
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 280px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    z-index: 100;
+    font-size: 0.82rem;
+  }
+  .sidebar-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .sidebar a {
+    display: block;
+    padding: 0.35rem 1.25rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .sidebar a:hover, .sidebar a.active {
+    color: var(--navy);
+    background: var(--toc-active);
+    border-left-color: var(--steel);
+  }
+  .sidebar a.sub { padding-left: 2rem; font-size: 0.78rem; }
+
+  /* ── Main ── */
+  .main {
+    margin-left: 280px;
+    flex: 1;
+    max-width: 920px;
+    padding: 2.5rem 3rem 6rem;
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 650;
+    color: var(--ink);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: var(--navy);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  li ul { margin-top: 0.25rem; }
+  strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  a { color: var(--steel); }
+
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    font-weight: 650;
+    color: var(--ink);
+    background: var(--wash);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: var(--wash); }
+
+  /* ── Status pills ── */
+  .pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15em 0.6em;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .pill-ok { background: var(--ok-bg); color: var(--ok); }
+  .pill-warn { background: var(--warn-bg); color: var(--warn); }
+  .pill-err { background: var(--err-bg); color: var(--err); }
+  .pill-info { background: var(--tag-bg); color: var(--tag-text); }
+
+  /* ── Progress bar ── */
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 80px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .pf-ok { background: var(--ok); }
+  .pf-warn { background: var(--warn); }
+  .pf-err { background: var(--err); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    margin: 1rem 0 1.5rem;
+    border-left: 4px solid;
+    font-size: 0.92rem;
+  }
+  .callout-info { background: var(--info-bg); border-color: var(--steel); }
+  .callout-ok { background: var(--ok-bg); border-color: var(--ok); }
+  .callout-warn { background: var(--warn-bg); border-color: var(--warn); }
+  .callout-err { background: var(--err-bg); border-color: var(--err); }
+  .callout strong { display: block; margin-bottom: 0.25rem; }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+  .flow-step {
+    padding: 0.5rem 1rem;
+    background: var(--wash);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+  }
+  .flow-arrow {
+    color: var(--faint);
+    font-size: 1.2rem;
+    padding: 0 0.3rem;
+  }
+
+  /* ── Phase cards ── */
+  .phase {
+    background: var(--wash);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .phase-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--navy);
+    color: var(--surface);
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .phase h4 { margin: 0; font-size: 1.05rem; }
+  .phase-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 2rem;
+    font-size: 0.88rem;
+  }
+  .phase-grid dt { font-weight: 600; color: var(--ink); }
+  .phase-grid dd { color: var(--body); margin-bottom: 0.5rem; }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li {
+    padding: 0.3rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+  }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.55rem;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-radius: 3px;
+  }
+
+  /* ── Risk matrix ── */
+  .risk-high { font-weight: 600; color: var(--err); }
+  .risk-med { font-weight: 600; color: var(--warn); }
+  .risk-low { font-weight: 600; color: var(--ok); }
+
+  /* ── Section numbering ── */
+  .sec-num {
+    color: var(--steel);
+    font-weight: 800;
+    margin-right: 0.5rem;
+  }
+
+  /* ── RACI colors ── */
+  .raci-r { font-weight: 700; color: var(--err); }
+  .raci-a { font-weight: 700; color: var(--navy); }
+  .raci-c { font-weight: 700; color: var(--warn); }
+  .raci-i { font-weight: 600; color: var(--muted); }
+
+  /* ── Print ── */
+  @media print {
+    .sidebar { display: none; }
+    .main { margin-left: 0; max-width: 100%; }
+    h2 { break-before: page; }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 1.5rem; }
+    .phase-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-title">Project Plan</div>
+  <a href="#s1">1. Executive Summary</a>
+  <a href="#s2">2. Project Background</a>
+  <a href="#s3">3. Project Scope</a>
+  <a href="#s4">4. Current Status</a>
+  <a href="#s5">5. Objectives</a>
+  <a href="#s6">6. Migration Strategy</a>
+  <a href="#s7">7. Migration Lifecycle</a>
+  <a href="#s8">8. Microservice Assessment</a>
+  <a href="#s9">9. Endpoint Inventory Template</a>
+  <a href="#s10">10. Critical Endpoint Classification</a>
+  <a href="#s11">11. Observability Design</a>
+  <a href="#s12">12. Dashboard Requirements</a>
+  <a href="#s13">13. Alert Strategy</a>
+  <a href="#s14">14. Migration Playbook</a>
+  <a href="#s15">15. Sprint Plan</a>
+  <a href="#s16">16. Project Tracker</a>
+  <a href="#s17">17. Risks</a>
+  <a href="#s18">18. Dependencies</a>
+  <a href="#s19">19. Governance</a>
+  <a href="#s20">20. Definition of Done</a>
+  <a href="#s21">21. Success Metrics</a>
+  <a href="#s22">22. Lessons Learned</a>
+  <a href="#s23">23. Appendices</a>
+</nav>
+
+<div class="main">
+  <h1>Observability SDK Migration</h1>
+  <p class="subtitle">Project Plan &mdash; Tugane Platform, Development Bank of Rwanda &middot; July 2026</p>
+
+  <!-- ================================================================ -->
+  <h2 id="s1"><span class="sec-num">1</span>Executive Summary</h2>
+
+  <p>The Tugane platform operates <strong>11 NestJS microservices</strong> that collectively handle guarantees, loans, procurement, payments, and monitoring for BRD Rwanda. Each service was built with its own observability stack&mdash;Winston loggers, Morgan middleware, custom LoggerService classes, Kafka-based log shipping, and hand-rolled HTTP exception filters. The result: <strong>no trace correlation across services, no distributed tracing, inconsistent log formats, no unified metrics, and no way to diagnose cross-service failures without manually reading logs on individual machines.</strong></p>
+
+  <h3>Current State</h3>
+  <ul>
+    <li>11 microservices, each with duplicated logging infrastructure (Winston + Morgan + LoggerService + Kafka logging client)</li>
+    <li>No distributed tracing&mdash;requests crossing service boundaries lose all context</li>
+    <li>No standardized metrics&mdash;no RED dashboards, no SLO tracking, no alerting on error rates</li>
+    <li>Debugging production issues requires SSH into individual machines and grepping log files</li>
+    <li>Mean Time to Detect (MTTD) and Mean Time to Resolve (MTTR) are unmeasured and high</li>
+  </ul>
+
+  <h3>Future State</h3>
+  <ul>
+    <li>Every service instrumented with <code>@brdrwanda/observability</code>&mdash;structured JSON logs with <code>trace_id</code>, <code>request_id</code>, and <code>span_id</code> on every line</li>
+    <li>Distributed traces flow across all service boundaries via W3C <code>traceparent</code> propagation</li>
+    <li>Prometheus metrics (RED: Rate, Errors, Duration) exported automatically per service</li>
+    <li>Grafana dashboards with bidirectional signal correlation: metrics → traces → logs → metrics</li>
+    <li>Automated alerting on error rate spikes, high latency, service down, and log anomalies</li>
+  </ul>
+
+  <h3>Timeline &amp; Progress</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Services with SDK installed</td><td><strong>5 / 11</strong> (45%)</td></tr>
+      <tr><td>Services with legacy fully removed</td><td><strong>0 / 11</strong> (0%)</td></tr>
+      <tr><td>Estimated total duration</td><td><strong>8&ndash;10 sprints</strong> (2-week sprints)</td></tr>
+      <tr><td>Infrastructure readiness</td><td><span class="pill pill-ok">Complete</span> OTel Collector, Tempo, Loki, Prometheus, Grafana deployed</td></tr>
+    </table>
+  </div>
+
+  <h3>Expected Business Outcomes</h3>
+  <ul>
+    <li><strong>MTTR reduction:</strong> From hours of log-grepping to minutes via trace-correlated dashboards</li>
+    <li><strong>Proactive detection:</strong> Automated alerts catch degradation before users report it</li>
+    <li><strong>Developer velocity:</strong> New services get full observability with 5 lines of config, not 200+ lines of boilerplate</li>
+    <li><strong>Operational consistency:</strong> One dashboard layout, one log format, one alerting strategy across all services</li>
+  </ul>
+
+  <h3>Success Metrics</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>KPI</th><th>Target</th></tr>
+      <tr><td>SDK adoption</td><td>11/11 services (100%)</td></tr>
+      <tr><td>Legacy code removal</td><td>0 Winston/Morgan/LoggerService references</td></tr>
+      <tr><td>Trace coverage</td><td>100% of HTTP requests carry trace_id end-to-end</td></tr>
+      <tr><td>Dashboard coverage</td><td>Every service has a RED + Runtime + Logs dashboard</td></tr>
+      <tr><td>Alert coverage</td><td>Error rate, latency, and availability alerts on every service</td></tr>
+      <tr><td>MTTR</td><td>&lt; 30 minutes for P1 incidents (from first alert to root cause identified)</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s2"><span class="sec-num">2</span>Project Background</h2>
+
+  <h3>Existing Observability Challenges</h3>
+  <p>Every Tugane service was built independently with a copy-pasted logging pattern:</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Component</th><th>What it does</th><th>Problem</th></tr>
+      <tr><td><code>LoggerService</code></td><td>Extends NestJS Logger, wraps Winston with context</td><td>Duplicated in every service (50+ files reference it). No trace correlation.</td></tr>
+      <tr><td>Winston + DailyRotateFile</td><td>Writes JSON logs to rotating files</td><td>Logs stored on local disk. Lost on container restart. No centralized search.</td></tr>
+      <tr><td>Morgan middleware</td><td>HTTP access logging</td><td>Separate format from Winston. Duplicates request/response logging.</td></tr>
+      <tr><td>Kafka log producer</td><td>Ships logs to <code>logging.info</code>/<code>logging.warn</code> topics</td><td>Extra latency on every request. Kafka dependency for logging creates cascading failures.</td></tr>
+      <tr><td><code>HttpExceptionFilter</code></td><td>Catches exceptions, logs them</td><td>Custom per-service. Inconsistent error classification.</td></tr>
+      <tr><td><code>createLoggingContextWithId</code></td><td>Manual correlation IDs</td><td>Developer must remember to call it. IDs don't propagate across services.</td></tr>
+    </table>
+  </div>
+
+  <h3>Why the SDK Was Built</h3>
+  <p>The <code>@brdrwanda/observability</code> SDK was purpose-built to replace this entire stack with a single, zero-config package that provides:</p>
+  <ul>
+    <li><strong>Structured logging</strong> (Pino) with automatic trace context injection&mdash;every log line gets <code>trace_id</code>, <code>span_id</code>, <code>request_id</code> without developer effort</li>
+    <li><strong>Distributed tracing</strong> via OpenTelemetry with W3C <code>traceparent</code> propagation</li>
+    <li><strong>Prometheus metrics</strong> (HTTP RED metrics, Node.js runtime, custom business metrics)</li>
+    <li><strong>Health checks</strong> (<code>/health</code> endpoint) for Kubernetes readiness/liveness probes</li>
+    <li><strong>Auto-instrumentation</strong> of HTTP, Kafka, Redis, Sequelize, and scheduled jobs</li>
+    <li><strong>Error classification</strong> (401→authentication_failed, 400→validation_failed, 500→server_error)</li>
+  </ul>
+
+  <h3>Why Migration Is Necessary</h3>
+  <p>Simply installing the SDK alongside existing code creates conflicts&mdash;two logging systems writing to stdout, two exception filters competing, and the legacy <code>LoggerService</code> continuing to produce unstructured logs that bypass trace context. The legacy code must be systematically removed per-service to realize the SDK's full value.</p>
+
+  <!-- ================================================================ -->
+  <h2 id="s3"><span class="sec-num">3</span>Project Scope</h2>
+
+  <h3>In Scope</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Area</th><th>Description</th></tr>
+      <tr><td>SDK Adoption</td><td>Install and configure <code>@brdrwanda/observability</code> in all 11 services</td></tr>
+      <tr><td>Logging Migration</td><td>Replace Winston, Morgan, LoggerService, createLoggingContextWithId with SDK's Pino-based logger</td></tr>
+      <tr><td>Metrics</td><td>Enable Prometheus metrics export on every service; define business-specific metrics per service</td></tr>
+      <tr><td>Tracing</td><td>Enable distributed tracing with OTLP export; instrument HTTP, Kafka, Redis, Sequelize, scheduled jobs</td></tr>
+      <tr><td>Dashboards</td><td>Provision Grafana dashboards per service (RED, Runtime, Logs, Dependencies)</td></tr>
+      <tr><td>Alerting</td><td>Configure Prometheus and Grafana alerts for each service</td></tr>
+      <tr><td>Legacy Removal</td><td>Delete all old logging infrastructure: Winston config, Morgan middleware, Kafka log producers, custom LoggerService</td></tr>
+      <tr><td>Scheduled Job Tracing</td><td>Instrument <code>@Cron</code>, <code>@Interval</code>, <code>@Timeout</code> handlers with automatic trace context</td></tr>
+    </table>
+  </div>
+
+  <h3>Out of Scope</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Area</th><th>Rationale</th></tr>
+      <tr><td>Business logic changes</td><td>No functional behavior changes. Observability is additive.</td></tr>
+      <tr><td>API contracts</td><td>No endpoint signatures, request/response schemas, or HTTP status codes change</td></tr>
+      <tr><td>Database schema</td><td>No migrations. SDK instruments queries at the driver level.</td></tr>
+      <tr><td>UI / Frontend</td><td>No frontend changes. Observability is backend-only.</td></tr>
+      <tr><td>Feature development</td><td>Migration sprints are dedicated to observability. New features are separate.</td></tr>
+      <tr><td>Infrastructure provisioning</td><td>Grafana stack (Tempo, Loki, Prometheus, OTel Collector) is already deployed</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s4"><span class="sec-num">4</span>Current Status</h2>
+
+  <div class="callout callout-info">
+    <strong>Data below is derived from codebase analysis on 28 July 2026.</strong>
+    SDK installed = <code>@brdrwanda/observability</code> found in <code>package.json</code>. Legacy references = files containing Winston, Morgan, or LoggerService imports.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Microservice</th>
+        <th>Port</th>
+        <th>SDK Installed</th>
+        <th>Legacy Removal</th>
+        <th>Endpoint Inventory</th>
+        <th>Metrics Defined</th>
+        <th>Progress</th>
+      </tr>
+      <tr>
+        <td><strong>API Gateway</strong></td><td>7070</td>
+        <td><span class="pill pill-ok">Yes</span></td>
+        <td><span class="pill pill-warn">In Progress</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-warn" style="width:20%"></div></div> 20%</td>
+      </tr>
+      <tr>
+        <td><strong>Access Management</strong></td><td>9000</td>
+        <td><span class="pill pill-ok">Yes</span></td>
+        <td><span class="pill pill-warn">In Progress</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-warn" style="width:20%"></div></div> 20%</td>
+      </tr>
+      <tr>
+        <td><strong>Authentication</strong></td><td>8000</td>
+        <td><span class="pill pill-ok">Yes</span></td>
+        <td><span class="pill pill-warn">In Progress</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-warn" style="width:20%"></div></div> 20%</td>
+      </tr>
+      <tr>
+        <td><strong>Application Service</strong></td><td>9004</td>
+        <td><span class="pill pill-ok">Yes</span></td>
+        <td><span class="pill pill-warn">In Progress</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-warn" style="width:15%"></div></div> 15%</td>
+      </tr>
+      <tr>
+        <td><strong>Job Scheduler</strong></td><td>3001</td>
+        <td><span class="pill pill-ok">Yes</span></td>
+        <td><span class="pill pill-warn">In Progress</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-warn" style="width:20%"></div></div> 20%</td>
+      </tr>
+      <tr>
+        <td><strong>Product Service</strong></td><td>8100</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+      <tr>
+        <td><strong>Payment Service</strong></td><td>8800</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+      <tr>
+        <td><strong>Configuration Service</strong></td><td>8008</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+      <tr>
+        <td><strong>MEL Service</strong></td><td>8600</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+      <tr>
+        <td><strong>Workflow Service</strong></td><td>8444</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+      <tr>
+        <td><strong>Profile Service</strong></td><td>8092</td>
+        <td><span class="pill pill-err">No</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><span class="pill pill-err">Not Started</span></td>
+        <td><div class="progress-bar"><div class="progress-fill pf-err" style="width:0%"></div></div> 0%</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Legacy Code Inventory</h3>
+  <div class="callout callout-warn">
+    <strong>Even services with SDK installed still contain significant legacy code.</strong>
+    The SDK is running alongside the old stack. Full value requires legacy removal.
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Service</th><th>Winston refs</th><th>Morgan refs</th><th>LoggerService refs</th><th>HttpExceptionFilter</th><th>Effort</th></tr>
+      <tr><td>API Gateway</td><td>3</td><td>2</td><td>25</td><td>2</td><td><span class="pill pill-err">High</span></td></tr>
+      <tr><td>Authentication</td><td>2</td><td>2</td><td>10</td><td>2</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Application Service</td><td>2</td><td>2</td><td>6</td><td>1</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Job Scheduler</td><td>2</td><td>2</td><td>6</td><td>2</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Access Management</td><td>1</td><td>2</td><td>5</td><td>1</td><td><span class="pill pill-ok">Low</span></td></tr>
+      <tr><td>Product Service</td><td>1</td><td>2</td><td>11</td><td>&mdash;</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Payment Service</td><td>1</td><td>2</td><td>8</td><td>&mdash;</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Configuration</td><td>1</td><td>2</td><td>4</td><td>&mdash;</td><td><span class="pill pill-ok">Low</span></td></tr>
+      <tr><td>MEL Service</td><td>1</td><td>2</td><td>4</td><td>&mdash;</td><td><span class="pill pill-ok">Low</span></td></tr>
+      <tr><td>Workflow Service</td><td>1</td><td>2</td><td>4</td><td>&mdash;</td><td><span class="pill pill-ok">Low</span></td></tr>
+      <tr><td>Profile Service</td><td>2</td><td>2</td><td>4</td><td>&mdash;</td><td><span class="pill pill-ok">Low</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s5"><span class="sec-num">5</span>Objectives</h2>
+
+  <h3>Technical Objectives</h3>
+  <ul>
+    <li>Standardize observability infrastructure across all 11 microservices using a single SDK</li>
+    <li>Achieve end-to-end distributed tracing from API Gateway through every downstream service</li>
+    <li>Enable Prometheus metrics collection with consistent naming and labeling</li>
+    <li>Instrument all communication channels: HTTP, Kafka, Redis, Sequelize, scheduled jobs</li>
+    <li>Correlate all three signals (logs, traces, metrics) bidirectionally in Grafana</li>
+  </ul>
+
+  <h3>Business Objectives</h3>
+  <ul>
+    <li><strong>Reduce MTTR:</strong> Enable root-cause analysis in minutes instead of hours by following a single <code>trace_id</code> across all services</li>
+    <li><strong>Improve troubleshooting:</strong> Any engineer can diagnose a production issue using Grafana without SSH access to servers</li>
+    <li><strong>Standard dashboards:</strong> Every service gets the same RED dashboard layout, reducing cognitive load when context-switching between services</li>
+    <li><strong>Faster onboarding:</strong> New developers and new services get full observability with 5 lines of config</li>
+  </ul>
+
+  <h3>Operational Objectives</h3>
+  <ul>
+    <li><strong>Eliminate duplicated code:</strong> Remove ~90 files of copy-pasted logging infrastructure across 11 services</li>
+    <li><strong>Centralize instrumentation:</strong> SDK updates propagate to all services via <code>npm update</code> instead of copy-pasting changes</li>
+    <li><strong>Remove Kafka logging dependency:</strong> Logs flow to Loki via Promtail/stdout, eliminating the fragile Kafka-based log shipping</li>
+    <li><strong>Enable SLO tracking:</strong> Standardized metrics enable defining and tracking Service Level Objectives</li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="s6"><span class="sec-num">6</span>Migration Strategy</h2>
+
+  <h3>Three-Level Approach</h3>
+  <div class="callout callout-info">
+    <strong>We migrate one service at a time, not everything simultaneously.</strong>
+    Each service progresses through three levels. A service at Level 1 is already delivering value; Level 3 is full completion.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Level</th><th>Name</th><th>Outcome</th><th>Effort</th></tr>
+      <tr>
+        <td><span class="pill pill-info">L1</span></td>
+        <td><strong>Platform Readiness</strong></td>
+        <td>SDK installed, exporters configured, core infrastructure connected. Service emits traces and metrics alongside legacy code.</td>
+        <td>0.5&ndash;1 day</td>
+      </tr>
+      <tr>
+        <td><span class="pill pill-info">L2</span></td>
+        <td><strong>Observability Design</strong></td>
+        <td>Endpoints inventoried, critical flows identified, metrics/logs/traces/dashboards/alerts designed per endpoint.</td>
+        <td>1&ndash;2 days</td>
+      </tr>
+      <tr>
+        <td><span class="pill pill-info">L3</span></td>
+        <td><strong>Legacy Migration &amp; Validation</strong></td>
+        <td>Legacy code removed, SDK is sole observability provider, dashboards published, alerts configured, production validated.</td>
+        <td>2&ndash;5 days (varies by service complexity)</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Per-Service Migration Flow</h3>
+  <div class="flow">
+    <div class="flow-step">Select<br>Service</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Endpoint<br>Inventory</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Classify<br>Endpoints</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Design<br>Observability</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">SDK<br>Migration</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Validate<br>&amp; Test</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Deploy to<br>Production</div>
+  </div>
+
+  <h3>Recommended Migration Order</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Priority</th><th>Service</th><th>Rationale</th></tr>
+      <tr><td>1</td><td>Access Management</td><td>Smallest codebase (3 controllers). SDK already installed. Lowest legacy debt (5 LoggerService refs). Authorization dependency for all services&mdash;high observability value.</td></tr>
+      <tr><td>2</td><td>Job Scheduler</td><td>SDK installed. Cron tracing already built. No inbound API traffic&mdash;isolated risk. Tests scheduled job observability end-to-end.</td></tr>
+      <tr><td>3</td><td>Authentication</td><td>SDK installed. Critical path for all user requests. 10 LoggerService refs to replace.</td></tr>
+      <tr><td>4</td><td>API Gateway</td><td>SDK installed but highest legacy debt (25 LoggerService refs, 59 controllers). Largest blast radius&mdash;do after gaining confidence from smaller services.</td></tr>
+      <tr><td>5</td><td>Configuration Service</td><td>Small service (2 controllers, 4 LoggerService refs). Quick win to start non-SDK services.</td></tr>
+      <tr><td>6</td><td>Workflow Service</td><td>Small footprint (2 controllers). Approval workflows benefit from tracing.</td></tr>
+      <tr><td>7</td><td>Profile Service</td><td>Small footprint (6 controllers, 4 LoggerService refs).</td></tr>
+      <tr><td>8</td><td>Product Service</td><td>Medium size. 11 LoggerService refs.</td></tr>
+      <tr><td>9</td><td>Payment Service</td><td>Financial transactions&mdash;higher care needed. 8 LoggerService refs.</td></tr>
+      <tr><td>10</td><td>MEL Service</td><td>Reports/KPIs. Can run in parallel with others.</td></tr>
+      <tr><td>11</td><td>Application Service</td><td>Largest service (24 controllers, 45 services, 328 Sequelize refs). Highest complexity&mdash;last to minimize risk.</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s7"><span class="sec-num">7</span>Migration Lifecycle</h2>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">1</span>
+      <h4>Service Assessment</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Understand the service's architecture, dependencies, and current observability to estimate migration effort.</dd>
+      <dt>Owner</dt><dd>Developer + SRE</dd>
+      <dt>Duration</dt><dd>0.5 days</dd>
+      <dt>Dependencies</dt><dd>Access to source code and running environment</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>Catalog controllers, services, modules, and their responsibilities</li>
+      <li>Identify external dependencies (databases, Kafka topics, Redis, external APIs)</li>
+      <li>Count legacy observability references (Winston, Morgan, LoggerService, HttpExceptionFilter)</li>
+      <li>Identify critical business flows that transit the service</li>
+      <li>Assess migration complexity (Low / Medium / High)</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Source code, architecture docs, team knowledge</dd>
+      <dt>Outputs</dt><dd>Completed Microservice Assessment (Section 8)</dd>
+      <dt>Entry Criteria</dt><dd>Service selected for migration</dd>
+      <dt>Exit Criteria</dt><dd>Assessment reviewed and approved by tech lead</dd>
+      <dt>Deliverables</dt><dd>Microservice Assessment document</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">2</span>
+      <h4>Endpoint Inventory</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Understand every endpoint exposed by the service, who consumes it, and what observability exists today.</dd>
+      <dt>Owner</dt><dd>Developer + SRE</dd>
+      <dt>Duration</dt><dd>1&ndash;2 days</dd>
+      <dt>Dependencies</dt><dd>Completed assessment; Swagger docs if available</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>List all REST endpoints (method, path, controller, handler)</li>
+      <li>List all Kafka consumers and producers with topic names</li>
+      <li>List all scheduled jobs (@Cron, @Interval, @Timeout)</li>
+      <li>Identify consumers of each endpoint (Gateway, other services, external)</li>
+      <li>Document business capability each endpoint serves</li>
+      <li>Catalog existing logging, metrics, and tracing per endpoint</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Source code, Swagger/OpenAPI, API Gateway routing config</dd>
+      <dt>Outputs</dt><dd>Endpoint Inventory (Section 9)</dd>
+      <dt>Entry Criteria</dt><dd>Assessment approved</dd>
+      <dt>Exit Criteria</dt><dd>Inventory reviewed; every endpoint accounted for</dd>
+      <dt>Deliverables</dt><dd>Endpoint Inventory spreadsheet/document</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">3</span>
+      <h4>Critical Endpoint Classification</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Prioritize observability investment by scoring endpoints on business impact.</dd>
+      <dt>Owner</dt><dd>Developer + PM + Business Analyst</dd>
+      <dt>Duration</dt><dd>0.5 days</dd>
+      <dt>Dependencies</dt><dd>Completed endpoint inventory</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>Score each endpoint using the classification model (Section 10)</li>
+      <li>Classify into Critical / High / Medium / Low tiers</li>
+      <li>Validate classification with business stakeholders</li>
+      <li>Critical endpoints get full observability design; Low endpoints get SDK defaults only</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Endpoint inventory, business context</dd>
+      <dt>Outputs</dt><dd>Classified endpoint list with priority tiers</dd>
+      <dt>Entry Criteria</dt><dd>Endpoint inventory complete</dd>
+      <dt>Exit Criteria</dt><dd>Classification reviewed by PM and tech lead</dd>
+      <dt>Deliverables</dt><dd>Classified endpoint matrix</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">4</span>
+      <h4>Observability Design</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Define exactly what logs, metrics, traces, dashboards, and alerts each endpoint needs <em>before</em> writing code.</dd>
+      <dt>Owner</dt><dd>SRE + Developer</dd>
+      <dt>Duration</dt><dd>1&ndash;2 days</dd>
+      <dt>Dependencies</dt><dd>Classified endpoints; SDK capabilities documented</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>For Critical/High endpoints: design logs (events, severity, fields), metrics (name, type, labels), traces (spans, expected duration)</li>
+      <li>For Medium/Low endpoints: confirm SDK defaults are sufficient</li>
+      <li>Design service-level dashboard layout (widgets, data sources)</li>
+      <li>Define alert thresholds, severity, and escalation</li>
+      <li>Document sensitive fields that need redaction</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Classified endpoints, SDK capabilities, existing dashboards as templates</dd>
+      <dt>Outputs</dt><dd>Observability Design document (Section 11)</dd>
+      <dt>Entry Criteria</dt><dd>Endpoint classification approved</dd>
+      <dt>Exit Criteria</dt><dd>Design reviewed by SRE and tech lead</dd>
+      <dt>Deliverables</dt><dd>Observability Design per service</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">5</span>
+      <h4>SDK Migration</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Replace legacy observability with the SDK and implement the observability design.</dd>
+      <dt>Owner</dt><dd>Developer</dd>
+      <dt>Duration</dt><dd>2&ndash;5 days (varies by service size)</dd>
+      <dt>Dependencies</dt><dd>Observability design approved; SDK version locked</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>Install SDK and configure <code>ObservabilityModule.forRoot()</code></li>
+      <li>Replace <code>NestJS Logger</code> with <code>NestPinoLogger</code> in <code>main.ts</code></li>
+      <li>Replace all <code>LoggerService</code> injections with <code>ObservabilityLogger</code></li>
+      <li>Remove Winston, Morgan, Kafka log producer, <code>createLoggingContextWithId</code></li>
+      <li>Remove custom <code>HttpExceptionFilter</code> (SDK provides one)</li>
+      <li>Add <code>@Span()</code> decorators on critical business methods per design</li>
+      <li>Add custom metrics per design</li>
+      <li>Implement trace propagation on inter-service HTTP calls</li>
+      <li>Delete unused logging files, middleware, and dependencies</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Observability design, migration checklist (Section 14)</dd>
+      <dt>Outputs</dt><dd>Migrated service code, PR for review</dd>
+      <dt>Entry Criteria</dt><dd>Design approved; local sandbox running</dd>
+      <dt>Exit Criteria</dt><dd>All legacy references removed; all tests pass; PR approved</dd>
+      <dt>Deliverables</dt><dd>Pull request with migration changes</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">6</span>
+      <h4>Validation &amp; Testing</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Verify that the migration works end-to-end and all observability signals are correct.</dd>
+      <dt>Owner</dt><dd>Developer + SRE + QA</dd>
+      <dt>Duration</dt><dd>1&ndash;2 days</dd>
+      <dt>Dependencies</dt><dd>Migration PR merged to staging branch; sandbox infrastructure running</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>Run service locally against sandbox (OTel Collector, Tempo, Loki, Prometheus, Grafana)</li>
+      <li>Verify structured logs appear in Grafana Loki with <code>trace_id</code></li>
+      <li>Verify traces appear in Grafana Tempo with correct span hierarchy</li>
+      <li>Verify metrics appear in Prometheus with correct labels</li>
+      <li>Verify dashboards populate with real data</li>
+      <li>Verify alerts fire on simulated conditions</li>
+      <li>Test distributed trace propagation with upstream/downstream services</li>
+      <li>Verify no legacy log output remains</li>
+      <li>Verify no <code>console.log</code> statements remain</li>
+      <li>Load test to ensure no performance regression</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Migrated code, sandbox environment</dd>
+      <dt>Outputs</dt><dd>Validation report with screenshots</dd>
+      <dt>Entry Criteria</dt><dd>Migration PR approved and merged to staging</dd>
+      <dt>Exit Criteria</dt><dd>All validation checks pass</dd>
+      <dt>Deliverables</dt><dd>Validation checklist (signed off), Grafana screenshots</dd>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-num">7</span>
+      <h4>Production Deployment &amp; Hypercare</h4>
+    </div>
+    <div class="phase-grid">
+      <dt>Purpose</dt><dd>Deploy the migrated service to production and monitor for regressions.</dd>
+      <dt>Owner</dt><dd>SRE + Developer</dd>
+      <dt>Duration</dt><dd>1 day deploy + 3&ndash;5 days hypercare</dd>
+      <dt>Dependencies</dt><dd>Validation passed; rollback plan documented; team availability confirmed</dd>
+    </div>
+    <h4>Activities</h4>
+    <ul>
+      <li>Deploy during low-traffic window</li>
+      <li>Monitor dashboards for anomalies in first hour</li>
+      <li>Verify logs, traces, and metrics flowing in production Grafana</li>
+      <li>3&ndash;5 day hypercare period: daily dashboard review, alert tuning</li>
+      <li>Adjust alert thresholds based on production traffic patterns</li>
+      <li>Document any issues and resolutions</li>
+    </ul>
+    <div class="phase-grid">
+      <dt>Inputs</dt><dd>Validated code, rollback plan, deployment runbook</dd>
+      <dt>Outputs</dt><dd>Production service with full observability</dd>
+      <dt>Entry Criteria</dt><dd>All validation checks pass; rollback plan approved</dd>
+      <dt>Exit Criteria</dt><dd>5 days stable in production; no rollback needed; alerts tuned</dd>
+      <dt>Deliverables</dt><dd>Production validation report, updated Definition of Done (Section 20)</dd>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s8"><span class="sec-num">8</span>Microservice Assessment Template</h2>
+
+  <p>Every service gets a completed assessment before migration begins. Below are assessments based on codebase analysis.</p>
+
+  <h3>API Gateway</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Attribute</th><th>Value</th></tr>
+      <tr><td>Purpose</td><td>Public edge router. Single entry point for all client requests. Routes to downstream services via HTTP.</td></tr>
+      <tr><td>Port</td><td>7070</td></tr>
+      <tr><td>Controllers / Services / Modules</td><td>59 / 58 / 51</td></tr>
+      <tr><td>Dependencies</td><td>Redis (caching), Kafka (logging client)</td></tr>
+      <tr><td>External Systems</td><td>All downstream microservices via HTTP</td></tr>
+      <tr><td>Database</td><td>None (stateless proxy)</td></tr>
+      <tr><td>Kafka Topics</td><td>logging.info, logging.warn (producer)</td></tr>
+      <tr><td>Critical Flows</td><td>Authentication routing, loan applications, guarantee applications, payment routing</td></tr>
+      <tr><td>Current Observability</td><td>SDK installed. Legacy remains: 3 Winston, 2 Morgan, 25 LoggerService, 2 HttpExceptionFilter refs</td></tr>
+      <tr><td>Migration Complexity</td><td><span class="pill pill-err">High</span> &mdash; largest codebase, highest number of legacy references</td></tr>
+      <tr><td>Estimated Effort</td><td>5 days (migration) + 2 days (validation)</td></tr>
+    </table>
+  </div>
+
+  <h3>Access Management Service</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Attribute</th><th>Value</th></tr>
+      <tr><td>Purpose</td><td>Role-based access control. Every authenticated request checks permissions here.</td></tr>
+      <tr><td>Port</td><td>9000</td></tr>
+      <tr><td>Controllers / Services / Modules</td><td>3 / 4 / 4</td></tr>
+      <tr><td>Dependencies</td><td>Redis (caching), Kafka, Sequelize (MSSQL)</td></tr>
+      <tr><td>Database</td><td>MSSQL (Sequelize) &mdash; roles, permissions, role-access mappings</td></tr>
+      <tr><td>Kafka Topics</td><td>logging.info, logging.warn</td></tr>
+      <tr><td>Critical Flows</td><td>Role-access authorization (called on every authenticated request)</td></tr>
+      <tr><td>Current Observability</td><td>SDK installed. Legacy: 1 Winston, 2 Morgan, 5 LoggerService, 1 HttpExceptionFilter</td></tr>
+      <tr><td>Migration Complexity</td><td><span class="pill pill-ok">Low</span></td></tr>
+      <tr><td>Estimated Effort</td><td>1 day (migration) + 1 day (validation)</td></tr>
+    </table>
+  </div>
+
+  <h3>Authentication Service</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Attribute</th><th>Value</th></tr>
+      <tr><td>Purpose</td><td>User authentication, JWT issuance, user management.</td></tr>
+      <tr><td>Port</td><td>8000 (called as 9001 from Gateway)</td></tr>
+      <tr><td>Controllers / Services / Modules</td><td>6 / 17 / 6</td></tr>
+      <tr><td>Dependencies</td><td>Redis, Kafka, Sequelize (MSSQL)</td></tr>
+      <tr><td>Database</td><td>MSSQL (63 Sequelize references) &mdash; users, sessions, OTP</td></tr>
+      <tr><td>Critical Flows</td><td>Login, JWT issuance, token refresh, OTP verification, password reset</td></tr>
+      <tr><td>Current Observability</td><td>SDK installed. Legacy: 2 Winston, 2 Morgan, 10 LoggerService, 2 HttpExceptionFilter</td></tr>
+      <tr><td>Migration Complexity</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Estimated Effort</td><td>2 days (migration) + 1 day (validation)</td></tr>
+    </table>
+  </div>
+
+  <h3>Application Service</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Attribute</th><th>Value</th></tr>
+      <tr><td>Purpose</td><td>Core domain service for guarantee and loan applications.</td></tr>
+      <tr><td>Port</td><td>9004</td></tr>
+      <tr><td>Controllers / Services / Modules</td><td>24 / 45 / 28</td></tr>
+      <tr><td>Dependencies</td><td>Redis, Kafka, Sequelize (MSSQL)</td></tr>
+      <tr><td>Database</td><td>MSSQL (328 Sequelize references) &mdash; applications, forms, guarantees, loans</td></tr>
+      <tr><td>Critical Flows</td><td>Application submission, guarantee issuance, loan processing, form management</td></tr>
+      <tr><td>Current Observability</td><td>SDK installed. Legacy: 2 Winston, 2 Morgan, 6 LoggerService, 1 HttpExceptionFilter</td></tr>
+      <tr><td>Migration Complexity</td><td><span class="pill pill-err">High</span> &mdash; largest domain logic, heaviest DB usage</td></tr>
+      <tr><td>Estimated Effort</td><td>5 days (migration) + 2 days (validation)</td></tr>
+    </table>
+  </div>
+
+  <h3>Job Scheduler (Uno)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Attribute</th><th>Value</th></tr>
+      <tr><td>Purpose</td><td>Cron-only service. No inbound API traffic. Pulls work periodically and integrates with external government systems (MINECOFIN, RIM).</td></tr>
+      <tr><td>Port</td><td>3001</td></tr>
+      <tr><td>Controllers / Services / Modules</td><td>4 / 7 / 6</td></tr>
+      <tr><td>Dependencies</td><td>Redis, Kafka, Sequelize (MSSQL)</td></tr>
+      <tr><td>External Systems</td><td>MINECOFIN, RIM (government APIs)</td></tr>
+      <tr><td>Database</td><td>MSSQL (12 Sequelize references)</td></tr>
+      <tr><td>Critical Flows</td><td>Application status sync, external integration cron jobs, payment scheduling</td></tr>
+      <tr><td>Current Observability</td><td>SDK installed. Cron tracing built (auto @Cron/@Interval/@Timeout instrumentation). Legacy: 2 Winston, 2 Morgan, 6 LoggerService</td></tr>
+      <tr><td>Migration Complexity</td><td><span class="pill pill-warn">Medium</span></td></tr>
+      <tr><td>Estimated Effort</td><td>2 days (migration) + 1 day (validation)</td></tr>
+    </table>
+  </div>
+
+  <h3>Services Without SDK (Summary)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Service</th><th>Port</th><th>Controllers</th><th>Services</th><th>Sequelize Refs</th><th>Legacy Logger Refs</th><th>Complexity</th><th>Est. Effort</th></tr>
+      <tr><td>Product</td><td>8100</td><td>6</td><td>8</td><td>34</td><td>11</td><td><span class="pill pill-warn">Medium</span></td><td>2&ndash;3 days</td></tr>
+      <tr><td>Payment</td><td>8800</td><td>4</td><td>8</td><td>26</td><td>8</td><td><span class="pill pill-warn">Medium</span></td><td>2&ndash;3 days</td></tr>
+      <tr><td>Configuration</td><td>8008</td><td>2</td><td>8</td><td>19</td><td>4</td><td><span class="pill pill-ok">Low</span></td><td>1&ndash;2 days</td></tr>
+      <tr><td>MEL</td><td>8600</td><td>8</td><td>10</td><td>75</td><td>4</td><td><span class="pill pill-warn">Medium</span></td><td>2&ndash;3 days</td></tr>
+      <tr><td>Workflow</td><td>8444</td><td>2</td><td>10</td><td>35</td><td>4</td><td><span class="pill pill-ok">Low</span></td><td>1&ndash;2 days</td></tr>
+      <tr><td>Profile</td><td>8092</td><td>6</td><td>7</td><td>25</td><td>4</td><td><span class="pill pill-ok">Low</span></td><td>1&ndash;2 days</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s9"><span class="sec-num">9</span>Endpoint Inventory Template</h2>
+
+  <p>Complete one row per endpoint for each service. Example for Access Management:</p>
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Endpoint</th><th>Method</th><th>Business Capability</th><th>Consumer</th><th>Criticality</th><th>Current Logs</th><th>Current Metrics</th><th>Current Traces</th>
+      </tr>
+      <tr>
+        <td><code>/api/role-access</code></td><td>GET</td><td>Authorization check</td><td>All services (every authenticated request)</td><td><span class="pill pill-err">Critical</span></td><td>Winston info</td><td>None</td><td>None</td>
+      </tr>
+      <tr>
+        <td><code>/api/role-access</code></td><td>POST</td><td>Create role-access mapping</td><td>Admin portal via Gateway</td><td><span class="pill pill-warn">High</span></td><td>Winston info</td><td>None</td><td>None</td>
+      </tr>
+      <tr>
+        <td><code>/api/role-access/:id</code></td><td>PUT</td><td>Update role-access mapping</td><td>Admin portal via Gateway</td><td><span class="pill pill-warn">High</span></td><td>Winston info</td><td>None</td><td>None</td>
+      </tr>
+      <tr>
+        <td><code>/api/role-access/:id</code></td><td>DELETE</td><td>Revoke role-access mapping</td><td>Admin portal via Gateway</td><td><span class="pill pill-warn">High</span></td><td>Winston info</td><td>None</td><td>None</td>
+      </tr>
+      <tr>
+        <td><code>/health</code></td><td>GET</td><td>Health check</td><td>Kubernetes, monitoring</td><td><span class="pill pill-info">Low</span></td><td>None</td><td>SDK auto</td><td>SDK auto</td>
+      </tr>
+      <tr>
+        <td><code>/metrics</code></td><td>GET</td><td>Prometheus scrape</td><td>Prometheus</td><td><span class="pill pill-info">Low</span></td><td>None</td><td>SDK auto</td><td>Excluded</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s10"><span class="sec-num">10</span>Critical Endpoint Classification</h2>
+
+  <h3>Scoring Model</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Criteria</th><th>Weight</th><th>Description</th></tr>
+      <tr><td>Customer Impact</td><td><span class="risk-high">High</span></td><td>Does a failure directly affect end users (loan applicants, bank staff)?</td></tr>
+      <tr><td>Financial Impact</td><td><span class="risk-high">High</span></td><td>Does the endpoint handle money movement, guarantees, or financial calculations?</td></tr>
+      <tr><td>Security</td><td><span class="risk-high">High</span></td><td>Does it handle authentication, authorization, or sensitive data?</td></tr>
+      <tr><td>Usage Frequency</td><td><span class="risk-med">Medium</span></td><td>How many requests per day? High-frequency endpoints need tighter alerting.</td></tr>
+      <tr><td>Upstream Dependencies</td><td><span class="risk-med">Medium</span></td><td>How many other services depend on this endpoint? Single-point-of-failure risk.</td></tr>
+    </table>
+  </div>
+
+  <h3>Classification Tiers</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Tier</th><th>Criteria</th><th>Observability Treatment</th></tr>
+      <tr>
+        <td><span class="pill pill-err">Critical</span></td>
+        <td>2+ High-weight criteria score high</td>
+        <td>Full custom design: dedicated metrics, custom spans, specific alerts, dashboard widget, runbook</td>
+      </tr>
+      <tr>
+        <td><span class="pill pill-warn">High</span></td>
+        <td>1 High-weight + 1 Medium-weight score high</td>
+        <td>Custom metrics and alerts. SDK-default logging and tracing.</td>
+      </tr>
+      <tr>
+        <td><span class="pill pill-info">Medium</span></td>
+        <td>1&ndash;2 Medium-weight criteria score high</td>
+        <td>SDK defaults with specific log events on key actions.</td>
+      </tr>
+      <tr>
+        <td><span class="pill pill-ok">Low</span></td>
+        <td>No criteria score high</td>
+        <td>SDK defaults only. No custom metrics or alerts.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Example Classification: Authentication Service</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Endpoint</th><th>Customer</th><th>Financial</th><th>Security</th><th>Frequency</th><th>Dependencies</th><th>Tier</th></tr>
+      <tr><td><code>POST /auth/login</code></td><td>High</td><td>Low</td><td>High</td><td>High</td><td>High</td><td><span class="pill pill-err">Critical</span></td></tr>
+      <tr><td><code>POST /auth/refresh</code></td><td>High</td><td>Low</td><td>High</td><td>High</td><td>High</td><td><span class="pill pill-err">Critical</span></td></tr>
+      <tr><td><code>POST /auth/otp/verify</code></td><td>High</td><td>Low</td><td>High</td><td>Medium</td><td>Medium</td><td><span class="pill pill-err">Critical</span></td></tr>
+      <tr><td><code>POST /auth/register</code></td><td>Medium</td><td>Low</td><td>High</td><td>Low</td><td>Low</td><td><span class="pill pill-warn">High</span></td></tr>
+      <tr><td><code>POST /auth/password/reset</code></td><td>Medium</td><td>Low</td><td>High</td><td>Low</td><td>Low</td><td><span class="pill pill-warn">High</span></td></tr>
+      <tr><td><code>GET /auth/users</code></td><td>Low</td><td>Low</td><td>Medium</td><td>Low</td><td>Low</td><td><span class="pill pill-info">Medium</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s11"><span class="sec-num">11</span>Observability Design</h2>
+
+  <h3>Logs</h3>
+  <p>For every Critical/High endpoint, define:</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Attribute</th><th>Description</th></tr>
+      <tr><td>Events</td><td>What log events should this endpoint emit? (e.g., <code>login_attempt</code>, <code>login_success</code>, <code>login_failure</code>)</td></tr>
+      <tr><td>Severity</td><td>What log level for each event? (info for success, warn for client errors, error for server errors)</td></tr>
+      <tr><td>Fields</td><td>What structured fields beyond SDK defaults? (e.g., <code>user_id</code>, <code>client_ip</code>, <code>auth_provider</code>)</td></tr>
+      <tr><td>Correlation IDs</td><td>SDK provides <code>trace_id</code>, <code>request_id</code>, <code>span_id</code> automatically. Add business IDs? (e.g., <code>application_id</code>, <code>guarantee_id</code>)</td></tr>
+      <tr><td>Sensitive Fields</td><td>What fields need redaction? SDK auto-redacts passwords/tokens. Add service-specific? (e.g., <code>national_id</code>, <code>phone_number</code>)</td></tr>
+    </table>
+  </div>
+
+  <h4>Example: Authentication Service &mdash; POST /auth/login</h4>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Event</th><th>Level</th><th>Fields</th><th>When</th></tr>
+      <tr><td><code>login_attempt</code></td><td>info</td><td><code>username</code>, <code>client_ip</code>, <code>auth_provider</code></td><td>Request received</td></tr>
+      <tr><td><code>login_success</code></td><td>info</td><td><code>user_id</code>, <code>username</code>, <code>session_duration</code></td><td>JWT issued</td></tr>
+      <tr><td><code>login_failure</code></td><td>warn</td><td><code>username</code>, <code>failure_reason</code>, <code>attempt_count</code></td><td>Authentication rejected</td></tr>
+      <tr><td><code>account_locked</code></td><td>error</td><td><code>username</code>, <code>lock_duration</code>, <code>attempt_count</code></td><td>Max attempts exceeded</td></tr>
+    </table>
+  </div>
+
+  <h3>Metrics</h3>
+  <p>SDK provides HTTP RED metrics automatically. Define <em>business-specific</em> metrics per service:</p>
+
+  <h4>Example Metrics Catalogue</h4>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Metric Name</th><th>Type</th><th>Labels</th><th>Description</th><th>Alert</th><th>Dashboard</th></tr>
+      <tr>
+        <td><code>login_attempts_total</code></td><td>Counter</td><td><code>status</code>, <code>provider</code></td>
+        <td>Total login attempts</td><td>Failure rate &gt;5% for 5min</td><td>Authentication Overview</td>
+      </tr>
+      <tr>
+        <td><code>active_sessions_total</code></td><td>Gauge</td><td><code>user_type</code></td>
+        <td>Currently active JWT sessions</td><td>Spike &gt;200% of baseline</td><td>Authentication Overview</td>
+      </tr>
+      <tr>
+        <td><code>guarantee_applications_total</code></td><td>Counter</td><td><code>status</code>, <code>type</code></td>
+        <td>Guarantee applications processed</td><td>&mdash;</td><td>Application Overview</td>
+      </tr>
+      <tr>
+        <td><code>payment_processing_duration_seconds</code></td><td>Histogram</td><td><code>payment_type</code>, <code>status</code></td>
+        <td>Time to process a payment</td><td>p95 &gt;10s for 5min</td><td>Payment Overview</td>
+      </tr>
+      <tr>
+        <td><code>external_api_duration_seconds</code></td><td>Histogram</td><td><code>target</code>, <code>status</code></td>
+        <td>External API call latency (MINECOFIN, RIM)</td><td>p95 &gt;30s for 5min</td><td>Job Scheduler Overview</td>
+      </tr>
+      <tr>
+        <td><code>cron_job_duration_seconds</code></td><td>Histogram</td><td><code>job_name</code>, <code>status</code></td>
+        <td>Scheduled job execution time</td><td>Error rate &gt;10%</td><td>Job Scheduler Overview</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Traces</h3>
+  <p>For each Critical endpoint, define the expected span tree:</p>
+
+  <h4>Example: Loan Application Submission</h4>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Span</th><th>Kind</th><th>Service</th><th>Expected Duration</th></tr>
+      <tr><td><code>POST /api/applications</code></td><td>Server</td><td>API Gateway</td><td>&lt;50ms (proxy)</td></tr>
+      <tr><td>&emsp;↳ <code>POST /applications</code></td><td>Server</td><td>Application Service</td><td>&lt;2s</td></tr>
+      <tr><td>&emsp;&emsp;↳ <code>Sequelize: INSERT applications</code></td><td>Client</td><td>Application Service</td><td>&lt;200ms</td></tr>
+      <tr><td>&emsp;&emsp;↳ <code>Sequelize: INSERT guarantee_details</code></td><td>Client</td><td>Application Service</td><td>&lt;200ms</td></tr>
+      <tr><td>&emsp;&emsp;↳ <code>Kafka: produce application.created</code></td><td>Producer</td><td>Application Service</td><td>&lt;100ms</td></tr>
+      <tr><td>&emsp;↳ <code>GET /api/role-access</code></td><td>Client</td><td>Access Management</td><td>&lt;50ms</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s12"><span class="sec-num">12</span>Dashboard Requirements</h2>
+
+  <h3>Standard Dashboard Set (Per Service)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Dashboard</th><th>Widgets</th><th>Data Source</th><th>Refresh</th></tr>
+      <tr>
+        <td><strong>Service Overview (RED)</strong></td>
+        <td>Request rate, error rate, p50/p95/p99 latency, status code distribution, top 10 slowest routes, error breakdown by type</td>
+        <td>Prometheus</td><td>10s</td>
+      </tr>
+      <tr>
+        <td><strong>Node.js Runtime</strong></td>
+        <td>Heap memory (used/total), CPU usage, event loop lag, GC duration, active handles/requests</td>
+        <td>Prometheus</td><td>15s</td>
+      </tr>
+      <tr>
+        <td><strong>Dependencies</strong></td>
+        <td>Database query latency (p50/p95), slow query count, Redis hit rate, Kafka produce/consume latency, external API latency</td>
+        <td>Prometheus</td><td>15s</td>
+      </tr>
+      <tr>
+        <td><strong>Logs &amp; Traces</strong></td>
+        <td>Log volume by level (stacked area), recent errors (table), recent traces (table), log search panel</td>
+        <td>Loki + Tempo</td><td>10s</td>
+      </tr>
+      <tr>
+        <td><strong>Business Metrics</strong></td>
+        <td>Service-specific counters and gauges (per observability design)</td>
+        <td>Prometheus</td><td>30s</td>
+      </tr>
+      <tr>
+        <td><strong>Availability</strong></td>
+        <td>Uptime percentage, health check status, pod restarts (if K8s), last deploy timestamp</td>
+        <td>Prometheus</td><td>30s</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Cross-Service Dashboards</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Dashboard</th><th>Purpose</th><th>Widgets</th></tr>
+      <tr>
+        <td><strong>Platform Overview</strong></td>
+        <td>Single pane of glass for all services</td>
+        <td>Service map, per-service error rate heatmap, overall p95, active alerts</td>
+      </tr>
+      <tr>
+        <td><strong>Distributed Traces</strong></td>
+        <td>Cross-service request flow</td>
+        <td>Tempo search panel, service graph, trace duration histogram</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s13"><span class="sec-num">13</span>Alert Strategy</h2>
+
+  <h3>Platform Alerts (All Services)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Alert</th><th>Condition</th><th>Severity</th><th>Escalation</th><th>Owner</th></tr>
+      <tr><td>ServiceDown</td><td><code>up == 0</code> for 1 min</td><td><span class="risk-high">Critical</span></td><td>PagerDuty → Oncall → Team Lead (15 min)</td><td>SRE</td></tr>
+      <tr><td>HighErrorRate</td><td>5xx &gt; 5% of requests for 5 min</td><td><span class="risk-high">Critical</span></td><td>Teams → Oncall</td><td>SRE</td></tr>
+      <tr><td>HighLatencyP95</td><td>p95 &gt; 2s for 5 min</td><td><span class="risk-med">Warning</span></td><td>Teams channel</td><td>Developer</td></tr>
+      <tr><td>HighLatencyP99</td><td>p99 &gt; 5s for 5 min</td><td><span class="risk-high">Critical</span></td><td>Teams → Oncall</td><td>SRE</td></tr>
+      <tr><td>HighMemory</td><td>Heap &gt; 85% for 10 min</td><td><span class="risk-med">Warning</span></td><td>Teams channel</td><td>Developer</td></tr>
+      <tr><td>HighEventLoopLag</td><td>Lag &gt; 500ms for 5 min</td><td><span class="risk-med">Warning</span></td><td>Teams channel</td><td>Developer</td></tr>
+    </table>
+  </div>
+
+  <h3>Business Alerts (Service-Specific)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Alert</th><th>Service</th><th>Condition</th><th>Severity</th><th>Owner</th></tr>
+      <tr><td>AuthFailureSpike</td><td>Authentication</td><td>Login failures &gt; 1/sec for 5 min</td><td><span class="risk-med">Warning</span></td><td>Security</td></tr>
+      <tr><td>PaymentProcessingDelay</td><td>Payment</td><td>Payment processing p95 &gt; 30s for 5 min</td><td><span class="risk-high">Critical</span></td><td>Payment team</td></tr>
+      <tr><td>CronJobFailure</td><td>Job Scheduler</td><td>Cron job error rate &gt; 10% for 15 min</td><td><span class="risk-med">Warning</span></td><td>SRE</td></tr>
+      <tr><td>ExternalAPIDown</td><td>Job Scheduler</td><td>MINECOFIN/RIM API error rate &gt; 50% for 10 min</td><td><span class="risk-high">Critical</span></td><td>SRE</td></tr>
+    </table>
+  </div>
+
+  <h3>Log-Based Alerts (Grafana/Loki)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Alert</th><th>Condition</th><th>Severity</th></tr>
+      <tr><td>ErrorLogSpike</td><td>Error log rate &gt; 0.5/sec for 5 min</td><td><span class="risk-med">Warning</span></td></tr>
+      <tr><td>ServiceStoppedLogging</td><td>No logs for 10 min</td><td><span class="risk-high">Critical</span></td></tr>
+      <tr><td>UnhandledRejection</td><td>Unhandled promise rejection detected</td><td><span class="risk-high">Critical</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s14"><span class="sec-num">14</span>Migration Playbook</h2>
+
+  <div class="callout callout-info">
+    <strong>This is the step-by-step checklist developers follow for each service.</strong>
+    Detailed code examples are in <a href="migration.md">Migration Guide</a> and <a href="migration-per-service.md">Migration Checklist</a>.
+  </div>
+
+  <h3>14.1 Preparation</h3>
+  <ul class="checklist">
+    <li>Completed Microservice Assessment (Section 8)</li>
+    <li>Completed Endpoint Inventory (Section 9)</li>
+    <li>Completed Endpoint Classification (Section 10)</li>
+    <li>Completed Observability Design (Section 11)</li>
+    <li>SDK version pinned in <code>package.json</code></li>
+    <li>Local sandbox running (OTel Collector, Tempo, Loki, Prometheus, Grafana)</li>
+    <li>Feature branch created from <code>main</code></li>
+  </ul>
+
+  <h3>14.2 Development</h3>
+  <ul class="checklist">
+    <li>Install SDK: <code>npm install @brdrwanda/observability</code></li>
+    <li>Configure <code>main.ts</code>: <code>setupProcessErrorHandlers()</code>, <code>NestPinoLogger</code></li>
+    <li>Configure <code>app.module.ts</code>: <code>ObservabilityModule.forRoot()</code> with service-specific config</li>
+    <li>Add instrumentations: HTTP, Kafka, Redis, Sequelize as needed</li>
+    <li>Replace every <code>LoggerService</code> injection with <code>ObservabilityLogger</code></li>
+    <li>Remove <code>createLoggingContextWithId()</code> calls (SDK injects context automatically)</li>
+    <li>Remove custom <code>HttpExceptionFilter</code> (SDK provides one via <code>APP_FILTER</code>)</li>
+    <li>Remove Morgan middleware from <code>app.module.ts</code></li>
+    <li>Remove Winston configuration and transports</li>
+    <li>Remove Kafka logging producer (<code>logging.info</code> / <code>logging.warn</code> topics)</li>
+    <li>Add <code>@Span()</code> decorators on critical methods per observability design</li>
+    <li>Add custom business metrics per observability design</li>
+    <li>Add trace propagation headers on inter-service HTTP calls</li>
+    <li>Replace <code>console.log</code> with <code>this.logger.info()</code></li>
+    <li>Delete unused files: <code>logger.service.ts</code>, <code>morgan.middleware.ts</code>, <code>winston.config.ts</code></li>
+    <li>Uninstall packages: <code>npm uninstall winston nest-winston winston-daily-rotate-file morgan</code></li>
+  </ul>
+
+  <h3>14.3 Testing</h3>
+  <ul class="checklist">
+    <li>All existing tests pass</li>
+    <li>Service starts without errors</li>
+    <li>Structured JSON logs appear on stdout with <code>trace_id</code></li>
+    <li>No Winston/Morgan output in logs</li>
+    <li><code>/health</code> returns 200</li>
+    <li><code>/metrics</code> returns Prometheus format</li>
+    <li>Traces appear in Grafana Tempo</li>
+    <li>Logs appear in Grafana Loki</li>
+    <li>Metrics appear in Prometheus</li>
+    <li>Cross-service trace propagation works (same <code>trace_id</code> in upstream and downstream)</li>
+  </ul>
+
+  <h3>14.4 Deployment</h3>
+  <ul class="checklist">
+    <li>PR reviewed and approved</li>
+    <li>Deploy to staging environment</li>
+    <li>Staging validation passes (repeat Testing checklist)</li>
+    <li>Rollback plan documented and tested</li>
+    <li>Deploy to production during low-traffic window</li>
+  </ul>
+
+  <h3>14.5 Rollback Plan</h3>
+  <ul class="checklist">
+    <li>Previous deployment artifact retained</li>
+    <li>Rollback trigger: error rate &gt;10% or service-down alert within 30 min of deploy</li>
+    <li>Rollback action: redeploy previous version via CI/CD</li>
+    <li>Rollback verification: error rate returns to baseline, service healthy</li>
+    <li>Post-rollback: root cause analysis, fix, re-attempt migration</li>
+  </ul>
+
+  <h3>14.6 Validation &amp; Closeout</h3>
+  <ul class="checklist">
+    <li>Production dashboards populate with real data</li>
+    <li>Alerts configured and tested</li>
+    <li>5-day hypercare period completed without rollback</li>
+    <li>Definition of Done checklist completed (Section 20)</li>
+    <li>Lessons learned documented (Section 22)</li>
+    <li>Service marked complete in Project Tracker (Section 16)</li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="s15"><span class="sec-num">15</span>Sprint Plan</h2>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Sprint</th><th>Duration</th><th>Services</th><th>Deliverables</th><th>Exit Criteria</th></tr>
+      <tr>
+        <td><strong>Sprint 1</strong></td><td>2 weeks</td><td>Access Management, Job Scheduler</td>
+        <td>Both services fully migrated. Legacy removed. Dashboards published. Alerts configured.</td>
+        <td>DoD checklist complete for both. Production hypercare passed.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 2</strong></td><td>2 weeks</td><td>Authentication</td>
+        <td>Auth service migrated. Login/session metrics designed. Security alerts configured.</td>
+        <td>DoD checklist complete. Distributed traces from Gateway → Auth working.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 3</strong></td><td>2 weeks</td><td>API Gateway</td>
+        <td>Gateway migrated (highest effort service). All 25 LoggerService refs replaced.</td>
+        <td>DoD checklist complete. End-to-end traces from Gateway to all downstream services.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 4</strong></td><td>2 weeks</td><td>Configuration, Workflow, Profile</td>
+        <td>Three smaller services migrated in parallel.</td>
+        <td>DoD checklist complete for all three.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 5</strong></td><td>2 weeks</td><td>Product, Payment</td>
+        <td>Product and Payment migrated. Payment-specific metrics and alerts configured.</td>
+        <td>DoD checklist complete. Payment alerting validated.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 6</strong></td><td>2 weeks</td><td>MEL Service</td>
+        <td>MEL migrated. KPI/report-specific metrics.</td>
+        <td>DoD checklist complete.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 7&ndash;8</strong></td><td>4 weeks</td><td>Application Service</td>
+        <td>Largest service migrated. All 328 Sequelize refs instrumented. Guarantee/loan flow traces.</td>
+        <td>DoD checklist complete. Full platform service map in Grafana.</td>
+      </tr>
+      <tr>
+        <td><strong>Sprint 9</strong></td><td>2 weeks</td><td>Platform-wide</td>
+        <td>Cross-service dashboards. Platform overview dashboard. SLO definitions. Documentation.</td>
+        <td>All 11 services green. All dashboards published. Alert runbooks written.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s16"><span class="sec-num">16</span>Project Tracker</h2>
+
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Service</th>
+        <th>Assessment</th>
+        <th>Inventory</th>
+        <th>Classification</th>
+        <th>Design</th>
+        <th>SDK Migration</th>
+        <th>Legacy Cleanup</th>
+        <th>Validation</th>
+        <th>Production</th>
+      </tr>
+      <tr>
+        <td><strong>Access Mgmt</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-warn">Partial</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Job Scheduler</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-warn">Partial</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Authentication</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-warn">Partial</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>API Gateway</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-warn">Partial</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Application</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-warn">Partial</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Configuration</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Workflow</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Profile</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Product</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>Payment</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+      <tr>
+        <td><strong>MEL</strong></td>
+        <td><span class="pill pill-ok">Done</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+        <td><span class="pill pill-err">Todo</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s17"><span class="sec-num">17</span>Risks</h2>
+
+  <h3>Technical Risks</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th><th>Owner</th></tr>
+      <tr>
+        <td>SDK update introduces breaking change</td>
+        <td><span class="risk-low">Low</span></td><td><span class="risk-high">High</span></td>
+        <td>Pin SDK version per service. Test upgrades in sandbox before production.</td><td>SRE</td>
+      </tr>
+      <tr>
+        <td>OTel Collector becomes bottleneck</td>
+        <td><span class="risk-low">Low</span></td><td><span class="risk-med">Medium</span></td>
+        <td>Monitor Collector metrics. Scale horizontally if needed. SDK has batch export with backpressure.</td><td>SRE</td>
+      </tr>
+      <tr>
+        <td>Performance regression from tracing overhead</td>
+        <td><span class="risk-low">Low</span></td><td><span class="risk-med">Medium</span></td>
+        <td>SDK uses sampling (configurable ratio). Load test each migrated service. Disable tracing per-service if needed.</td><td>Developer</td>
+      </tr>
+      <tr>
+        <td>Incomplete legacy removal causes dual logging</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-low">Low</span></td>
+        <td>Legacy code inventory (Section 4) tracks exact file/line counts. DoD requires zero legacy refs.</td><td>Developer</td>
+      </tr>
+      <tr>
+        <td>OpenTelemetry v1/v2 dependency conflicts</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td>
+        <td>SDK bundles OTel v2. Services must not independently install OTel v1 packages. Migration guide documents this.</td><td>Developer</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Operational Risks</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th><th>Owner</th></tr>
+      <tr>
+        <td>Grafana stack storage grows unbounded</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td>
+        <td>Configure retention: Loki 30d, Tempo 14d, Prometheus 30d. Monitor disk usage.</td><td>SRE</td>
+      </tr>
+      <tr>
+        <td>Alert fatigue from noisy thresholds</td>
+        <td><span class="risk-high">High</span></td><td><span class="risk-med">Medium</span></td>
+        <td>Start with conservative thresholds. Tune during hypercare. Weekly alert review first month.</td><td>SRE</td>
+      </tr>
+      <tr>
+        <td>Team lacks Grafana/OTel expertise</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td>
+        <td>SDK abstracts OTel complexity. Provide Grafana training session. Document common queries.</td><td>SRE</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>Project Risks</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th><th>Owner</th></tr>
+      <tr>
+        <td>Developer bandwidth pulled to feature work</td>
+        <td><span class="risk-high">High</span></td><td><span class="risk-high">High</span></td>
+        <td>Dedicated sprint capacity for migration. PM blocks conflicting feature work.</td><td>PM</td>
+      </tr>
+      <tr>
+        <td>Application Service migration takes longer than estimated</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td>
+        <td>Scheduled last. Learnings from 10 prior services reduce unknowns. Buffer sprint allocated.</td><td>Tech Lead</td>
+      </tr>
+      <tr>
+        <td>Scope creep: teams request custom features during migration</td>
+        <td><span class="risk-med">Medium</span></td><td><span class="risk-med">Medium</span></td>
+        <td>Strict scope (Section 3). Feature requests logged as backlog, not migration blockers.</td><td>PM</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s18"><span class="sec-num">18</span>Dependencies</h2>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Dependency</th><th>Type</th><th>Status</th><th>Impact if Blocked</th></tr>
+      <tr><td><strong>SDK (<code>@brdrwanda/observability</code>)</strong></td><td>Software</td><td><span class="pill pill-ok">Available</span></td><td>Cannot migrate any service</td></tr>
+      <tr><td><strong>Grafana Stack</strong> (Tempo, Loki, Prometheus, OTel Collector)</td><td>Infrastructure</td><td><span class="pill pill-ok">Deployed</span></td><td>Cannot validate traces, logs, metrics</td></tr>
+      <tr><td><strong>Grafana</strong></td><td>Infrastructure</td><td><span class="pill pill-ok">Deployed</span></td><td>Cannot create dashboards or alerts</td></tr>
+      <tr><td><strong>Developer capacity</strong></td><td>Resource</td><td><span class="pill pill-warn">Shared</span></td><td>Migration delayed. Per-service migration requires 2&ndash;7 developer-days.</td></tr>
+      <tr><td><strong>QA capacity</strong></td><td>Resource</td><td><span class="pill pill-warn">Shared</span></td><td>Validation phase blocked</td></tr>
+      <tr><td><strong>PM coordination</strong></td><td>Resource</td><td><span class="pill pill-warn">Shared</span></td><td>Sprint planning, stakeholder alignment</td></tr>
+      <tr><td><strong>Staging environment</strong></td><td>Environment</td><td><span class="pill pill-ok">Available</span></td><td>Cannot test before production</td></tr>
+      <tr><td><strong>CI/CD pipeline</strong></td><td>Infrastructure</td><td><span class="pill pill-ok">Available</span></td><td>Cannot deploy migration PRs</td></tr>
+      <tr><td><strong>Kubernetes cluster</strong></td><td>Infrastructure</td><td><span class="pill pill-ok">Available</span></td><td>Cannot deploy production. Note: K8s deployments currently lack liveness/readiness probes.</td></tr>
+      <tr><td><strong>Architecture review</strong></td><td>Governance</td><td><span class="pill pill-err">Needed</span></td><td>Observability design decisions may need architect sign-off</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s19"><span class="sec-num">19</span>Governance</h2>
+
+  <h3>RACI Matrix</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Activity</th><th>Developer</th><th>SRE</th><th>Tech Lead</th><th>PM</th><th>Business</th></tr>
+      <tr><td>Service Assessment</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Endpoint Inventory</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Endpoint Classification</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-a">A</td><td class="raci-r">R</td><td class="raci-c">C</td></tr>
+      <tr><td>Observability Design</td><td class="raci-r">R</td><td class="raci-r">R</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>SDK Migration (code)</td><td class="raci-r">R</td><td class="raci-c">C</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Dashboard Creation</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Alert Configuration</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Validation</td><td class="raci-r">R</td><td class="raci-r">R</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Production Deployment</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-a">A</td><td class="raci-i">I</td><td>&mdash;</td></tr>
+      <tr><td>Sprint Planning</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-i">I</td></tr>
+      <tr><td>Stakeholder Updates</td><td class="raci-i">I</td><td class="raci-i">I</td><td class="raci-c">C</td><td class="raci-r">R</td><td class="raci-a">A</td></tr>
+    </table>
+  </div>
+  <p style="font-size:0.82rem;color:var(--muted)"><strong class="raci-r">R</strong> = Responsible &nbsp; <strong class="raci-a">A</strong> = Accountable &nbsp; <strong class="raci-c">C</strong> = Consulted &nbsp; <strong class="raci-i">I</strong> = Informed</p>
+
+  <h3>Meeting Cadence</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Meeting</th><th>Frequency</th><th>Attendees</th><th>Purpose</th></tr>
+      <tr><td>Migration Standup</td><td>Daily (15 min)</td><td>Developer, SRE</td><td>Blockers, progress, next steps</td></tr>
+      <tr><td>Sprint Planning</td><td>Bi-weekly</td><td>Developer, SRE, Tech Lead, PM</td><td>Select services for next sprint, review estimates</td></tr>
+      <tr><td>Sprint Review</td><td>Bi-weekly</td><td>All + Business stakeholders</td><td>Demo migrated services, dashboards, lessons learned</td></tr>
+      <tr><td>Stakeholder Update</td><td>Monthly</td><td>PM, Tech Lead, Business</td><td>Project tracker review, risk update, timeline</td></tr>
+    </table>
+  </div>
+
+  <h3>Decision Process</h3>
+  <ul>
+    <li><strong>Technical decisions</strong> (SDK config, metric names, alert thresholds): Developer + SRE decide, Tech Lead approves</li>
+    <li><strong>Scope decisions</strong> (add/remove services, change timeline): PM proposes, Tech Lead + Business approve</li>
+    <li><strong>Escalation path:</strong> Developer → Tech Lead → PM → Engineering Manager</li>
+  </ul>
+
+  <h3>Change Management</h3>
+  <ul>
+    <li>Changes to SDK API: versioned, documented in CHANGELOG, announced in team channel</li>
+    <li>Changes to migration approach: discussed in Sprint Planning, documented in this plan</li>
+    <li>Changes to timeline: PM updates stakeholders within 24 hours</li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="s20"><span class="sec-num">20</span>Definition of Done</h2>
+
+  <div class="callout callout-ok">
+    <strong>A service migration is complete when ALL items are checked.</strong>
+    This checklist is signed off by the Tech Lead before marking a service as "Production" in the Project Tracker.
+  </div>
+
+  <ul class="checklist">
+    <li><strong>Endpoint inventory approved</strong> &mdash; every REST endpoint, Kafka consumer/producer, and scheduled job documented</li>
+    <li><strong>Critical endpoints classified</strong> &mdash; scoring model applied, classification reviewed by PM</li>
+    <li><strong>Observability designed</strong> &mdash; logs, metrics, traces, dashboards, alerts defined for all Critical/High endpoints</li>
+    <li><strong>SDK configured</strong> &mdash; <code>ObservabilityModule.forRoot()</code> with correct serviceName, exporter, instrumentations</li>
+    <li><strong>Logs standardized</strong> &mdash; all logging through SDK's Pino logger; <code>trace_id</code> present on every log line</li>
+    <li><strong>Traces verified</strong> &mdash; end-to-end distributed traces visible in Grafana Tempo with correct span hierarchy</li>
+    <li><strong>Metrics exported</strong> &mdash; <code>/metrics</code> endpoint returns Prometheus format; Prometheus scraping successfully</li>
+    <li><strong>Business metrics implemented</strong> &mdash; all metrics from observability design registering data</li>
+    <li><strong>Dashboard published</strong> &mdash; Service Overview (RED), Runtime, Logs &amp; Traces dashboards provisioned in Grafana</li>
+    <li><strong>Alerts configured</strong> &mdash; platform alerts + service-specific alerts active; notification channel verified</li>
+    <li><strong>Legacy removed</strong> &mdash; zero references to Winston, Morgan, LoggerService, createLoggingContextWithId, custom HttpExceptionFilter</li>
+    <li><strong>Legacy packages uninstalled</strong> &mdash; <code>winston</code>, <code>nest-winston</code>, <code>winston-daily-rotate-file</code>, <code>morgan</code> removed from <code>package.json</code></li>
+    <li><strong>Tests pass</strong> &mdash; all existing tests pass; no test modifications required beyond logger mocking</li>
+    <li><strong>Production deployed</strong> &mdash; service running in production with SDK</li>
+    <li><strong>Hypercare passed</strong> &mdash; 5 business days stable, no rollback, alerts tuned to production traffic</li>
+    <li><strong>Documentation updated</strong> &mdash; service-specific notes added to migration docs if any deviations from standard playbook</li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="s21"><span class="sec-num">21</span>Success Metrics</h2>
+
+  <h3>Project KPIs</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>KPI</th><th>Current</th><th>Target</th><th>How to Measure</th></tr>
+      <tr><td>SDK Adoption</td><td>5/11 (45%)</td><td>11/11 (100%)</td><td>Count services with SDK in package.json + zero legacy refs</td></tr>
+      <tr><td>Services Fully Migrated</td><td>0/11 (0%)</td><td>11/11 (100%)</td><td>Project Tracker &mdash; all columns green</td></tr>
+      <tr><td>Endpoint Coverage</td><td>Unknown</td><td>100% of endpoints inventoried</td><td>Endpoint inventory documents</td></tr>
+      <tr><td>Trace Coverage</td><td>~45%</td><td>100% of HTTP requests carry trace_id</td><td>Sample Loki logs; percentage with <code>trace_id</code> present</td></tr>
+      <tr><td>Metric Coverage</td><td>5/11 services</td><td>11/11 services</td><td>Prometheus targets &mdash; all services <code>up == 1</code></td></tr>
+      <tr><td>Dashboard Coverage</td><td>3 dashboards</td><td>6 per service + 2 platform = 68</td><td>Count Grafana dashboards</td></tr>
+      <tr><td>Alert Coverage</td><td>6 platform alerts</td><td>6 platform + service-specific per design</td><td>Count active alert rules in Prometheus + Grafana</td></tr>
+      <tr><td>MTTR</td><td>Unknown (unmeasured)</td><td>&lt; 30 min for P1</td><td>Incident post-mortems &mdash; time from alert to root cause</td></tr>
+      <tr><td>MTTD</td><td>Unknown (manual detection)</td><td>&lt; 5 min</td><td>Time from error occurring to alert firing</td></tr>
+      <tr><td>Incident Reduction</td><td>Baseline TBD</td><td>30% reduction in first 3 months</td><td>Incident tracker</td></tr>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2 id="s22"><span class="sec-num">22</span>Lessons Learned</h2>
+
+  <div class="callout callout-info">
+    <strong>Update this section after every service migration.</strong>
+    Sprint retrospective findings that affect the migration approach go here.
+  </div>
+
+  <h3>What Worked</h3>
+  <ul>
+    <li><em>(To be filled after Sprint 1)</em></li>
+  </ul>
+
+  <h3>What Didn't Work</h3>
+  <ul>
+    <li><em>(To be filled after Sprint 1)</em></li>
+  </ul>
+
+  <h3>Recommendations for Next Service</h3>
+  <ul>
+    <li><em>(To be filled after Sprint 1)</em></li>
+  </ul>
+
+  <h3>Process Improvements</h3>
+  <ul>
+    <li><em>(To be filled after Sprint 1)</em></li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <h2 id="s23"><span class="sec-num">23</span>Appendices</h2>
+
+  <h3>Appendix A &mdash; Microservice Assessment Template</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:200px">Field</th><th>Value</th></tr>
+      <tr><td>Service Name</td><td></td></tr>
+      <tr><td>Purpose</td><td></td></tr>
+      <tr><td>Port</td><td></td></tr>
+      <tr><td>Controllers / Services / Modules</td><td></td></tr>
+      <tr><td>Dependencies (internal)</td><td></td></tr>
+      <tr><td>External Systems</td><td></td></tr>
+      <tr><td>Database (type, ORM, table count)</td><td></td></tr>
+      <tr><td>Kafka Topics (producer/consumer)</td><td></td></tr>
+      <tr><td>Business Capabilities</td><td></td></tr>
+      <tr><td>Critical Flows</td><td></td></tr>
+      <tr><td>Current Observability (SDK status, legacy refs)</td><td></td></tr>
+      <tr><td>Migration Complexity (Low/Medium/High)</td><td></td></tr>
+      <tr><td>Estimated Effort</td><td></td></tr>
+      <tr><td>Owner</td><td></td></tr>
+      <tr><td>Status</td><td></td></tr>
+    </table>
+  </div>
+
+  <h3>Appendix B &mdash; Endpoint Inventory Template</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Endpoint</th><th>Method</th><th>Handler</th><th>Business Capability</th><th>Consumer</th><th>Criticality</th><th>Current Logs</th><th>Current Metrics</th><th>Current Traces</th></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+  </div>
+
+  <h3>Appendix C &mdash; Metrics Catalogue Template</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Metric Name</th><th>Type</th><th>Labels</th><th>Description</th><th>Owner</th><th>Dashboard</th><th>Alert Condition</th></tr>
+      <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+  </div>
+
+  <h3>Appendix D &mdash; Logging Standards</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Standard</th><th>Specification</th></tr>
+      <tr><td>Format</td><td>JSON (Pino) to stdout</td></tr>
+      <tr><td>Required fields</td><td><code>level</code>, <code>time</code>, <code>pid</code>, <code>hostname</code>, <code>name</code> (service), <code>service_name</code>, <code>environment</code>, <code>version</code>, <code>request_id</code>, <code>correlation_id</code>, <code>trace_id</code>, <code>span_id</code>, <code>msg</code></td></tr>
+      <tr><td>HTTP request fields</td><td><code>method</code>, <code>url</code>, <code>statusCode</code>, <code>duration_ms</code></td></tr>
+      <tr><td>Error fields</td><td><code>error_type</code>, <code>error_code</code>, <code>stack</code> (error level only)</td></tr>
+      <tr><td>Sensitive data</td><td>Auto-redacted: <code>password</code>, <code>token</code>, <code>secret</code>, <code>authorization</code>, <code>cookie</code></td></tr>
+      <tr><td>Level usage</td><td><strong>info:</strong> request lifecycle, business events. <strong>warn:</strong> 4xx, degraded state. <strong>error:</strong> 5xx, unhandled exceptions. <strong>debug:</strong> disabled in production.</td></tr>
+    </table>
+  </div>
+
+  <h3>Appendix E &mdash; Tracing Standards</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Standard</th><th>Specification</th></tr>
+      <tr><td>Protocol</td><td>W3C TraceContext (<code>traceparent</code> header)</td></tr>
+      <tr><td>Export</td><td>OTLP/HTTP to OTel Collector at <code>:4318</code></td></tr>
+      <tr><td>Sampling</td><td>Configurable per service. Default: 100% in staging, 10&ndash;100% in production.</td></tr>
+      <tr><td>Span naming</td><td>HTTP: <code>METHOD /path</code>. Kafka: <code>topic send/receive</code>. DB: <code>Sequelize: OPERATION table</code>. Cron: <code>scheduled/cron/jobName</code>.</td></tr>
+      <tr><td>Required attributes</td><td><code>service.name</code>, <code>service.version</code>, <code>deployment.environment</code></td></tr>
+      <tr><td>Error recording</td><td>Span status set to ERROR + exception recorded as span event</td></tr>
+    </table>
+  </div>
+
+  <h3>Appendix F &mdash; Dashboard Checklist</h3>
+  <ul class="checklist">
+    <li>Service Overview (RED) dashboard created</li>
+    <li>Node.js Runtime dashboard created</li>
+    <li>Dependencies dashboard created</li>
+    <li>Logs &amp; Traces dashboard created</li>
+    <li>Business Metrics dashboard created (if applicable)</li>
+    <li>Availability dashboard created</li>
+    <li>All dashboards use consistent naming: <code>{ServiceName} &mdash; {Dashboard Type}</code></li>
+    <li>All dashboards have service name variable selector</li>
+    <li>All dashboards have time range selector</li>
+    <li>Exemplar links configured (metrics → traces)</li>
+    <li>Derived fields configured in Loki (logs → traces)</li>
+  </ul>
+
+  <h3>Appendix G &mdash; Migration Checklist</h3>
+  <p>See <a href="#s14">Section 14 &mdash; Migration Playbook</a> for the full checklist.</p>
+
+  <h3>Appendix H &mdash; Rollback Checklist</h3>
+  <ul class="checklist">
+    <li>Previous deployment artifact identified and available</li>
+    <li>Rollback command documented and tested in staging</li>
+    <li>Rollback trigger defined (error rate threshold, service-down, etc.)</li>
+    <li>Communication plan: who to notify, which channels</li>
+    <li>Post-rollback verification: error rate baseline, health check, log output</li>
+    <li>Root cause analysis initiated within 24 hours</li>
+  </ul>
+
+  <h3>Appendix I &mdash; Definition of Done Checklist</h3>
+  <p>See <a href="#s20">Section 20 &mdash; Definition of Done</a> for the full checklist.</p>
+
+  <p style="margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.82rem;">
+    Observability SDK Migration Project Plan &middot; Tugane Platform, BRD Rwanda &middot; Last updated: July 2026
+  </p>
+</div>
+
+<script>
+// Highlight active TOC item on scroll
+const sections = document.querySelectorAll('h2[id]');
+const links = document.querySelectorAll('.sidebar a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const id = entry.target.getAttribute('id');
+      const link = document.querySelector(`.sidebar a[href="#${id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
