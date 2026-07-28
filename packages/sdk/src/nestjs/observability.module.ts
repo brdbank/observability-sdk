@@ -6,7 +6,7 @@ import {
   type MiddlewareConsumer,
   type NestModule,
 } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, DiscoveryModule } from '@nestjs/core';
 import type { ObservabilityConfig, ResolvedConfig } from '../core/types';
 import {
   OBSERVABILITY_CONFIG,
@@ -26,6 +26,7 @@ import { LoggingInterceptor } from './logging.interceptor';
 import { TracingInterceptor } from './tracing.interceptor';
 import { MetricsInterceptor } from './metrics.interceptor';
 import { ObservabilityExceptionFilter } from './exception.filter';
+import { ScheduleTracingService } from './schedule-tracing.service';
 
 let initialized = false;
 
@@ -59,6 +60,7 @@ export class ObservabilityModule implements NestModule, OnModuleDestroy {
     return {
       module: ObservabilityModule,
       global: true,
+      imports: resolved.tracing.enabled ? [DiscoveryModule] : [],
       controllers,
       providers: [
         { provide: OBSERVABILITY_CONFIG, useValue: resolved },
@@ -96,7 +98,10 @@ export class ObservabilityModule implements NestModule, OnModuleDestroy {
         },
         ContextMiddleware,
         ...(resolved.tracing.enabled
-          ? [{ provide: APP_INTERCEPTOR, useClass: TracingInterceptor }]
+          ? [
+              { provide: APP_INTERCEPTOR, useClass: TracingInterceptor },
+              ScheduleTracingService,
+            ]
           : []),
         {
           provide: APP_INTERCEPTOR,
