@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Integration Checklist — @brdrwanda/observability</title>
+  <title>Service Migration Reference — @brdrwanda/observability</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -16,6 +16,9 @@
       --code-bg: #f1f5f9;
       --code-block-bg: #0f172a;
       --code-block-text: #e2e8f0;
+      --success: #059669;
+      --warn: #d97706;
+      --error: #dc2626;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +34,7 @@
 
     .sidebar {
       width: 280px;
-      height: 100vh;
+      min-height: 100vh;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--border);
       padding: 24px 0;
@@ -61,7 +64,7 @@
       margin-top: 4px;
     }
 
-    .sidebar-nav a {
+    .sidebar a {
       display: block;
       padding: 8px 20px;
       color: var(--muted);
@@ -72,12 +75,12 @@
       border-left: 3px solid transparent;
     }
 
-    .sidebar-nav a:hover {
+    .sidebar a:hover {
       color: var(--text);
       background: var(--accent-light);
     }
 
-    .sidebar-nav a.active {
+    .sidebar a.active {
       color: var(--accent);
       border-left-color: var(--accent);
       background: var(--accent-light);
@@ -123,6 +126,8 @@
       margin-top: 24px;
       margin-bottom: 8px;
       color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     p { margin-bottom: 16px; font-size: 15px; }
@@ -169,6 +174,8 @@
       border: 1px solid var(--border);
       font-weight: 600;
       font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
       color: var(--muted);
     }
 
@@ -185,7 +192,10 @@
       margin-bottom: 16px;
     }
 
-    li { margin-bottom: 6px; font-size: 15px; }
+    li {
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
 
     blockquote {
       border-left: 3px solid var(--accent);
@@ -207,21 +217,16 @@
 
     strong { font-weight: 600; }
 
-    /* Checkboxes in tables */
-    td:has(code) code { font-size: 12px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
 
     @media (max-width: 900px) {
-      .sidebar {
-        position: static;
-        width: 100%;
-        min-height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-      }
-      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
-      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
-      .sidebar-nav a.active { border-left: none; }
-      body { flex-direction: column; }
+      .sidebar { display: none; }
       .content { margin-left: 0; padding: 24px; }
     }
 
@@ -238,947 +243,909 @@
       <p>SDK Documentation</p>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" id="nav-index">Home</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
-      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
-      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
-      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
-      <a href="logging.html" id="nav-logging">Structured Logging</a>
-      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
-      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
-      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
-      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
-      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
-      <a href="migration.html" id="nav-migration">Migration Guide</a>
-      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
-      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
-      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
-      <a href="infrastructure.html" id="nav-infrastructure">Infrastructure Guide</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
-      <a href="architecture.html" id="nav-architecture">How It Works</a>
-      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
-      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
-      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
-      <a href="testing.html" id="nav-testing">Testing</a>
-      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+      <a href="index.html">Documentation Home</a>
+          <a href="getting-started.html">Getting Started</a>
+          <a href="configuration.html">Configuration</a>
+          <a href="logging.html">Logging</a>
+          <a href="tracing.html">Distributed Tracing</a>
+          <a href="metrics.html">Metrics</a>
+          <a href="instrumentations.html">Instrumentations</a>
+          <a href="error-handling.html">Error Handling</a>
+          <a href="alerting.html">Alerting</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="architecture-decisions.html">Architecture Decisions</a>
+          <a href="migration.html">Migration Guide</a>
+          <a href="migration-per-service.html" class="active">Service Migration Reference</a>
+          <a href="deployment-pm2.html">Deployment</a>
+          <a href="sdk-explained.html">SDK Internals</a>
+          <a href="sdk-deployment.html">SDK Deployment</a>
+          <a href="standalone.html">Standalone Mode</a>
+          <a href="testing.html">Testing</a>
+          <a href="troubleshooting.html">Troubleshooting</a>
+          <a href="CHANGELOG.html">Changelog</a>
     </div>
   </nav>
   <main class="content">
-    <h1 id="sdk-integration--migration-checklist">SDK Integration &amp; Migration Checklist</h1>
-    <p>A step-by-step implementation guide for integrating <code>@brdrwanda/observability</code> into any BRD NestJS service. Each step documents the objective, files to modify, example code, what to verify, and common pitfalls.</p>
-    <p>For background on why this migration is needed, see the <a href="migration.html">Migration Guide</a>.</p>
-    <hr />
-    <h2 id="table-of-contents">Table of Contents</h2>
-    <ol>
-    <li><a href="#step-1-install-the-sdk">Step 1: Install the SDK</a></li>
-    <li><a href="#step-2-configure-maints">Step 2: Configure main.ts</a></li>
-    <li><a href="#step-3-configure-appmodulets">Step 3: Configure app.module.ts</a></li>
-    <li><a href="#step-4-remove-old-logging-infrastructure">Step 4: Remove old logging infrastructure</a></li>
-    <li><a href="#step-5-replace-logger-usage-in-services-and-controllers">Step 5: Replace logger usage in services and controllers</a></li>
-    <li><a href="#step-6-add-database-instrumentation">Step 6: Add database instrumentation</a></li>
-    <li><a href="#step-7-add-kafka-trace-propagation">Step 7: Add Kafka trace propagation</a></li>
-    <li><a href="#step-8-add-external-api-tracing">Step 8: Add external API tracing</a></li>
-    <li><a href="#step-9-replace-consolelog-statements">Step 9: Replace console.log statements</a></li>
-    <li><a href="#step-10-configure-deployment-pm2--docker">Step 10: Configure deployment (PM2 / Docker)</a></li>
-    <li><a href="#step-11-final-verification">Step 11: Final verification</a></li>
-    <li><a href="#files-to-delete-checklist">Files to delete checklist</a></li>
-    <li><a href="#common-pitfalls">Common pitfalls</a></li>
-    </ol>
-    <hr />
-    <h2 id="step-1-install-the-sdk">Step 1: Install the SDK</h2>
-    <h3 id="objective">Objective</h3>
-    <p>Add <code>@brdrwanda/observability</code> and any instrumentation peer dependencies your service needs.</p>
-    <h3 id="files-to-modify">Files to modify</h3>
-    <ul>
-    <li><code>package.json</code></li>
-    </ul>
-    <h3 id="what-to-do">What to do</h3>
-    <pre class="bash"><code># Install the SDK
-    npm install @brdrwanda/observability
+    <h1>SDK Integration &amp; Migration Checklist</h1>
+<p>A step-by-step implementation guide for integrating <code>@brdrwanda/observability</code> into any BRD NestJS service. Each step documents the objective, files to modify, example code, what to verify, and common pitfalls.</p>
+<p>For background on why this migration is needed, see the <a href="migration.html">Migration Guide</a>.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#step-1-install-the-sdk">Step 1: Install the SDK</a></li>
+<li><a href="#step-2-configure-maints">Step 2: Configure main.ts</a></li>
+<li><a href="#step-3-configure-appmodulets">Step 3: Configure app.module.ts</a></li>
+<li><a href="#step-4-remove-old-logging-infrastructure">Step 4: Remove old logging infrastructure</a></li>
+<li><a href="#step-5-replace-logger-usage-in-services-and-controllers">Step 5: Replace logger usage in services and controllers</a></li>
+<li><a href="#step-6-add-database-instrumentation">Step 6: Add database instrumentation</a></li>
+<li><a href="#step-7-add-kafka-trace-propagation">Step 7: Add Kafka trace propagation</a></li>
+<li><a href="#step-8-add-external-api-tracing">Step 8: Add external API tracing</a></li>
+<li><a href="#step-9-replace-consolelog-statements">Step 9: Replace console.log statements</a></li>
+<li><a href="#step-10-configure-deployment-pm2--docker">Step 10: Configure deployment (PM2 / Docker)</a></li>
+<li><a href="#step-11-final-verification">Step 11: Final verification</a></li>
+<li><a href="#files-to-delete-checklist">Files to delete checklist</a></li>
+<li><a href="#common-pitfalls">Common pitfalls</a></li>
+</ol>
+<hr>
+<h2>Step 1: Install the SDK</h2>
+<h3>Objective</h3>
+<p>Add <code>@brdrwanda/observability</code> and any instrumentation peer dependencies your service needs.</p>
+<h3>Files to modify</h3>
+<ul>
+<li><code>package.json</code></li>
+</ul>
+<h3>What to do</h3>
+<pre><code class="language-bash"># Install the SDK
+npm install @brdrwanda/observability
 
-    # Remove old logging packages
-    npm uninstall winston nest-winston winston-daily-rotate-file morgan
+# Remove old logging packages
+npm uninstall winston nest-winston winston-daily-rotate-file morgan
 
-    # Add optional peer dependencies based on your service&#39;s stack
-    npm install -D pino-pretty                                          # pretty dev logs
-    npm install opentelemetry-instrumentation-sequelize                 # if using Sequelize
-    npm install @opentelemetry/instrumentation-ioredis                  # if using Redis
-    npm install @opentelemetry/instrumentation-kafkajs                  # if using KafkaJS
-    npm install @opentelemetry/instrumentation-mysql2                   # if using MySQL
-    npm install @opentelemetry/instrumentation-pg                       # if using PostgreSQL
-    </code></pre>
-    <p>If replacing an older SDK version under a different npm scope:</p>
-    <pre class="bash"><code>npm uninstall @old-scope/observability
-    npm install @brdrwanda/observability
-    </code></pre>
-    <h3 id="how-to-verify">How to verify</h3>
-    <ul>
-    <li><code>npm ls @brdrwanda/observability</code> shows the package installed</li>
-    <li>No peer dependency warnings related to <code>@nestjs/common</code> or <code>@nestjs/core</code></li>
-    <li><code>npm ls winston</code> shows "empty" (uninstalled)</li>
-    </ul>
-    <h3 id="pitfalls">Pitfalls</h3>
-    <ul>
-    <li>Don't remove <code>morgan</code> or <code>winston</code> before completing the other steps — the service will break if old code still references them</li>
-    <li>If your service has <code>@opentelemetry/*</code> packages already installed, check for version conflicts</li>
-    </ul>
-    <hr />
-    <h2 id="step-2-configure-maints">Step 2: Configure main.ts</h2>
-    <h3 id="objective-1">Objective</h3>
-    <p>Set up process error handlers (catches bootstrap crashes), enable log buffering, and replace the NestJS logger with the SDK's Pino logger.</p>
-    <h3 id="files-to-modify-1">Files to modify</h3>
-    <ul>
-    <li><code>src/main.ts</code></li>
-    </ul>
-    <h3 id="before-typical-existing-service">Before (typical existing service)</h3>
-    <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
-    import { AppModule } from &#39;./app.module&#39;;
+# Add optional peer dependencies based on your service&#39;s stack
+npm install -D pino-pretty                                          # pretty dev logs
+npm install opentelemetry-instrumentation-sequelize                 # if using Sequelize
+npm install @opentelemetry/instrumentation-ioredis                  # if using Redis
+npm install @opentelemetry/instrumentation-kafkajs                  # if using KafkaJS
+npm install @opentelemetry/instrumentation-mysql2                   # if using MySQL
+npm install @opentelemetry/instrumentation-pg                       # if using PostgreSQL
+</code></pre>
+<p>If replacing an older SDK version under a different npm scope:</p>
+<pre><code class="language-bash">npm uninstall @old-scope/observability
+npm install @brdrwanda/observability
+</code></pre>
+<h3>How to verify</h3>
+<ul>
+<li><code>npm ls @brdrwanda/observability</code> shows the package installed</li>
+<li>No peer dependency warnings related to <code>@nestjs/common</code> or <code>@nestjs/core</code></li>
+<li><code>npm ls winston</code> shows &quot;empty&quot; (uninstalled)</li>
+</ul>
+<h3>Pitfalls</h3>
+<ul>
+<li>Don&#39;t remove <code>morgan</code> or <code>winston</code> before completing the other steps — the service will break if old code still references them</li>
+<li>If your service has <code>@opentelemetry/*</code> packages already installed, check for version conflicts</li>
+</ul>
+<hr>
+<h2>Step 2: Configure main.ts</h2>
+<h3>Objective</h3>
+<p>Set up process error handlers (catches bootstrap crashes), enable log buffering, and replace the NestJS logger with the SDK&#39;s Pino logger.</p>
+<h3>Files to modify</h3>
+<ul>
+<li><code>src/main.ts</code></li>
+</ul>
+<h3>Before (typical existing service)</h3>
+<pre><code class="language-typescript">import { NestFactory } from &#39;@nestjs/core&#39;;
+import { AppModule } from &#39;./app.module&#39;;
 
-    async function bootstrap() {
-      const app = await NestFactory.create(AppModule);
-      app.useGlobalFilters(new HttpExceptionFilter());
-      await app.listen(3000);
-      console.log(&#39;Service running on port 3000&#39;);
-    }
-    bootstrap();
-    </code></pre>
-    <h3 id="after">After</h3>
-    <pre class="typescript"><code>import { NestFactory } from &#39;@nestjs/core&#39;;
-    import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
-    import { AppModule } from &#39;./app.module&#39;;
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new HttpExceptionFilter());
+  await app.listen(3000);
+  console.log(&#39;Service running on port 3000&#39;);
+}
+bootstrap();
+</code></pre>
+<h3>After</h3>
+<pre><code class="language-typescript">import { NestFactory } from &#39;@nestjs/core&#39;;
+import { setupProcessErrorHandlers, NestPinoLogger } from &#39;@brdrwanda/observability&#39;;
+import { AppModule } from &#39;./app.module&#39;;
 
-    setupProcessErrorHandlers({ serviceName: &#39;your-service-name&#39; });
+setupProcessErrorHandlers({ serviceName: &#39;your-service-name&#39; });
 
-    async function bootstrap() {
-      const app = await NestFactory.create(AppModule, { bufferLogs: true });
-      app.useLogger(app.get(NestPinoLogger));
-      await app.listen(3000);
-    }
-    bootstrap();
-    </code></pre>
-    <h3 id="what-changed">What changed</h3>
-    <ul>
-    <li><code>setupProcessErrorHandlers()</code> added <strong>before</strong> <code>bootstrap()</code> — catches <code>uncaughtException</code> and <code>unhandledRejection</code> as structured JSON</li>
-    <li><code>{ bufferLogs: true }</code> added — buffers logs during startup until the Pino logger is ready</li>
-    <li><code>app.useLogger(app.get(NestPinoLogger))</code> — replaces NestJS's default logger with the SDK</li>
-    <li><code>app.useGlobalFilters(new HttpExceptionFilter())</code> <strong>removed</strong> — the SDK registers its own global exception filter</li>
-    <li><code>console.log</code> <strong>removed</strong> — the SDK logs startup events automatically</li>
-    </ul>
-    <h3 id="how-to-verify-1">How to verify</h3>
-    <ol>
-    <li>Start the service: <code>npm run start:dev</code></li>
-    <li>Check that logs are <strong>structured JSON</strong> (not plain text):
-    <pre class="json"><code>{&quot;level&quot;:&quot;info&quot;,&quot;time&quot;:&quot;2026-07-02T10:00:00.000Z&quot;,&quot;service_name&quot;:&quot;your-service-name&quot;,&quot;msg&quot;:&quot;request started&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;url&quot;:&quot;/health&quot;}
-    </code></pre></li>
-    <li>If <code>prettyPrint</code> is enabled (default in dev), logs appear as colorized readable output</li>
-    <li>Kill the process with <code>kill -9</code> and verify that <code>setupProcessErrorHandlers</code> outputs a <code>fatal</code>-level JSON log</li>
-    </ol>
-    <h3 id="pitfalls-1">Pitfalls</h3>
-    <ul>
-    <li><code>setupProcessErrorHandlers()</code> must be called <strong>outside</strong> <code>bootstrap()</code>, at the top level — otherwise it won't catch errors during module initialization</li>
-    <li>Don't forget <code>{ bufferLogs: true }</code> — without it, early startup logs bypass the SDK</li>
-    <li>Remove <code>app.useGlobalFilters(new HttpExceptionFilter())</code> — having two global filters causes double error logging</li>
-    <li>If your service runs a Kafka microservice transport alongside HTTP, preserve the <code>app.connectMicroservice()</code> calls</li>
-    </ul>
-    <hr />
-    <h2 id="step-3-configure-appmodulets">Step 3: Configure app.module.ts</h2>
-    <h3 id="objective-2">Objective</h3>
-    <p>Add <code>ObservabilityModule.forRoot()</code> with service-specific configuration. Remove Morgan middleware and old exception filter providers.</p>
-    <h3 id="files-to-modify-2">Files to modify</h3>
-    <ul>
-    <li><code>src/app.module.ts</code></li>
-    </ul>
-    <h3 id="before">Before</h3>
-    <pre class="typescript"><code>import { Module, NestModule, MiddlewareConsumer } from &#39;@nestjs/common&#39;;
-    import { APP_FILTER } from &#39;@nestjs/core&#39;;
-    import { MorganMiddleware } from &#39;./middlewares/morgan.middleware&#39;;
-    import { HttpExceptionFilter } from &#39;./filters/http.exception.filter&#39;;
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(NestPinoLogger));
+  await app.listen(3000);
+}
+bootstrap();
+</code></pre>
+<h3>What changed</h3>
+<ul>
+<li><code>setupProcessErrorHandlers()</code> added <strong>before</strong> <code>bootstrap()</code> — catches <code>uncaughtException</code> and <code>unhandledRejection</code> as structured JSON</li>
+<li><code>{ bufferLogs: true }</code> added — buffers logs during startup until the Pino logger is ready</li>
+<li><code>app.useLogger(app.get(NestPinoLogger))</code> — replaces NestJS&#39;s default logger with the SDK</li>
+<li><code>app.useGlobalFilters(new HttpExceptionFilter())</code> <strong>removed</strong> — the SDK registers its own global exception filter</li>
+<li><code>console.log</code> <strong>removed</strong> — the SDK logs startup events automatically</li>
+</ul>
+<h3>How to verify</h3>
+<ol>
+<li>Start the service: <code>npm run start:dev</code></li>
+<li>Check that logs are <strong>structured JSON</strong> (not plain text):<pre><code class="language-json">{&quot;level&quot;:&quot;info&quot;,&quot;time&quot;:&quot;2026-07-02T10:00:00.000Z&quot;,&quot;service_name&quot;:&quot;your-service-name&quot;,&quot;msg&quot;:&quot;request started&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;url&quot;:&quot;/health&quot;}
+</code></pre>
+</li>
+<li>If <code>prettyPrint</code> is enabled (default in dev), logs appear as colorized readable output</li>
+<li>Kill the process with <code>kill -9</code> and verify that <code>setupProcessErrorHandlers</code> outputs a <code>fatal</code>-level JSON log</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li><code>setupProcessErrorHandlers()</code> must be called <strong>outside</strong> <code>bootstrap()</code>, at the top level — otherwise it won&#39;t catch errors during module initialization</li>
+<li>Don&#39;t forget <code>{ bufferLogs: true }</code> — without it, early startup logs bypass the SDK</li>
+<li>Remove <code>app.useGlobalFilters(new HttpExceptionFilter())</code> — having two global filters causes double error logging</li>
+<li>If your service runs a Kafka microservice transport alongside HTTP, preserve the <code>app.connectMicroservice()</code> calls</li>
+</ul>
+<hr>
+<h2>Step 3: Configure app.module.ts</h2>
+<h3>Objective</h3>
+<p>Add <code>ObservabilityModule.forRoot()</code> with service-specific configuration. Remove Morgan middleware and old exception filter providers.</p>
+<h3>Files to modify</h3>
+<ul>
+<li><code>src/app.module.ts</code></li>
+</ul>
+<h3>Before</h3>
+<pre><code class="language-typescript">import { Module, NestModule, MiddlewareConsumer } from &#39;@nestjs/common&#39;;
+import { APP_FILTER } from &#39;@nestjs/core&#39;;
+import { MorganMiddleware } from &#39;./middlewares/morgan.middleware&#39;;
+import { HttpExceptionFilter } from &#39;./filters/http.exception.filter&#39;;
 
-    @Module({
-      imports: [/* ... */],
-      providers: [
-        { provide: APP_FILTER, useClass: HttpExceptionFilter },
+@Module({
+  imports: [/* ... */],
+  providers: [
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes(&#39;*&#39;);
+  }
+}
+</code></pre>
+<h3>After</h3>
+<pre><code class="language-typescript">import { Module } from &#39;@nestjs/common&#39;;
+import {
+  ObservabilityModule,
+  ObservabilityHealthModule,
+  httpInstrumentation,
+  sequelizeInstrumentation,   // add if using Sequelize
+  kafkaInstrumentation,       // add if using Kafka
+  redisInstrumentation,       // add if using Redis
+} from &#39;@brdrwanda/observability&#39;;
+
+@Module({
+  imports: [
+    ObservabilityModule.forRoot({
+      serviceName: &#39;your-service-name&#39;,
+      instrumentations: [
+        httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
+        sequelizeInstrumentation({ slowQueryThreshold: 1000 }),  // if applicable
+        kafkaInstrumentation(),                                   // if applicable
+        redisInstrumentation(),                                   // if applicable
       ],
-    })
-    export class AppModule implements NestModule {
-      configure(consumer: MiddlewareConsumer) {
-        consumer.apply(MorganMiddleware).forRoutes(&#39;*&#39;);
-      }
+      clientOrigins: {
+        &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39;,      // map frontend origins
+        &#39;https://admin.brd.rw&#39;: &#39;admin-web&#39;,
+      },
+    }),
+    ObservabilityHealthModule,
+    // ... your other modules
+  ],
+})
+export class AppModule {}
+</code></pre>
+<h3>What changed</h3>
+<ul>
+<li><code>ObservabilityModule.forRoot()</code> added — wires up logging, tracing, metrics, context middleware</li>
+<li><code>ObservabilityHealthModule</code> added — provides <code>/health</code> endpoint</li>
+<li><code>APP_FILTER</code> with <code>HttpExceptionFilter</code> <strong>removed</strong> — SDK has its own</li>
+<li><code>MorganMiddleware</code> <strong>removed</strong> — SDK&#39;s <code>LoggingInterceptor</code> replaces it with structured request logging</li>
+<li><code>implements NestModule</code> + <code>configure()</code> <strong>removed</strong> — no middleware to register manually</li>
+<li>Instrumentations added for service&#39;s specific tech stack</li>
+</ul>
+<h3>How to verify</h3>
+<ol>
+<li>Start the service and hit any endpoint:<pre><code class="language-bash">curl http://localhost:3000/health
+</code></pre>
+</li>
+<li>Check that you see structured logs with <code>service_name</code>, <code>trace_id</code>, <code>request_id</code></li>
+<li>Check <code>http://localhost:3000/metrics</code> returns Prometheus metrics:<pre><code>http_requests_total{method=&quot;GET&quot;,route=&quot;/health&quot;,status_code=&quot;200&quot;} 1
+</code></pre>
+</li>
+<li>Check <code>http://localhost:3000/health</code> returns:<pre><code class="language-json">{&quot;status&quot;:&quot;ok&quot;,&quot;info&quot;:{},&quot;error&quot;:{},&quot;details&quot;:{}}
+</code></pre>
+</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>Use the exact <code>serviceName</code> that matches your deployment name — it appears in every log and metric</li>
+<li>Don&#39;t add instrumentations for technologies your service doesn&#39;t use — they log debug warnings about missing packages</li>
+<li>If your service previously had <code>MorganMiddleware</code> in a <code>configure()</code> method and that was the only middleware, you can remove <code>implements NestModule</code> entirely</li>
+</ul>
+<hr>
+<h2>Step 4: Remove old logging infrastructure</h2>
+<h3>Objective</h3>
+<p>Delete files that the SDK replaces. These files are now dead code.</p>
+<h3>Files to delete</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Replaced by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>src/logger/logger.service.ts</code></td>
+<td><code>ObservabilityLogger</code> from SDK</td>
+</tr>
+<tr>
+<td><code>src/logger/logger.module.ts</code></td>
+<td><code>ObservabilityModule</code> (if this file exists)</td>
+</tr>
+<tr>
+<td><code>src/filters/http.exception.filter.ts</code></td>
+<td><code>ObservabilityExceptionFilter</code> from SDK</td>
+</tr>
+<tr>
+<td><code>src/middlewares/morgan.middleware.ts</code></td>
+<td><code>LoggingInterceptor</code> from SDK (auto-request logging)</td>
+</tr>
+<tr>
+<td><code>src/utils/logging.util.ts</code></td>
+<td>AsyncLocalStorage context from SDK (if <code>createLoggingContextWithId</code> exists)</td>
+</tr>
+</tbody></table>
+<h3>How to verify</h3>
+<ol>
+<li>Run <code>npx tsc --noEmit</code> — no compilation errors referencing deleted files</li>
+<li>Search for dangling imports:<pre><code class="language-bash">grep -rn &quot;logger.service\|logger.module\|http.exception.filter\|morgan.middleware\|logging.util&quot; src/ --include=&quot;*.ts&quot;
+</code></pre>
+</li>
+<li>Result should be empty — if not, fix the remaining imports</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>Some services import <code>LoggerService</code> in the barrel <code>index.ts</code> files — check those too</li>
+<li>If <code>HttpExceptionFilter</code> was registered with <code>APP_FILTER</code> in <code>app.module.ts</code>, make sure you removed the provider (Step 3)</li>
+<li>If <code>LoggerModule</code> was a dynamic module used in other modules, remove those imports too</li>
+</ul>
+<hr>
+<h2>Step 5: Replace logger usage in services and controllers</h2>
+<h3>Objective</h3>
+<p>Replace all <code>LoggerService</code>, <code>handleInfoLog</code>, <code>handlErrorLog</code>, and <code>createLoggingContextWithId</code> patterns with <code>ObservabilityLogger</code>.</p>
+<h3>Files to modify</h3>
+<ul>
+<li>Every service and controller that uses the old logger</li>
+</ul>
+<h3>Find all files that need changes</h3>
+<pre><code class="language-bash">grep -rn &quot;LoggerService\|handleInfoLog\|handlErrorLog\|handleWarnLog\|createLoggingContextWithId&quot; src/ --include=&quot;*.ts&quot;
+</code></pre>
+<h3>Before</h3>
+<pre><code class="language-typescript">import { LoggerService } from &#39;../logger/logger.service&#39;;
+import { createLoggingContextWithId } from &#39;../utils/logging.util&#39;;
+
+@Injectable()
+export class LoanService {
+  private loggerService = new LoggerService(&#39;LoanService&#39;);
+
+  async approveLoan(loanId: string) {
+    const loggingContext = createLoggingContextWithId(&#39;approveLoan&#39;, { loanId });
+    this.loggerService.handleInfoLog(&#39;Processing loan approval&#39;, loggingContext);
+
+    try {
+      const result = await this.loanRepository.approve(loanId);
+      this.loggerService.handleInfoLog(&#39;Loan approved successfully&#39;, {
+        ...loggingContext,
+        status: result.status,
+      });
+      return result;
+    } catch (error) {
+      this.loggerService.handlErrorLog(&#39;Loan approval failed&#39;, {
+        ...loggingContext,
+        error: error.message,
+      });
+      throw error;
     }
-    </code></pre>
-    <h3 id="after-1">After</h3>
-    <pre class="typescript"><code>import { Module } from &#39;@nestjs/common&#39;;
-    import {
-      ObservabilityModule,
-      ObservabilityHealthModule,
-      httpInstrumentation,
-      sequelizeInstrumentation,   // add if using Sequelize
-      kafkaInstrumentation,       // add if using Kafka
-      redisInstrumentation,       // add if using Redis
-    } from &#39;@brdrwanda/observability&#39;;
+  }
+}
+</code></pre>
+<h3>After</h3>
+<pre><code class="language-typescript">import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 
-    @Module({
-      imports: [
-        ObservabilityModule.forRoot({
-          serviceName: &#39;your-service-name&#39;,
-          instrumentations: [
-            httpInstrumentation({ ignoreIncomingPaths: [&#39;/health&#39;, &#39;/metrics&#39;] }),
-            sequelizeInstrumentation({ slowQueryThreshold: 1000 }),  // if applicable
-            kafkaInstrumentation(),                                   // if applicable
-            redisInstrumentation(),                                   // if applicable
-          ],
-          clientOrigins: {
-            &#39;https://tugane.brd.rw&#39;: &#39;tugane-web&#39;,      // map frontend origins
-            &#39;https://admin.brd.rw&#39;: &#39;admin-web&#39;,
-          },
-        }),
-        ObservabilityHealthModule,
-        // ... your other modules
-      ],
-    })
-    export class AppModule {}
-    </code></pre>
-    <h3 id="what-changed-1">What changed</h3>
-    <ul>
-    <li><code>ObservabilityModule.forRoot()</code> added — wires up logging, tracing, metrics, context middleware</li>
-    <li><code>ObservabilityHealthModule</code> added — provides <code>/health</code> endpoint</li>
-    <li><code>APP_FILTER</code> with <code>HttpExceptionFilter</code> <strong>removed</strong> — SDK has its own</li>
-    <li><code>MorganMiddleware</code> <strong>removed</strong> — SDK's <code>LoggingInterceptor</code> replaces it with structured request logging</li>
-    <li><code>implements NestModule</code> + <code>configure()</code> <strong>removed</strong> — no middleware to register manually</li>
-    <li>Instrumentations added for service's specific tech stack</li>
-    </ul>
-    <h3 id="how-to-verify-2">How to verify</h3>
-    <ol>
-    <li>Start the service and hit any endpoint:
-    <pre class="bash"><code>curl http://localhost:3000/health
-    </code></pre></li>
-    <li>Check that you see structured logs with <code>service_name</code>, <code>trace_id</code>, <code>request_id</code></li>
-    <li>Check <code>http://localhost:3000/metrics</code> returns Prometheus metrics:
-    <pre><code>http_requests_total{method=&quot;GET&quot;,route=&quot;/health&quot;,status_code=&quot;200&quot;} 1
-    </code></pre></li>
-    <li>Check <code>http://localhost:3000/health</code> returns:
-    <pre class="json"><code>{&quot;status&quot;:&quot;ok&quot;,&quot;info&quot;:{},&quot;error&quot;:{},&quot;details&quot;:{}}
-    </code></pre></li>
-    </ol>
-    <h3 id="pitfalls-2">Pitfalls</h3>
-    <ul>
-    <li>Use the exact <code>serviceName</code> that matches your deployment name — it appears in every log and metric</li>
-    <li>Don't add instrumentations for technologies your service doesn't use — they log debug warnings about missing packages</li>
-    <li>If your service previously had <code>MorganMiddleware</code> in a <code>configure()</code> method and that was the only middleware, you can remove <code>implements NestModule</code> entirely</li>
-    </ul>
-    <hr />
-    <h2 id="step-4-remove-old-logging-infrastructure">Step 4: Remove old logging infrastructure</h2>
-    <h3 id="objective-3">Objective</h3>
-    <p>Delete files that the SDK replaces. These files are now dead code.</p>
-    <h3 id="files-to-delete">Files to delete</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>File</th>
-    <th>Replaced by</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><code>src/logger/logger.service.ts</code></td>
-    <td><code>ObservabilityLogger</code> from SDK</td>
-    </tr>
-    <tr class="even">
-    <td><code>src/logger/logger.module.ts</code></td>
-    <td><code>ObservabilityModule</code> (if this file exists)</td>
-    </tr>
-    <tr class="odd">
-    <td><code>src/filters/http.exception.filter.ts</code></td>
-    <td><code>ObservabilityExceptionFilter</code> from SDK</td>
-    </tr>
-    <tr class="even">
-    <td><code>src/middlewares/morgan.middleware.ts</code></td>
-    <td><code>LoggingInterceptor</code> from SDK (auto-request logging)</td>
-    </tr>
-    <tr class="odd">
-    <td><code>src/utils/logging.util.ts</code></td>
-    <td>AsyncLocalStorage context from SDK (if <code>createLoggingContextWithId</code> exists)</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="how-to-verify-3">How to verify</h3>
-    <ol>
-    <li>Run <code>npx tsc --noEmit</code> — no compilation errors referencing deleted files</li>
-    <li>Search for dangling imports:
-    <pre class="bash"><code>grep -rn &quot;logger.service\|logger.module\|http.exception.filter\|morgan.middleware\|logging.util&quot; src/ --include=&quot;*.ts&quot;
-    </code></pre></li>
-    <li>Result should be empty — if not, fix the remaining imports</li>
-    </ol>
-    <h3 id="pitfalls-3">Pitfalls</h3>
-    <ul>
-    <li>Some services import <code>LoggerService</code> in the barrel <code>index.ts</code> files — check those too</li>
-    <li>If <code>HttpExceptionFilter</code> was registered with <code>APP_FILTER</code> in <code>app.module.ts</code>, make sure you removed the provider (Step 3)</li>
-    <li>If <code>LoggerModule</code> was a dynamic module used in other modules, remove those imports too</li>
-    </ul>
-    <hr />
-    <h2 id="step-5-replace-logger-usage-in-services-and-controllers">Step 5: Replace logger usage in services and controllers</h2>
-    <h3 id="objective-4">Objective</h3>
-    <p>Replace all <code>LoggerService</code>, <code>handleInfoLog</code>, <code>handlErrorLog</code>, and <code>createLoggingContextWithId</code> patterns with <code>ObservabilityLogger</code>.</p>
-    <h3 id="files-to-modify-3">Files to modify</h3>
-    <ul>
-    <li>Every service and controller that uses the old logger</li>
-    </ul>
-    <h3 id="find-all-files-that-need-changes">Find all files that need changes</h3>
-    <pre class="bash"><code>grep -rn &quot;LoggerService\|handleInfoLog\|handlErrorLog\|handleWarnLog\|createLoggingContextWithId&quot; src/ --include=&quot;*.ts&quot;
-    </code></pre>
-    <h3 id="before-1">Before</h3>
-    <pre class="typescript"><code>import { LoggerService } from &#39;../logger/logger.service&#39;;
-    import { createLoggingContextWithId } from &#39;../utils/logging.util&#39;;
+@Injectable()
+export class LoanService {
+  constructor(private logger: ObservabilityLogger) {}
 
-    @Injectable()
-    export class LoanService {
-      private loggerService = new LoggerService(&#39;LoanService&#39;);
+  async approveLoan(loanId: string) {
+    this.logger.info(&#39;processing loan approval&#39;, { loanId });
 
-      async approveLoan(loanId: string) {
-        const loggingContext = createLoggingContextWithId(&#39;approveLoan&#39;, { loanId });
-        this.loggerService.handleInfoLog(&#39;Processing loan approval&#39;, loggingContext);
-
-        try {
-          const result = await this.loanRepository.approve(loanId);
-          this.loggerService.handleInfoLog(&#39;Loan approved successfully&#39;, {
-            ...loggingContext,
-            status: result.status,
-          });
-          return result;
-        } catch (error) {
-          this.loggerService.handlErrorLog(&#39;Loan approval failed&#39;, {
-            ...loggingContext,
-            error: error.message,
-          });
-          throw error;
-        }
-      }
+    try {
+      const result = await this.loanRepository.approve(loanId);
+      this.logger.info(&#39;loan approved&#39;, { loanId, status: result.status });
+      return result;
+    } catch (error) {
+      this.logger.logCaughtError(error);
+      throw error;
     }
-    </code></pre>
-    <h3 id="after-2">After</h3>
-    <pre class="typescript"><code>import { ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+  }
+}
+</code></pre>
+<h3>What changed</h3>
+<ul>
+<li><code>LoggerService</code> instantiation → constructor-injected <code>ObservabilityLogger</code></li>
+<li><code>handleInfoLog(&#39;message&#39;, context)</code> → <code>logger.info(&#39;message&#39;, metadata)</code></li>
+<li><code>handlErrorLog(&#39;message&#39;, context)</code> → <code>logger.logCaughtError(error)</code> or <code>logger.error(&#39;message&#39;, metadata)</code></li>
+<li><code>createLoggingContextWithId()</code> → <strong>deleted</strong> — the SDK injects <code>request_id</code>, <code>trace_id</code>, <code>correlation_id</code> automatically via AsyncLocalStorage</li>
+<li>No need for manual context objects — every log line automatically includes service_name, trace_id, request_id, span_id</li>
+</ul>
+<h3>Method mapping</h3>
+<table>
+<thead>
+<tr>
+<th>Old pattern</th>
+<th>New pattern</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>loggerService.handleInfoLog(msg, ctx)</code></td>
+<td><code>logger.info(msg, metadata)</code></td>
+</tr>
+<tr>
+<td><code>loggerService.handlErrorLog(msg, ctx)</code></td>
+<td><code>logger.error(msg, metadata)</code></td>
+</tr>
+<tr>
+<td><code>loggerService.handleWarnLog(msg, ctx)</code></td>
+<td><code>logger.warn(msg, metadata)</code></td>
+</tr>
+<tr>
+<td><code>createLoggingContextWithId(name, data)</code></td>
+<td>Not needed — context is automatic</td>
+</tr>
+<tr>
+<td><code>new LoggerService(&#39;ClassName&#39;)</code></td>
+<td><code>constructor(private logger: ObservabilityLogger) {}</code></td>
+</tr>
+<tr>
+<td><code>catch (e) { loggerService.handlErrorLog(...) }</code></td>
+<td><code>catch (e) { logger.logCaughtError(e) }</code></td>
+</tr>
+</tbody></table>
+<h3>How to verify</h3>
+<ol>
+<li>Hit an endpoint and check that log lines include <code>trace_id</code>, <code>request_id</code>, <code>service_name</code>:<pre><code class="language-bash">curl http://localhost:3000/api/loans
+</code></pre>
+</li>
+<li>Every log line should be structured JSON with automatic context fields</li>
+<li>Error responses should include <code>traceId</code> and <code>requestId</code> in the JSON body:<pre><code class="language-json">{&quot;statusCode&quot;: 404, &quot;message&quot;: &quot;Not found&quot;, &quot;timestamp&quot;: &quot;...&quot;, &quot;requestId&quot;: &quot;...&quot;, &quot;traceId&quot;: &quot;...&quot;}
+</code></pre>
+</li>
+<li>No remaining references to old patterns:<pre><code class="language-bash">grep -rn &quot;handleInfoLog\|handlErrorLog\|createLoggingContextWithId\|LoggerService&quot; src/ --include=&quot;*.ts&quot;
+</code></pre>
+</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>Watch for the typo <code>handlErrorLog</code> (missing &#39;e&#39;) — some services use this. Grep for both spellings</li>
+<li>Controllers that use <code>const loggerService = new LoggerService(&#39;name&#39;)</code> at module scope (not DI) need to be converted to constructor injection</li>
+<li>Don&#39;t replace <code>Logger</code> from <code>@nestjs/common</code> — that&#39;s NestJS&#39;s built-in logger and still works (it routes through <code>NestPinoLogger</code> to the SDK)</li>
+</ul>
+<hr>
+<h2>Step 6: Add database instrumentation</h2>
+<h3>Objective</h3>
+<p>Enable automatic tracing and structured logging for database queries.</p>
+<h3>Files to modify</h3>
+<ul>
+<li><code>src/app.module.ts</code> (add instrumentation to config)</li>
+<li><code>src/database/database.module.ts</code> or wherever Sequelize is configured (add structured query logging)</li>
+</ul>
+<h3>Sequelize setup</h3>
+<pre><code class="language-typescript">// In your database module
+import { createSequelizeLogging, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 
-    @Injectable()
-    export class LoanService {
-      constructor(private logger: ObservabilityLogger) {}
+@Module({
+  imports: [
+    SequelizeModule.forRootAsync({
+      inject: [ObservabilityLogger],
+      useFactory: (logger: ObservabilityLogger) =&gt; ({
+        dialect: &#39;mysql&#39;,
+        // ... connection config
+        logging: createSequelizeLogging(logger, { slowQueryThreshold: 1000 }),
+        benchmark: true,
+      }),
+    }),
+  ],
+})
+export class DatabaseModule {}
+</code></pre>
+<h3>How to verify</h3>
+<ol>
+<li>Hit an endpoint that queries the database</li>
+<li>Check logs for <code>db.query</code> events at <code>debug</code> level:<pre><code class="language-json">{&quot;level&quot;:&quot;debug&quot;,&quot;msg&quot;:&quot;query executed&quot;,&quot;event&quot;:&quot;db.query&quot;,&quot;db.operation&quot;:&quot;SELECT&quot;,&quot;table&quot;:&quot;applications&quot;,&quot;duration_ms&quot;:12}
+</code></pre>
+</li>
+<li>For slow queries (&gt;1000ms threshold), check for <code>db.slow_query</code> warnings:<pre><code class="language-json">{&quot;level&quot;:&quot;warn&quot;,&quot;msg&quot;:&quot;slow query detected&quot;,&quot;event&quot;:&quot;db.slow_query&quot;,&quot;duration_ms&quot;:2340}
+</code></pre>
+</li>
+<li>If tracing is enabled, check Grafana Tempo for database spans in the trace waterfall</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>Set <code>benchmark: true</code> in Sequelize config — without it, <code>duration_ms</code> will always be 0</li>
+<li>If your service uses raw SQL alongside Sequelize, those queries won&#39;t be captured by the instrumentation unless you use <code>sequelize.query()</code></li>
+</ul>
+<hr>
+<h2>Step 7: Add Kafka trace propagation</h2>
+<h3>Objective</h3>
+<p>Propagate trace context through Kafka messages so that producer → consumer traces are linked.</p>
+<h3>Files to modify</h3>
+<ul>
+<li>Producer services (where you call <code>producer.send()</code>)</li>
+<li>Consumer controllers/services (where you handle incoming messages)</li>
+</ul>
+<h3>Producer: inject trace headers</h3>
+<pre><code class="language-typescript">import { injectKafkaHeaders } from &#39;@brdrwanda/observability&#39;;
 
-      async approveLoan(loanId: string) {
-        this.logger.info(&#39;processing loan approval&#39;, { loanId });
+// When producing messages, inject trace context into headers
+await this.producer.send({
+  topic: &#39;loan-applications&#39;,
+  messages: [{
+    key: applicationId,
+    value: JSON.stringify(payload),
+    headers: injectKafkaHeaders(),
+  }],
+});
+</code></pre>
+<h3>Consumer: extract trace context</h3>
+<pre><code class="language-typescript">import { withKafkaContext, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 
-        try {
-          const result = await this.loanRepository.approve(loanId);
-          this.logger.info(&#39;loan approved&#39;, { loanId, status: result.status });
-          return result;
-        } catch (error) {
-          this.logger.logCaughtError(error);
-          throw error;
-        }
-      }
-    }
-    </code></pre>
-    <h3 id="what-changed-2">What changed</h3>
-    <ul>
-    <li><code>LoggerService</code> instantiation → constructor-injected <code>ObservabilityLogger</code></li>
-    <li><code>handleInfoLog('message', context)</code> → <code>logger.info('message', metadata)</code></li>
-    <li><code>handlErrorLog('message', context)</code> → <code>logger.logCaughtError(error)</code> or <code>logger.error('message', metadata)</code></li>
-    <li><code>createLoggingContextWithId()</code> → <strong>deleted</strong> — the SDK injects <code>request_id</code>, <code>trace_id</code>, <code>correlation_id</code> automatically via AsyncLocalStorage</li>
-    <li>No need for manual context objects — every log line automatically includes service_name, trace_id, request_id, span_id</li>
-    </ul>
-    <h3 id="method-mapping">Method mapping</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Old pattern</th>
-    <th>New pattern</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><code>loggerService.handleInfoLog(msg, ctx)</code></td>
-    <td><code>logger.info(msg, metadata)</code></td>
-    </tr>
-    <tr class="even">
-    <td><code>loggerService.handlErrorLog(msg, ctx)</code></td>
-    <td><code>logger.error(msg, metadata)</code></td>
-    </tr>
-    <tr class="odd">
-    <td><code>loggerService.handleWarnLog(msg, ctx)</code></td>
-    <td><code>logger.warn(msg, metadata)</code></td>
-    </tr>
-    <tr class="even">
-    <td><code>createLoggingContextWithId(name, data)</code></td>
-    <td>Not needed — context is automatic</td>
-    </tr>
-    <tr class="odd">
-    <td><code>new LoggerService('ClassName')</code></td>
-    <td><code>constructor(private logger: ObservabilityLogger) {}</code></td>
-    </tr>
-    <tr class="even">
-    <td><code>catch (e) { loggerService.handlErrorLog(...) }</code></td>
-    <td><code>catch (e) { logger.logCaughtError(e) }</code></td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="how-to-verify-4">How to verify</h3>
-    <ol>
-    <li>Hit an endpoint and check that log lines include <code>trace_id</code>, <code>request_id</code>, <code>service_name</code>:
-    <pre class="bash"><code>curl http://localhost:3000/api/loans
-    </code></pre></li>
-    <li>Every log line should be structured JSON with automatic context fields</li>
-    <li>Error responses should include <code>traceId</code> and <code>requestId</code> in the JSON body:
-    <pre class="json"><code>{&quot;statusCode&quot;: 404, &quot;message&quot;: &quot;Not found&quot;, &quot;timestamp&quot;: &quot;...&quot;, &quot;requestId&quot;: &quot;...&quot;, &quot;traceId&quot;: &quot;...&quot;}
-    </code></pre></li>
-    <li>No remaining references to old patterns:
-    <pre class="bash"><code>grep -rn &quot;handleInfoLog\|handlErrorLog\|createLoggingContextWithId\|LoggerService&quot; src/ --include=&quot;*.ts&quot;
-    </code></pre></li>
-    </ol>
-    <h3 id="pitfalls-4">Pitfalls</h3>
-    <ul>
-    <li>Watch for the typo <code>handlErrorLog</code> (missing 'e') — some services use this. Grep for both spellings</li>
-    <li>Controllers that use <code>const loggerService = new LoggerService('name')</code> at module scope (not DI) need to be converted to constructor injection</li>
-    <li>Don't replace <code>Logger</code> from <code>@nestjs/common</code> — that's NestJS's built-in logger and still works (it routes through <code>NestPinoLogger</code> to the SDK)</li>
-    </ul>
-    <hr />
-    <h2 id="step-6-add-database-instrumentation">Step 6: Add database instrumentation</h2>
-    <h3 id="objective-5">Objective</h3>
-    <p>Enable automatic tracing and structured logging for database queries.</p>
-    <h3 id="files-to-modify-4">Files to modify</h3>
-    <ul>
-    <li><code>src/app.module.ts</code> (add instrumentation to config)</li>
-    <li><code>src/database/database.module.ts</code> or wherever Sequelize is configured (add structured query logging)</li>
-    </ul>
-    <h3 id="sequelize-setup">Sequelize setup</h3>
-    <pre class="typescript"><code>// In your database module
-    import { createSequelizeLogging, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+@Controller()
+export class EventController {
+  constructor(private logger: ObservabilityLogger) {}
 
-    @Module({
-      imports: [
-        SequelizeModule.forRootAsync({
-          inject: [ObservabilityLogger],
-          useFactory: (logger: ObservabilityLogger) =&gt; ({
-            dialect: &#39;mysql&#39;,
-            // ... connection config
-            logging: createSequelizeLogging(logger, { slowQueryThreshold: 1000 }),
-            benchmark: true,
-          }),
-        }),
-      ],
-    })
-    export class DatabaseModule {}
-    </code></pre>
-    <h3 id="how-to-verify-5">How to verify</h3>
-    <ol>
-    <li>Hit an endpoint that queries the database</li>
-    <li>Check logs for <code>db.query</code> events at <code>debug</code> level:
-    <pre class="json"><code>{&quot;level&quot;:&quot;debug&quot;,&quot;msg&quot;:&quot;query executed&quot;,&quot;event&quot;:&quot;db.query&quot;,&quot;db.operation&quot;:&quot;SELECT&quot;,&quot;table&quot;:&quot;applications&quot;,&quot;duration_ms&quot;:12}
-    </code></pre></li>
-    <li>For slow queries (&gt;1000ms threshold), check for <code>db.slow_query</code> warnings:
-    <pre class="json"><code>{&quot;level&quot;:&quot;warn&quot;,&quot;msg&quot;:&quot;slow query detected&quot;,&quot;event&quot;:&quot;db.slow_query&quot;,&quot;duration_ms&quot;:2340}
-    </code></pre></li>
-    <li>If tracing is enabled, check Grafana Tempo for database spans in the trace waterfall</li>
-    </ol>
-    <h3 id="pitfalls-5">Pitfalls</h3>
-    <ul>
-    <li>Set <code>benchmark: true</code> in Sequelize config — without it, <code>duration_ms</code> will always be 0</li>
-    <li>If your service uses raw SQL alongside Sequelize, those queries won't be captured by the instrumentation unless you use <code>sequelize.query()</code></li>
-    </ul>
-    <hr />
-    <h2 id="step-7-add-kafka-trace-propagation">Step 7: Add Kafka trace propagation</h2>
-    <h3 id="objective-6">Objective</h3>
-    <p>Propagate trace context through Kafka messages so that producer → consumer traces are linked.</p>
-    <h3 id="files-to-modify-5">Files to modify</h3>
-    <ul>
-    <li>Producer services (where you call <code>producer.send()</code>)</li>
-    <li>Consumer controllers/services (where you handle incoming messages)</li>
-    </ul>
-    <h3 id="producer-inject-trace-headers">Producer: inject trace headers</h3>
-    <pre class="typescript"><code>import { injectKafkaHeaders } from &#39;@brdrwanda/observability&#39;;
+  @EventPattern(&#39;loan-applications&#39;)
+  async handleLoanApplication(@Payload() data: any, @Ctx() context: KafkaContext) {
+    const message = context.getMessage();
 
-    // When producing messages, inject trace context into headers
-    await this.producer.send({
-      topic: &#39;loan-applications&#39;,
-      messages: [{
-        key: applicationId,
-        value: JSON.stringify(payload),
-        headers: injectKafkaHeaders(),
-      }],
+    await withKafkaContext(message.headers, &#39;process-loan-application&#39;, async () =&gt; {
+      this.logger.info(&#39;processing loan application&#39;, { applicationId: data.id });
+      // All logs inside this block share the producer&#39;s trace_id
+      await this.loanService.process(data);
     });
-    </code></pre>
-    <h3 id="consumer-extract-trace-context">Consumer: extract trace context</h3>
-    <pre class="typescript"><code>import { withKafkaContext, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+  }
+}
+</code></pre>
+<h3>How to verify</h3>
+<ol>
+<li>Produce a message and consume it</li>
+<li>Check that the consumer logs have the <strong>same <code>trace_id</code></strong> as the producer logs</li>
+<li>In Grafana Tempo, the trace should show both producer and consumer spans as part of one trace</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li><code>injectKafkaHeaders()</code> reads from the <strong>active OTel context</strong> — call it inside a request handler or span, not at module initialization</li>
+<li>If using NestJS <code>ClientKafka</code> for log shipping (sending logs to Kafka topics), that pattern can be removed entirely — the SDK logs to stdout and Promtail collects them</li>
+<li>Services using the outbox pattern with direct KafkaJS (<code>new Kafka()</code>) need <code>injectKafkaHeaders()</code> added to the outbox producer</li>
+</ul>
+<hr>
+<h2>Step 8: Add external API tracing</h2>
+<h3>Objective</h3>
+<p>Create spans for outgoing HTTP calls to external services and propagate trace context so downstream services can link traces.</p>
+<h3>Files to modify</h3>
+<ul>
+<li>HTTP client wrappers (e.g., <code>AxiosService</code>, <code>HttpService</code> usage)</li>
+<li>External API call utilities</li>
+</ul>
+<h3>Add trace propagation to outgoing requests</h3>
+<pre><code class="language-typescript">import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
+import { Span } from &#39;@brdrwanda/observability&#39;;
 
-    @Controller()
-    export class EventController {
-      constructor(private logger: ObservabilityLogger) {}
+@Injectable()
+export class AxiosService {
+  @Span(&#39;external-api-call&#39;)
+  async makeRequest(url: string, data: any) {
+    const headers: Record&lt;string, string&gt; = {};
+    propagation.inject(otelContext.active(), headers);
 
-      @EventPattern(&#39;loan-applications&#39;)
-      async handleLoanApplication(@Payload() data: any, @Ctx() context: KafkaContext) {
-        const message = context.getMessage();
+    return this.httpService.post(url, data, { headers });
+  }
+}
+</code></pre>
+<h3>Add @Span to external API methods</h3>
+<pre><code class="language-typescript">import { Span, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
 
-        await withKafkaContext(message.headers, &#39;process-loan-application&#39;, async () =&gt; {
-          this.logger.info(&#39;processing loan application&#39;, { applicationId: data.id });
-          // All logs inside this block share the producer&#39;s trace_id
-          await this.loanService.process(data);
-        });
-      }
-    }
-    </code></pre>
-    <h3 id="how-to-verify-6">How to verify</h3>
-    <ol>
-    <li>Produce a message and consume it</li>
-    <li>Check that the consumer logs have the <strong>same <code>trace_id</code></strong> as the producer logs</li>
-    <li>In Grafana Tempo, the trace should show both producer and consumer spans as part of one trace</li>
-    </ol>
-    <h3 id="pitfalls-6">Pitfalls</h3>
-    <ul>
-    <li><code>injectKafkaHeaders()</code> reads from the <strong>active OTel context</strong> — call it inside a request handler or span, not at module initialization</li>
-    <li>If using NestJS <code>ClientKafka</code> for log shipping (sending logs to Kafka topics), that pattern can be removed entirely — the SDK logs to stdout and Promtail collects them</li>
-    <li>Services using the outbox pattern with direct KafkaJS (<code>new Kafka()</code>) need <code>injectKafkaHeaders()</code> added to the outbox producer</li>
-    </ul>
-    <hr />
-    <h2 id="step-8-add-external-api-tracing">Step 8: Add external API tracing</h2>
-    <h3 id="objective-7">Objective</h3>
-    <p>Create spans for outgoing HTTP calls to external services and propagate trace context so downstream services can link traces.</p>
-    <h3 id="files-to-modify-6">Files to modify</h3>
-    <ul>
-    <li>HTTP client wrappers (e.g., <code>AxiosService</code>, <code>HttpService</code> usage)</li>
-    <li>External API call utilities</li>
-    </ul>
-    <h3 id="add-trace-propagation-to-outgoing-requests">Add trace propagation to outgoing requests</h3>
-    <pre class="typescript"><code>import { propagation, context as otelContext } from &#39;@opentelemetry/api&#39;;
-    import { Span } from &#39;@brdrwanda/observability&#39;;
+@Injectable()
+export class ExternalIntegrationService {
+  constructor(private logger: ObservabilityLogger, private http: AxiosService) {}
 
-    @Injectable()
-    export class AxiosService {
-      @Span(&#39;external-api-call&#39;)
-      async makeRequest(url: string, data: any) {
-        const headers: Record&lt;string, string&gt; = {};
-        propagation.inject(otelContext.active(), headers);
+  @Span(&#39;esri-lookup&#39;)
+  async lookupLocation(upi: string) {
+    this.logger.info(&#39;calling ESRI&#39;, { upi });
+    const result = await this.http.get(`https://esri.gov.rw/api/parcels/${upi}`);
+    this.logger.info(&#39;ESRI response received&#39;, { upi, status: result.status });
+    return result.data;
+  }
 
-        return this.httpService.post(url, data, { headers });
-      }
-    }
-    </code></pre>
-    <h3 id="add-span-to-external-api-methods">Add @Span to external API methods</h3>
-    <pre class="typescript"><code>import { Span, ObservabilityLogger } from &#39;@brdrwanda/observability&#39;;
+  @Span(&#39;nid-verification&#39;)
+  async verifyNationalId(nid: string) {
+    this.logger.info(&#39;calling NID service&#39;, { nid: nid.substring(0, 4) + &#39;***&#39; });
+    return this.http.get(`https://nida.gov.rw/api/verify/${nid}`);
+  }
+}
+</code></pre>
+<h3>How to verify</h3>
+<ol>
+<li>Make a request that calls an external API</li>
+<li>In Grafana Tempo, the trace waterfall should show a span named <code>esri-lookup</code> or <code>nid-verification</code> with duration</li>
+<li>If the external service also supports W3C traceparent, the trace continues into their system</li>
+<li>Check logs for the external call with matching <code>trace_id</code></li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li><code>propagation.inject()</code> must be called inside an active span context — if called outside a request (e.g., in a cron job), wrap the call in <code>tracer.startActiveSpan()</code> first</li>
+<li>Don&#39;t log full request/response bodies for external APIs — they may contain PII. Log only what&#39;s needed for debugging</li>
+</ul>
+<hr>
+<h2>Step 9: Replace console.log statements</h2>
+<h3>Objective</h3>
+<p>Replace all <code>console.log</code>, <code>console.error</code>, <code>console.warn</code> with structured logger calls.</p>
+<h3>Find all console statements</h3>
+<pre><code class="language-bash">grep -rn &quot;console\.\(log\|error\|warn\|info\|debug\)&quot; src/ --include=&quot;*.ts&quot;
+</code></pre>
+<h3>Mapping</h3>
+<table>
+<thead>
+<tr>
+<th>Old</th>
+<th>New</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>console.log(&#39;message&#39;, data)</code></td>
+<td><code>logger.info(&#39;message&#39;, { key: data })</code></td>
+<td>Normal operations</td>
+</tr>
+<tr>
+<td><code>console.log(&#39;Debug:&#39;, value)</code></td>
+<td><code>logger.debug(&#39;description&#39;, { value })</code></td>
+<td>Dev-only verbose output</td>
+</tr>
+<tr>
+<td><code>console.error(&#39;Failed:&#39;, err)</code></td>
+<td><code>logger.error(&#39;description&#39;, { error: err.message })</code></td>
+<td>Error conditions</td>
+</tr>
+<tr>
+<td><code>console.warn(&#39;Warning:&#39;, msg)</code></td>
+<td><code>logger.warn(&#39;description&#39;, { detail: msg })</code></td>
+<td>Degraded but not broken</td>
+</tr>
+</tbody></table>
+<h3>How to verify</h3>
+<ol>
+<li><code>grep -rn &quot;console\.&quot; src/ --include=&quot;*.ts&quot;</code> returns no results</li>
+<li>All output flows through the structured logger</li>
+<li>In production (JSON mode), no unstructured text appears in stdout</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>Kafka event handlers often use <code>console.log</code> as their primary logging — these need <code>ObservabilityLogger</code> injected via constructor</li>
+<li>Some <code>console.log</code> statements are inside <code>catch</code> blocks with no logger available — inject <code>ObservabilityLogger</code> into the class</li>
+</ul>
+<hr>
+<h2>Step 10: Configure deployment (PM2 / Docker)</h2>
+<h3>Objective</h3>
+<p>Ensure the production environment passes <code>NODE_ENV=production</code> so the SDK uses production defaults (JSON logs, OTLP export, 10% sampling).</p>
+<h3>PM2: ecosystem.config.js</h3>
+<pre><code class="language-javascript">module.exports = {
+  apps: [{
+    name: &#39;your-service-name&#39;,
+    script: &#39;dist/main.js&#39;,
+    instances: 2,
+    env: {
+      NODE_ENV: &#39;production&#39;,
+      OTEL_EXPORTER_OTLP_ENDPOINT: &#39;http://otel-collector:4318&#39;,
+    },
+  }],
+};
+</code></pre>
+<h3>Docker: Dockerfile</h3>
+<pre><code class="language-dockerfile">ENV NODE_ENV=production
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+CMD [&quot;node&quot;, &quot;dist/main.js&quot;]
+</code></pre>
+<h3>Promtail: Collect PM2 logs</h3>
+<p>If using PM2, point Promtail to PM2&#39;s log directory:</p>
+<pre><code class="language-yaml">scrape_configs:
+  - job_name: pm2
+    static_configs:
+      - targets: [localhost]
+        labels:
+          __path__: ~/.pm2/logs/*-out.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            service_name: service_name
+      - labels:
+          level:
+          service_name:
+</code></pre>
+<h3>How to verify</h3>
+<ol>
+<li>Start the service with PM2: <code>pm2 start ecosystem.config.js</code></li>
+<li>Check logs are JSON (not pretty-printed): <code>pm2 logs your-service-name --lines 5</code></li>
+<li>Verify <code>NODE_ENV</code> is <code>production</code> in the log output (check <code>environment</code> field)</li>
+<li>Verify <code>http://localhost:3000/metrics</code> is accessible for Prometheus scraping</li>
+<li>If using Promtail → Loki → Grafana, query <code>{service_name=&quot;your-service-name&quot;}</code> in Grafana Explore</li>
+</ol>
+<h3>Pitfalls</h3>
+<ul>
+<li>PM2 does <strong>not</strong> inherit shell environment variables — you must set <code>NODE_ENV</code> in <code>ecosystem.config.js</code> under <code>env</code></li>
+<li>If the service has a <code>.env</code> file that sets <code>NODE_ENV=development</code>, it will override PM2&#39;s env — remove it or ensure it matches</li>
+<li>PM2 writes stdout to <code>~/.pm2/logs/&lt;app-name&gt;-out.log</code> — Promtail needs access to this path</li>
+</ul>
+<hr>
+<h2>Step 11: Final verification</h2>
+<p>Run through this checklist to confirm the integration is complete.</p>
+<h3>Structured logging</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSON logs in production</td>
+<td><code>NODE_ENV=production node dist/main.js</code></td>
+<td>Single-line JSON per log entry</td>
+</tr>
+<tr>
+<td>Pretty logs in development</td>
+<td><code>npm run start:dev</code></td>
+<td>Colorized readable output</td>
+</tr>
+<tr>
+<td><code>service_name</code> in every log</td>
+<td>Hit any endpoint, check log output</td>
+<td><code>&quot;service_name&quot;: &quot;your-service-name&quot;</code> present</td>
+</tr>
+<tr>
+<td><code>trace_id</code> in every log</td>
+<td>Hit any endpoint, check log output</td>
+<td>32-character hex <code>trace_id</code> present</td>
+</tr>
+<tr>
+<td><code>request_id</code> in every log</td>
+<td>Hit any endpoint, check log output</td>
+<td>UUID <code>request_id</code> present</td>
+</tr>
+<tr>
+<td>Auto request logging</td>
+<td>Hit any endpoint</td>
+<td><code>request started</code> and <code>request completed</code> log entries appear</td>
+</tr>
+<tr>
+<td>Error classification</td>
+<td>Trigger a 401 error</td>
+<td><code>&quot;msg&quot;: &quot;authentication_failed&quot;</code> at warn level</td>
+</tr>
+<tr>
+<td>5xx error with stack</td>
+<td>Trigger a 500 error</td>
+<td><code>&quot;msg&quot;: &quot;server_error&quot;</code> at error level with <code>stack</code> field</td>
+</tr>
+</tbody></table>
+<h3>Distributed tracing</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Trace export</td>
+<td>Check OTel collector or Tempo</td>
+<td>Spans appear for each request</td>
+</tr>
+<tr>
+<td>Cross-service traces</td>
+<td>Call service A → service B</td>
+<td>Same <code>trace_id</code> in both services&#39; logs</td>
+</tr>
+<tr>
+<td>Database spans</td>
+<td>Query the database via an endpoint</td>
+<td>DB spans visible in trace waterfall</td>
+</tr>
+<tr>
+<td>Custom spans</td>
+<td>Call a method with <code>@Span</code> decorator</td>
+<td>Named span appears in trace</td>
+</tr>
+</tbody></table>
+<h3>Metrics</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Metrics endpoint</td>
+<td><code>curl http://localhost:3000/metrics</code></td>
+<td>Prometheus text format with <code>http_requests_total</code></td>
+</tr>
+<tr>
+<td>Request counter</td>
+<td>Hit endpoints, then check <code>/metrics</code></td>
+<td><code>http_requests_total</code> incremented</td>
+</tr>
+<tr>
+<td>Duration histogram</td>
+<td>Hit endpoints, then check <code>/metrics</code></td>
+<td><code>http_request_duration_seconds_bucket</code> populated</td>
+</tr>
+<tr>
+<td>Node.js metrics</td>
+<td>Check <code>/metrics</code></td>
+<td><code>nodejs_heap_size_used_bytes</code>, <code>nodejs_eventloop_lag_seconds</code> present</td>
+</tr>
+</tbody></table>
+<h3>Health</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Health endpoint</td>
+<td><code>curl http://localhost:3000/health</code></td>
+<td><code>{&quot;status&quot;:&quot;ok&quot;}</code> with 200</td>
+</tr>
+</tbody></table>
+<h3>Error handling</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Error response format</td>
+<td>Trigger any error</td>
+<td>JSON with <code>statusCode</code>, <code>message</code>, <code>timestamp</code>, <code>requestId</code>, <code>traceId</code></td>
+</tr>
+<tr>
+<td>No old exception filter</td>
+<td>Check <code>app.module.ts</code></td>
+<td>No <code>APP_FILTER</code> provider with <code>HttpExceptionFilter</code></td>
+</tr>
+</tbody></table>
+<h3>Cleanup</h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>How to verify</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>No old logger files</td>
+<td><code>ls src/logger/</code></td>
+<td>Directory doesn&#39;t exist or is empty</td>
+</tr>
+<tr>
+<td>No old filter files</td>
+<td><code>ls src/filters/http.exception.filter.ts</code></td>
+<td>File doesn&#39;t exist</td>
+</tr>
+<tr>
+<td>No Morgan middleware</td>
+<td><code>grep -rn &quot;morgan&quot; src/</code></td>
+<td>No results</td>
+</tr>
+<tr>
+<td>No console.log</td>
+<td><code>grep -rn &quot;console\.&quot; src/ --include=&quot;*.ts&quot;</code></td>
+<td>No results</td>
+</tr>
+<tr>
+<td>No old logger imports</td>
+<td><code>grep -rn &quot;LoggerService|handleInfoLog|handlErrorLog&quot; src/</code></td>
+<td>No results</td>
+</tr>
+<tr>
+<td>Clean build</td>
+<td><code>npx tsc --noEmit</code></td>
+<td>No compilation errors</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Common Pitfalls</h2>
+<table>
+<thead>
+<tr>
+<th>Pitfall</th>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Two global exception filters</td>
+<td>Errors logged twice</td>
+<td>Remove <code>APP_FILTER</code> provider from <code>app.module.ts</code></td>
+</tr>
+<tr>
+<td><code>NODE_ENV</code> not set in PM2</td>
+<td>Pretty-printed logs in production</td>
+<td>Add <code>env: { NODE_ENV: &#39;production&#39; }</code> to <code>ecosystem.config.js</code></td>
+</tr>
+<tr>
+<td>Missing <code>bufferLogs: true</code></td>
+<td>Early startup logs are unstructured</td>
+<td>Add <code>{ bufferLogs: true }</code> to <code>NestFactory.create()</code></td>
+</tr>
+<tr>
+<td><code>setupProcessErrorHandlers</code> inside bootstrap</td>
+<td>Doesn&#39;t catch module init errors</td>
+<td>Move call outside and above <code>bootstrap()</code></td>
+</tr>
+<tr>
+<td>Old logger still imported</td>
+<td>Compilation error after deleting files</td>
+<td>Search for and remove all imports of deleted files</td>
+</tr>
+<tr>
+<td><code>handlErrorLog</code> typo</td>
+<td>Grep misses some files</td>
+<td>Search for both <code>handleErrorLog</code> and <code>handlErrorLog</code></td>
+</tr>
+<tr>
+<td>Direct LoggerService instantiation</td>
+<td>Not using DI, no trace context</td>
+<td>Replace <code>new LoggerService(&#39;name&#39;)</code> with constructor-injected <code>ObservabilityLogger</code></td>
+</tr>
+<tr>
+<td>Kafka log shipping still active</td>
+<td>Duplicate logs in Kafka topics</td>
+<td>Remove <code>ClientKafka</code> logging producers — SDK logs to stdout, Promtail collects</td>
+</tr>
+<tr>
+<td>Service name mismatch</td>
+<td>Metrics/logs show wrong name</td>
+<td>Use the same <code>serviceName</code> in <code>ObservabilityModule.forRoot()</code> and <code>setupProcessErrorHandlers()</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>See Also</h2>
+<ul>
+<li><a href="migration.html">Migration Guide</a> — background on why this migration is needed, with before/after comparisons</li>
+<li><a href="getting-started.html">Getting Started</a> — quick start for new services (not migrating)</li>
+<li><a href="logging.html">Structured Logging</a> — what auto-request logging gives you and what code you can delete</li>
+<li><a href="configuration.html">Configuration Reference</a> — all SDK config options</li>
+<li><a href="troubleshooting.html">Troubleshooting</a> — common issues after migration</li>
+</ul>
 
-    @Injectable()
-    export class ExternalIntegrationService {
-      constructor(private logger: ObservabilityLogger, private http: AxiosService) {}
-
-      @Span(&#39;esri-lookup&#39;)
-      async lookupLocation(upi: string) {
-        this.logger.info(&#39;calling ESRI&#39;, { upi });
-        const result = await this.http.get(`https://esri.gov.rw/api/parcels/${upi}`);
-        this.logger.info(&#39;ESRI response received&#39;, { upi, status: result.status });
-        return result.data;
-      }
-
-      @Span(&#39;nid-verification&#39;)
-      async verifyNationalId(nid: string) {
-        this.logger.info(&#39;calling NID service&#39;, { nid: nid.substring(0, 4) + &#39;***&#39; });
-        return this.http.get(`https://nida.gov.rw/api/verify/${nid}`);
-      }
-    }
-    </code></pre>
-    <h3 id="how-to-verify-7">How to verify</h3>
-    <ol>
-    <li>Make a request that calls an external API</li>
-    <li>In Grafana Tempo, the trace waterfall should show a span named <code>esri-lookup</code> or <code>nid-verification</code> with duration</li>
-    <li>If the external service also supports W3C traceparent, the trace continues into their system</li>
-    <li>Check logs for the external call with matching <code>trace_id</code></li>
-    </ol>
-    <h3 id="pitfalls-7">Pitfalls</h3>
-    <ul>
-    <li><code>propagation.inject()</code> must be called inside an active span context — if called outside a request (e.g., in a cron job), wrap the call in <code>tracer.startActiveSpan()</code> first</li>
-    <li>Don't log full request/response bodies for external APIs — they may contain PII. Log only what's needed for debugging</li>
-    </ul>
-    <hr />
-    <h2 id="step-9-replace-consolelog-statements">Step 9: Replace console.log statements</h2>
-    <h3 id="objective-8">Objective</h3>
-    <p>Replace all <code>console.log</code>, <code>console.error</code>, <code>console.warn</code> with structured logger calls.</p>
-    <h3 id="find-all-console-statements">Find all console statements</h3>
-    <pre class="bash"><code>grep -rn &quot;console\.\(log\|error\|warn\|info\|debug\)&quot; src/ --include=&quot;*.ts&quot;
-    </code></pre>
-    <h3 id="mapping">Mapping</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Old</th>
-    <th>New</th>
-    <th>When to use</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><code>console.log('message', data)</code></td>
-    <td><code>logger.info('message', { key: data })</code></td>
-    <td>Normal operations</td>
-    </tr>
-    <tr class="even">
-    <td><code>console.log('Debug:', value)</code></td>
-    <td><code>logger.debug('description', { value })</code></td>
-    <td>Dev-only verbose output</td>
-    </tr>
-    <tr class="odd">
-    <td><code>console.error('Failed:', err)</code></td>
-    <td><code>logger.error('description', { error: err.message })</code></td>
-    <td>Error conditions</td>
-    </tr>
-    <tr class="even">
-    <td><code>console.warn('Warning:', msg)</code></td>
-    <td><code>logger.warn('description', { detail: msg })</code></td>
-    <td>Degraded but not broken</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="how-to-verify-8">How to verify</h3>
-    <ol>
-    <li><code>grep -rn "console\." src/ --include="*.ts"</code> returns no results</li>
-    <li>All output flows through the structured logger</li>
-    <li>In production (JSON mode), no unstructured text appears in stdout</li>
-    </ol>
-    <h3 id="pitfalls-8">Pitfalls</h3>
-    <ul>
-    <li>Kafka event handlers often use <code>console.log</code> as their primary logging — these need <code>ObservabilityLogger</code> injected via constructor</li>
-    <li>Some <code>console.log</code> statements are inside <code>catch</code> blocks with no logger available — inject <code>ObservabilityLogger</code> into the class</li>
-    </ul>
-    <hr />
-    <h2 id="step-10-configure-deployment-pm2--docker">Step 10: Configure deployment (PM2 / Docker)</h2>
-    <h3 id="objective-9">Objective</h3>
-    <p>Ensure the production environment passes <code>NODE_ENV=production</code> so the SDK uses production defaults (JSON logs, OTLP export, 10% sampling).</p>
-    <h3 id="pm2-ecosystemconfigjs">PM2: ecosystem.config.js</h3>
-    <pre class="javascript"><code>module.exports = {
-      apps: [{
-        name: &#39;your-service-name&#39;,
-        script: &#39;dist/main.js&#39;,
-        instances: 2,
-        env: {
-          NODE_ENV: &#39;production&#39;,
-          OTEL_EXPORTER_OTLP_ENDPOINT: &#39;http://otel-collector:4318&#39;,
-        },
-      }],
-    };
-    </code></pre>
-    <h3 id="docker-dockerfile">Docker: Dockerfile</h3>
-    <pre class="dockerfile"><code>ENV NODE_ENV=production
-    ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-    CMD [&quot;node&quot;, &quot;dist/main.js&quot;]
-    </code></pre>
-    <h3 id="promtail-collect-pm2-logs">Promtail: Collect PM2 logs</h3>
-    <p>If using PM2, point Promtail to PM2's log directory:</p>
-    <pre class="yaml"><code>scrape_configs:
-      - job_name: pm2
-        static_configs:
-          - targets: [localhost]
-            labels:
-              __path__: ~/.pm2/logs/*-out.log
-        pipeline_stages:
-          - json:
-              expressions:
-                level: level
-                service_name: service_name
-          - labels:
-              level:
-              service_name:
-    </code></pre>
-    <h3 id="how-to-verify-9">How to verify</h3>
-    <ol>
-    <li>Start the service with PM2: <code>pm2 start ecosystem.config.js</code></li>
-    <li>Check logs are JSON (not pretty-printed): <code>pm2 logs your-service-name --lines 5</code></li>
-    <li>Verify <code>NODE_ENV</code> is <code>production</code> in the log output (check <code>environment</code> field)</li>
-    <li>Verify <code>http://localhost:3000/metrics</code> is accessible for Prometheus scraping</li>
-    <li>If using Promtail → Loki → Grafana, query <code>{service_name="your-service-name"}</code> in Grafana Explore</li>
-    </ol>
-    <h3 id="pitfalls-9">Pitfalls</h3>
-    <ul>
-    <li>PM2 does <strong>not</strong> inherit shell environment variables — you must set <code>NODE_ENV</code> in <code>ecosystem.config.js</code> under <code>env</code></li>
-    <li>If the service has a <code>.env</code> file that sets <code>NODE_ENV=development</code>, it will override PM2's env — remove it or ensure it matches</li>
-    <li>PM2 writes stdout to <code>~/.pm2/logs/&lt;app-name&gt;-out.log</code> — Promtail needs access to this path</li>
-    </ul>
-    <hr />
-    <h2 id="step-11-final-verification">Step 11: Final verification</h2>
-    <p>Run through this checklist to confirm the integration is complete.</p>
-    <h3 id="structured-logging">Structured logging</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>JSON logs in production</td>
-    <td><code>NODE_ENV=production node dist/main.js</code></td>
-    <td>Single-line JSON per log entry</td>
-    </tr>
-    <tr class="even">
-    <td>Pretty logs in development</td>
-    <td><code>npm run start:dev</code></td>
-    <td>Colorized readable output</td>
-    </tr>
-    <tr class="odd">
-    <td><code>service_name</code> in every log</td>
-    <td>Hit any endpoint, check log output</td>
-    <td><code>"service_name": "your-service-name"</code> present</td>
-    </tr>
-    <tr class="even">
-    <td><code>trace_id</code> in every log</td>
-    <td>Hit any endpoint, check log output</td>
-    <td>32-character hex <code>trace_id</code> present</td>
-    </tr>
-    <tr class="odd">
-    <td><code>request_id</code> in every log</td>
-    <td>Hit any endpoint, check log output</td>
-    <td>UUID <code>request_id</code> present</td>
-    </tr>
-    <tr class="even">
-    <td>Auto request logging</td>
-    <td>Hit any endpoint</td>
-    <td><code>request started</code> and <code>request completed</code> log entries appear</td>
-    </tr>
-    <tr class="odd">
-    <td>Error classification</td>
-    <td>Trigger a 401 error</td>
-    <td><code>"msg": "authentication_failed"</code> at warn level</td>
-    </tr>
-    <tr class="even">
-    <td>5xx error with stack</td>
-    <td>Trigger a 500 error</td>
-    <td><code>"msg": "server_error"</code> at error level with <code>stack</code> field</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="distributed-tracing">Distributed tracing</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>Trace export</td>
-    <td>Check OTel collector or Tempo</td>
-    <td>Spans appear for each request</td>
-    </tr>
-    <tr class="even">
-    <td>Cross-service traces</td>
-    <td>Call service A → service B</td>
-    <td>Same <code>trace_id</code> in both services' logs</td>
-    </tr>
-    <tr class="odd">
-    <td>Database spans</td>
-    <td>Query the database via an endpoint</td>
-    <td>DB spans visible in trace waterfall</td>
-    </tr>
-    <tr class="even">
-    <td>Custom spans</td>
-    <td>Call a method with <code>@Span</code> decorator</td>
-    <td>Named span appears in trace</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="metrics">Metrics</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>Metrics endpoint</td>
-    <td><code>curl http://localhost:3000/metrics</code></td>
-    <td>Prometheus text format with <code>http_requests_total</code></td>
-    </tr>
-    <tr class="even">
-    <td>Request counter</td>
-    <td>Hit endpoints, then check <code>/metrics</code></td>
-    <td><code>http_requests_total</code> incremented</td>
-    </tr>
-    <tr class="odd">
-    <td>Duration histogram</td>
-    <td>Hit endpoints, then check <code>/metrics</code></td>
-    <td><code>http_request_duration_seconds_bucket</code> populated</td>
-    </tr>
-    <tr class="even">
-    <td>Node.js metrics</td>
-    <td>Check <code>/metrics</code></td>
-    <td><code>nodejs_heap_size_used_bytes</code>, <code>nodejs_eventloop_lag_seconds</code> present</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="health">Health</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>Health endpoint</td>
-    <td><code>curl http://localhost:3000/health</code></td>
-    <td><code>{"status":"ok"}</code> with 200</td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="error-handling">Error handling</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>Error response format</td>
-    <td>Trigger any error</td>
-    <td>JSON with <code>statusCode</code>, <code>message</code>, <code>timestamp</code>, <code>requestId</code>, <code>traceId</code></td>
-    </tr>
-    <tr class="even">
-    <td>No old exception filter</td>
-    <td>Check <code>app.module.ts</code></td>
-    <td>No <code>APP_FILTER</code> provider with <code>HttpExceptionFilter</code></td>
-    </tr>
-    </tbody>
-    </table>
-    <h3 id="cleanup">Cleanup</h3>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Check</th>
-    <th>How to verify</th>
-    <th>Expected result</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>No old logger files</td>
-    <td><code>ls src/logger/</code></td>
-    <td>Directory doesn't exist or is empty</td>
-    </tr>
-    <tr class="even">
-    <td>No old filter files</td>
-    <td><code>ls src/filters/http.exception.filter.ts</code></td>
-    <td>File doesn't exist</td>
-    </tr>
-    <tr class="odd">
-    <td>No Morgan middleware</td>
-    <td><code>grep -rn "morgan" src/</code></td>
-    <td>No results</td>
-    </tr>
-    <tr class="even">
-    <td>No console.log</td>
-    <td><code>grep -rn "console\." src/ --include="*.ts"</code></td>
-    <td>No results</td>
-    </tr>
-    <tr class="odd">
-    <td>No old logger imports</td>
-    <td><code>grep -rn "LoggerService|handleInfoLog|handlErrorLog" src/</code></td>
-    <td>No results</td>
-    </tr>
-    <tr class="even">
-    <td>Clean build</td>
-    <td><code>npx tsc --noEmit</code></td>
-    <td>No compilation errors</td>
-    </tr>
-    </tbody>
-    </table>
-    <hr />
-    <h2 id="common-pitfalls">Common Pitfalls</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Pitfall</th>
-    <th>Symptom</th>
-    <th>Fix</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td>Two global exception filters</td>
-    <td>Errors logged twice</td>
-    <td>Remove <code>APP_FILTER</code> provider from <code>app.module.ts</code></td>
-    </tr>
-    <tr class="even">
-    <td><code>NODE_ENV</code> not set in PM2</td>
-    <td>Pretty-printed logs in production</td>
-    <td>Add <code>env: { NODE_ENV: 'production' }</code> to <code>ecosystem.config.js</code></td>
-    </tr>
-    <tr class="odd">
-    <td>Missing <code>bufferLogs: true</code></td>
-    <td>Early startup logs are unstructured</td>
-    <td>Add <code>{ bufferLogs: true }</code> to <code>NestFactory.create()</code></td>
-    </tr>
-    <tr class="even">
-    <td><code>setupProcessErrorHandlers</code> inside bootstrap</td>
-    <td>Doesn't catch module init errors</td>
-    <td>Move call outside and above <code>bootstrap()</code></td>
-    </tr>
-    <tr class="odd">
-    <td>Old logger still imported</td>
-    <td>Compilation error after deleting files</td>
-    <td>Search for and remove all imports of deleted files</td>
-    </tr>
-    <tr class="even">
-    <td><code>handlErrorLog</code> typo</td>
-    <td>Grep misses some files</td>
-    <td>Search for both <code>handleErrorLog</code> and <code>handlErrorLog</code></td>
-    </tr>
-    <tr class="odd">
-    <td>Direct LoggerService instantiation</td>
-    <td>Not using DI, no trace context</td>
-    <td>Replace <code>new LoggerService('name')</code> with constructor-injected <code>ObservabilityLogger</code></td>
-    </tr>
-    <tr class="even">
-    <td>Kafka log shipping still active</td>
-    <td>Duplicate logs in Kafka topics</td>
-    <td>Remove <code>ClientKafka</code> logging producers — SDK logs to stdout, Promtail collects</td>
-    </tr>
-    <tr class="odd">
-    <td>Service name mismatch</td>
-    <td>Metrics/logs show wrong name</td>
-    <td>Use the same <code>serviceName</code> in <code>ObservabilityModule.forRoot()</code> and <code>setupProcessErrorHandlers()</code></td>
-    </tr>
-    </tbody>
-    </table>
-    <hr />
-    <h2 id="see-also">See Also</h2>
-    <ul>
-    <li><a href="migration.html">Migration Guide</a> — background on why this migration is needed, with before/after comparisons</li>
-    <li><a href="getting-started.html">Getting Started</a> — quick start for new services (not migrating)</li>
-    <li><a href="logging.html">Structured Logging</a> — what auto-request logging gives you and what code you can delete</li>
-    <li><a href="configuration.html">Configuration Reference</a> — all SDK config options</li>
-    <li><a href="troubleshooting.html">Troubleshooting</a> — common issues after migration</li>
-    </ul>
   </main>
-  <script>
-    // Highlight active nav item
-    var current = "migration-per-service";
-    var el = document.getElementById("nav-" + current);
-    if (el) el.classList.add("active");
-  </script>
 </body>
 </html>
