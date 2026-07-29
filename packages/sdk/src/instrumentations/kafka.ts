@@ -36,7 +36,7 @@ export function withKafkaContext<T>(
   }
 
   const extractedCtx = propagation.extract(context.active(), carrier);
-  const tracer = trace.getTracer('observability-sdk');
+  const tracer = trace.getTracer('@ivymurage/observability');
 
   return context.with(extractedCtx, () =>
     tracer.startActiveSpan(spanName, { kind: SpanKind.CONSUMER }, async (span) => {

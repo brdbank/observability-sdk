@@ -36,6 +36,9 @@ export { NestPinoLogger } from './logger/nest-logger';
 export { ObservabilityTracer } from './tracing/tracer.service';
 export { Span } from './nestjs/span.decorator';
 
+// Schedule tracing (auto-instruments @Cron, @Interval, @Timeout handlers)
+export { ScheduleTracingService } from './nestjs/schedule-tracing.service';
+
 // Metrics
 export { ObservabilityMetrics } from './metrics/metrics.service';
 
