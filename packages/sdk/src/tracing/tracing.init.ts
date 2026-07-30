@@ -1,6 +1,6 @@
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { resourceFromAttributes } from '@opentelemetry/resources';
+import * as resources from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION, ATTR_DEPLOYMENT_ENVIRONMENT_NAME } from '@opentelemetry/semantic-conventions';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
@@ -8,6 +8,14 @@ import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { ObservabilityConfig, ResolvedConfig, InstrumentationPlugin } from '../core/types';
 import { resolveConfig } from '../core/config';
 import { createSampler } from './sampling';
+
+// @opentelemetry/resources 2.x exports resourceFromAttributes(), 1.x exports Resource class
+function createResource(attributes: Record<string, string>) {
+  if ('resourceFromAttributes' in resources) {
+    return (resources as any).resourceFromAttributes(attributes);
+  }
+  return new (resources as any).Resource(attributes);
+}
 
 let provider: NodeTracerProvider | null = null;
 
@@ -20,7 +28,7 @@ export function initTracing(config: ResolvedConfig): NodeTracerProvider | null {
   if (!config.tracing.enabled) return null;
   if (provider) return provider;
 
-  const resource = resourceFromAttributes({
+  const resource = createResource({
     [ATTR_SERVICE_NAME]: config.serviceName,
     [ATTR_SERVICE_VERSION]: config.version,
     [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: config.environment,
