@@ -16,6 +16,9 @@
       --code-bg: #f1f5f9;
       --code-block-bg: #0f172a;
       --code-block-text: #e2e8f0;
+      --success: #059669;
+      --warn: #d97706;
+      --error: #dc2626;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +34,7 @@
 
     .sidebar {
       width: 280px;
-      height: 100vh;
+      min-height: 100vh;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--border);
       padding: 24px 0;
@@ -61,7 +64,7 @@
       margin-top: 4px;
     }
 
-    .sidebar-nav a {
+    .sidebar a {
       display: block;
       padding: 8px 20px;
       color: var(--muted);
@@ -72,12 +75,12 @@
       border-left: 3px solid transparent;
     }
 
-    .sidebar-nav a:hover {
+    .sidebar a:hover {
       color: var(--text);
       background: var(--accent-light);
     }
 
-    .sidebar-nav a.active {
+    .sidebar a.active {
       color: var(--accent);
       border-left-color: var(--accent);
       background: var(--accent-light);
@@ -123,6 +126,8 @@
       margin-top: 24px;
       margin-bottom: 8px;
       color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     p { margin-bottom: 16px; font-size: 15px; }
@@ -169,6 +174,8 @@
       border: 1px solid var(--border);
       font-weight: 600;
       font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
       color: var(--muted);
     }
 
@@ -185,7 +192,10 @@
       margin-bottom: 16px;
     }
 
-    li { margin-bottom: 6px; font-size: 15px; }
+    li {
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
 
     blockquote {
       border-left: 3px solid var(--accent);
@@ -207,21 +217,16 @@
 
     strong { font-weight: 600; }
 
-    /* Checkboxes in tables */
-    td:has(code) code { font-size: 12px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
 
     @media (max-width: 900px) {
-      .sidebar {
-        position: static;
-        width: 100%;
-        min-height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-      }
-      .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; }
-      .sidebar-nav a { padding: 4px 12px; border-left: none; border-radius: 4px; font-size: 13px; }
-      .sidebar-nav a.active { border-left: none; }
-      body { flex-direction: column; }
+      .sidebar { display: none; }
       .content { margin-left: 0; padding: 24px; }
     }
 
@@ -238,222 +243,192 @@
       <p>SDK Documentation</p>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" id="nav-index">Home</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Getting Started</span>
-      <a href="getting-started.html" id="nav-getting-started">Quick Start</a>
-      <a href="configuration.html" id="nav-configuration">Configuration Reference</a>
-      <a href="standalone.html" id="nav-standalone">Standalone Mode</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Guides</span>
-      <a href="logging.html" id="nav-logging">Structured Logging</a>
-      <a href="tracing.html" id="nav-tracing">Distributed Tracing</a>
-      <a href="metrics.html" id="nav-metrics">Metrics &amp; Dashboards</a>
-      <a href="error-handling.html" id="nav-error-handling">Error Handling</a>
-      <a href="instrumentations.html" id="nav-instrumentations">Instrumentations</a>
-      <a href="alerting.html" id="nav-alerting">Alerting &amp; Monitoring</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Migration</span>
-      <a href="migration.html" id="nav-migration">Migration Guide</a>
-      <a href="migration-per-service.html" id="nav-migration-per-service">Integration Checklist</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Deployment</span>
-      <a href="deployment-pm2.html" id="nav-deployment-pm2">PM2 Deployment</a>
-      <a href="sdk-deployment.html" id="nav-sdk-deployment">SDK Publishing</a>
-      <a href="infrastructure.html" id="nav-infrastructure">Infrastructure Guide</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Architecture</span>
-      <a href="architecture.html" id="nav-architecture">How It Works</a>
-      <a href="architecture-decisions.html" id="nav-architecture-decisions">Architecture Decisions</a>
-      <a href="sdk-explained.html" id="nav-sdk-explained">SDK Internals</a>
-
-      <span style="display:block;padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Reference</span>
-      <a href="troubleshooting.html" id="nav-troubleshooting">Troubleshooting &amp; FAQ</a>
-      <a href="testing.html" id="nav-testing">Testing</a>
-      <a href="CHANGELOG.html" id="nav-CHANGELOG">Changelog</a>
+      <a href="index.html" class="active">Documentation Home</a>
+          <a href="getting-started.html">Getting Started</a>
+          <a href="configuration.html">Configuration</a>
+          <a href="logging.html">Logging</a>
+          <a href="tracing.html">Distributed Tracing</a>
+          <a href="metrics.html">Metrics</a>
+          <a href="instrumentations.html">Instrumentations</a>
+          <a href="error-handling.html">Error Handling</a>
+          <a href="alerting.html">Alerting</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="architecture-decisions.html">Architecture Decisions</a>
+          <a href="migration.html">Migration Guide</a>
+          <a href="migration-per-service.html">Service Migration Reference</a>
+          <a href="deployment-pm2.html">Deployment</a>
+          <a href="sdk-explained.html">SDK Internals</a>
+          <a href="sdk-deployment.html">SDK Deployment</a>
+          <a href="standalone.html">Standalone Mode</a>
+          <a href="testing.html">Testing</a>
+          <a href="troubleshooting.html">Troubleshooting</a>
+          <a href="CHANGELOG.html">Changelog</a>
     </div>
   </nav>
   <main class="content">
-    <h1 id="brdrwandaobservability--documentation">@brdrwanda/observability — Documentation</h1>
-    <h2 id="getting-started">Getting Started</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="getting-started.html">Quick Start</a></td>
-    <td>Install, wire, verify in 10 minutes</td>
-    <td>New developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="configuration.html">Configuration Reference</a></td>
-    <td>Every config option with defaults and examples</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="standalone.html">Standalone Mode</a></td>
-    <td>Express, Fastify, plain Node.js — no NestJS needed</td>
-    <td>Non-NestJS developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="guides">Guides</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="logging.html">Structured Logging</a></td>
-    <td>Auto-request logging, business events, Loki queries, redaction</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="tracing.html">Distributed Tracing</a></td>
-    <td>Trace setup, sampling, custom spans, cross-service correlation</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="metrics.html">Metrics &amp; Dashboards</a></td>
-    <td>Auto HTTP metrics, custom counters/histograms, Grafana PromQL</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="error-handling.html">Error Handling</a></td>
-    <td>Auto error classification, logCaughtError, process handlers</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="instrumentations.html">Instrumentations</a></td>
-    <td>Redis, MySQL, PostgreSQL, Sequelize, Kafka setup and spans</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="alerting.html">Alerting &amp; Monitoring</a></td>
-    <td>Prometheus rules, Alertmanager, Teams/Slack notifications</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="migration">Migration</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="migration.html">Migration Guide</a></td>
-    <td>Step-by-step migration from Winston/LoggerService</td>
-    <td>Migrating developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="migration-per-service.html">Integration Checklist</a></td>
-    <td>Step-by-step SDK integration with verification steps</td>
-    <td>Migrating developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="deployment--operations">Deployment &amp; Operations</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="deployment-pm2.html">PM2 Deployment</a></td>
-    <td>PM2 ecosystem config, log collection, Promtail setup</td>
-    <td>DevOps, SREs</td>
-    </tr>
-    <tr class="even">
-    <td><a href="sdk-deployment.html">SDK Publishing</a></td>
-    <td>Build, version, publish the SDK package</td>
-    <td>Maintainers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="architecture">Architecture</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="architecture.html">How It Works</a></td>
-    <td>SDK structure, dependency strategy, design decisions</td>
-    <td>Tech leads, architects</td>
-    </tr>
-    <tr class="even">
-    <td><a href="architecture-decisions.html">Architecture Decisions</a></td>
-    <td>Why the SDK exists and key technical choices</td>
-    <td>Tech leads, new members</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="sdk-explained.html">SDK Internals</a></td>
-    <td>Deep dive into every module and file</td>
-    <td>Contributors</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="reference">Reference</h2>
-    <table>
-    <thead>
-    <tr class="header">
-    <th>Guide</th>
-    <th>Description</th>
-    <th>Audience</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr class="odd">
-    <td><a href="troubleshooting.html">Troubleshooting &amp; FAQ</a></td>
-    <td>Common issues, diagnostics, frequently asked questions</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="even">
-    <td><a href="testing.html">Testing</a></td>
-    <td>Mocking SDK providers, suppressing logs, e2e testing</td>
-    <td>All developers</td>
-    </tr>
-    <tr class="odd">
-    <td><a href="CHANGELOG.html">Changelog</a></td>
-    <td>Version history and release notes</td>
-    <td>All developers</td>
-    </tr>
-    </tbody>
-    </table>
-    <h2 id="quick-links">Quick Links</h2>
-    <ul>
-    <li><strong>Install</strong>: <code>npm install @brdrwanda/observability</code></li>
-    <li><strong>GitHub</strong>: <a href="https://github.com/brdbank/observability-sdk">brdbank/observability-sdk</a></li>
-    <li><strong>SDK README</strong>: <a href="../packages/sdk/README.html">packages/sdk/README.md</a></li>
-    </ul>
+    <h1>@brdrwanda/observability — Documentation</h1>
+<h2>Getting Started</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="getting-started.html">Quick Start</a></td>
+<td>Install, wire, verify in 10 minutes</td>
+<td>New developers</td>
+</tr>
+<tr>
+<td><a href="configuration.html">Configuration Reference</a></td>
+<td>Every config option with defaults and examples</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="standalone.html">Standalone Mode</a></td>
+<td>Express, Fastify, plain Node.js — no NestJS needed</td>
+<td>Non-NestJS developers</td>
+</tr>
+</tbody></table>
+<h2>Guides</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="logging.html">Structured Logging</a></td>
+<td>Auto-request logging, business events, Loki queries, redaction</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="tracing.html">Distributed Tracing</a></td>
+<td>Trace setup, sampling, custom spans, cross-service correlation</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="metrics.html">Metrics &amp; Dashboards</a></td>
+<td>Auto HTTP metrics, custom counters/histograms, Grafana PromQL</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="error-handling.html">Error Handling</a></td>
+<td>Auto error classification, logCaughtError, process handlers</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="instrumentations.html">Instrumentations</a></td>
+<td>Redis, MySQL, PostgreSQL, Sequelize, Kafka setup and spans</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="alerting.html">Alerting &amp; Monitoring</a></td>
+<td>Prometheus rules, Alertmanager, Teams/Slack notifications</td>
+<td>DevOps, SREs</td>
+</tr>
+</tbody></table>
+<h2>Migration</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="migration.html">Migration Guide</a></td>
+<td>Step-by-step migration from Winston/LoggerService</td>
+<td>Migrating developers</td>
+</tr>
+<tr>
+<td><a href="migration-per-service.html">Integration Checklist</a></td>
+<td>Step-by-step SDK integration with verification steps</td>
+<td>Migrating developers</td>
+</tr>
+</tbody></table>
+<h2>Deployment &amp; Operations</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="deployment-pm2.html">PM2 Deployment</a></td>
+<td>PM2 ecosystem config, log collection, Promtail setup</td>
+<td>DevOps, SREs</td>
+</tr>
+<tr>
+<td><a href="sdk-deployment.html">SDK Publishing</a></td>
+<td>Build, version, publish the SDK package</td>
+<td>Maintainers</td>
+</tr>
+</tbody></table>
+<h2>Architecture</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="architecture.html">How It Works</a></td>
+<td>SDK structure, dependency strategy, design decisions</td>
+<td>Tech leads, architects</td>
+</tr>
+<tr>
+<td><a href="architecture-decisions.html">Architecture Decisions</a></td>
+<td>Why the SDK exists and key technical choices</td>
+<td>Tech leads, new members</td>
+</tr>
+<tr>
+<td><a href="sdk-explained.html">SDK Internals</a></td>
+<td>Deep dive into every module and file</td>
+<td>Contributors</td>
+</tr>
+</tbody></table>
+<h2>Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Guide</th>
+<th>Description</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="troubleshooting.html">Troubleshooting &amp; FAQ</a></td>
+<td>Common issues, diagnostics, frequently asked questions</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="testing.html">Testing</a></td>
+<td>Mocking SDK providers, suppressing logs, e2e testing</td>
+<td>All developers</td>
+</tr>
+<tr>
+<td><a href="CHANGELOG.html">Changelog</a></td>
+<td>Version history and release notes</td>
+<td>All developers</td>
+</tr>
+</tbody></table>
+<h2>Quick Links</h2>
+<ul>
+<li><strong>Install</strong>: <code>npm install @brdrwanda/observability</code></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/brdbank/observability-sdk">brdbank/observability-sdk</a></li>
+<li><strong>SDK README</strong>: <a href="../packages/sdk/README.html">packages/sdk/README.md</a></li>
+</ul>
+
   </main>
-  <script>
-    // Highlight active nav item
-    var current = "index";
-    var el = document.getElementById("nav-" + current);
-    if (el) el.classList.add("active");
-  </script>
 </body>
 </html>

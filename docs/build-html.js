@@ -8,15 +8,25 @@ const outDir = path.join(docsDir, 'html');
 
 const pages = [
   { file: 'README.md', title: 'Documentation Home', slug: 'index' },
+  { file: 'getting-started.md', title: 'Getting Started', slug: 'getting-started' },
+  { file: 'configuration.md', title: 'Configuration', slug: 'configuration' },
+  { file: 'logging.md', title: 'Logging', slug: 'logging' },
+  { file: 'tracing.md', title: 'Distributed Tracing', slug: 'tracing' },
+  { file: 'metrics.md', title: 'Metrics', slug: 'metrics' },
+  { file: 'instrumentations.md', title: 'Instrumentations', slug: 'instrumentations' },
+  { file: 'error-handling.md', title: 'Error Handling', slug: 'error-handling' },
+  { file: 'alerting.md', title: 'Alerting', slug: 'alerting' },
   { file: 'architecture.md', title: 'Architecture', slug: 'architecture' },
   { file: 'architecture-decisions.md', title: 'Architecture Decisions', slug: 'architecture-decisions' },
-  { file: 'getting-started.md', title: 'Getting Started', slug: 'getting-started' },
-  { file: 'tracing.md', title: 'Distributed Tracing', slug: 'tracing' },
   { file: 'migration.md', title: 'Migration Guide', slug: 'migration' },
   { file: 'migration-per-service.md', title: 'Service Migration Reference', slug: 'migration-per-service' },
   { file: 'deployment-pm2.md', title: 'Deployment', slug: 'deployment-pm2' },
   { file: 'sdk-explained.md', title: 'SDK Internals', slug: 'sdk-explained' },
   { file: 'sdk-deployment.md', title: 'SDK Deployment', slug: 'sdk-deployment' },
+  { file: 'standalone.md', title: 'Standalone Mode', slug: 'standalone' },
+  { file: 'testing.md', title: 'Testing', slug: 'testing' },
+  { file: 'troubleshooting.md', title: 'Troubleshooting', slug: 'troubleshooting' },
+  { file: 'CHANGELOG.md', title: 'Changelog', slug: 'CHANGELOG' },
 ];
 
 const nav = pages.map(p =>

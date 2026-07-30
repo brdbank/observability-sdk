@@ -10,6 +10,7 @@ This guide covers how to set up, configure, and use distributed tracing with the
 - [HTTP trace propagation](#http-trace-propagation)
 - [Kafka trace propagation](#kafka-trace-propagation)
 - [Custom spans](#custom-spans)
+- [Scheduled job tracing](#scheduled-job-tracing)
 - [External API tracing](#external-api-tracing)
 - [Sampling strategies](#sampling-strategies)
 - [Early tracing init](#early-tracing-init)
@@ -258,7 +259,7 @@ The SDK auto-creates spans for HTTP requests, database queries, and Kafka operat
 |----------|-----|---------|
 | External API calls | Third-party latency is invisible without a span | ESRI lookup, credit score API, iBank |
 | Multi-step business logic | One handler does several things | Validate → score → decide → notify |
-| Background/async work | No HTTP context to auto-trace | Cron jobs, queue workers |
+| Background/async work | No HTTP context to auto-trace | Queue workers, one-off async tasks |
 | Conditional branches | Different code paths with different performance | Cache hit vs DB lookup |
 
 ### `@Span` decorator (recommended)
@@ -309,6 +310,141 @@ export class PaymentService {
   }
 }
 ```
+
+---
+
+## Scheduled job tracing
+
+The SDK automatically traces `@Cron`, `@Interval`, and `@Timeout` handlers from `@nestjs/schedule`. Every scheduled execution gets its own trace context — `trace_id`, `span_id`, `request_id` — with zero developer effort.
+
+### How it works
+
+When your service uses `@nestjs/schedule`, the SDK's `ScheduleTracingService` patches the scheduler's stored callbacks during module initialization. Each invocation creates a root span with full trace context that propagates to all logs and child spans within the handler.
+
+### What you get automatically
+
+| Signal | What the SDK provides |
+|--------|----------------------|
+| **Traces** | Root span per execution: `scheduled/cron/{jobName}`, `scheduled/interval/{jobName}`, `scheduled/timeout/{jobName}` |
+| **Span attributes** | `schedule.type`, `schedule.job_name`, `schedule.cron_expression` (for cron jobs) |
+| **Logs** | Every `this.logger.info()` inside the handler includes `trace_id` and `span_id` |
+| **Metrics** | `scheduled_job_duration_seconds` histogram with labels: `job_name`, `job_type`, `status` |
+| **Error tracking** | `scheduled_job_errors_total` counter; span status set to ERROR with exception recorded |
+
+### Setup
+
+If your service already uses `ScheduleModule`, the SDK detects it automatically. No config needed:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ObservabilityModule, httpInstrumentation } from '@brdrwanda/observability';
+
+@Module({
+  imports: [
+    ScheduleModule.forRoot(),
+    ObservabilityModule.forRoot({
+      serviceName: 'uno-scheduler-service',
+      tracing: {
+        exporter: { type: 'otlp-http', endpoint: 'http://otel-collector:4318' },
+      },
+      instrumentations: [httpInstrumentation()],
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+Your cron handlers work unchanged:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ObservabilityLogger } from '@brdrwanda/observability';
+
+@Injectable()
+export class SyncService {
+  constructor(private readonly logger: ObservabilityLogger) {}
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async syncApplicationStatus() {
+    // trace_id and span_id are injected automatically
+    this.logger.info('starting application sync');
+
+    const pending = await this.findPendingApplications();
+    this.logger.info('found pending applications', { count: pending.length });
+
+    for (const app of pending) {
+      await this.processApplication(app);
+    }
+    this.logger.info('sync complete');
+  }
+}
+```
+
+### What you see in Tempo
+
+```
+scheduled/cron/syncApplicationStatus  ──────────── 1200ms
+  ├─ Sequelize: SELECT applications  ────── 45ms
+  ├─ access-control-login  ────────────── 320ms
+  ├─ minecofin-status-check  ─────────── 680ms   ← bottleneck
+  └─ Sequelize: UPDATE applications  ──── 30ms
+```
+
+### What you see in logs
+
+```json
+{
+  "level": "info",
+  "trace_id": "b88cac93042d69393ff78506bab5b102",
+  "span_id": "d10650e42069101a",
+  "request_id": "a2190717-d18c-4fe0-8bf0-7bbb158d4578",
+  "service_name": "uno-scheduler-service",
+  "msg": "found pending applications",
+  "count": 25
+}
+```
+
+Every log line from the cron handler carries the same `trace_id`, so you can search in Loki by `trace_id` and see the full execution, or click through to Tempo to see the span waterfall.
+
+### @Interval and @Timeout
+
+Same auto-tracing applies:
+
+```typescript
+@Interval('health-poll', 60000)
+async pollHealthStatus() {
+  // Automatically traced as: scheduled/interval/health-poll
+  this.logger.info('polling health');
+}
+
+@Timeout('startup-sync', 5000)
+async onStartupSync() {
+  // Automatically traced as: scheduled/timeout/startup-sync
+  this.logger.info('running startup sync');
+}
+```
+
+### Error handling
+
+`@nestjs/schedule` silently swallows errors in cron handlers (catches but does not re-throw). The SDK's wrapper captures errors before they're swallowed:
+
+- Sets span status to `ERROR` with the exception message
+- Records the exception as a span event (visible in Tempo)
+- Increments `scheduled_job_errors_total` counter
+- Re-throws the error (so `@nestjs/schedule` can handle it)
+
+This means cron job failures are visible in Grafana even though the framework silently eats them.
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| No `trace_id` in cron handler logs | SDK version too old (pre-cron-tracing) | Update to latest `@brdrwanda/observability` |
+| Traces show `scheduled/cron/{uuid}` | Job registered without a name | Give your cron a name: `@Cron('*/5 * * * *', { name: 'sync-status' })` |
+| No cron traces in Tempo | `ScheduleModule` not imported | Add `ScheduleModule.forRoot()` to your module imports |
+| Cron runs but no span | Tracing disabled | Check `tracing.exporter.type` is not `none` or `console` |
 
 ---
 

@@ -104,8 +104,9 @@ async doWork() {
 | Request context | Request ID, correlation ID via AsyncLocalStorage | automatic |
 | Error classification | Smart extraction with log levels (4xx=warn, 5xx=error) | automatic |
 | Metric exemplars | Histogram observations carry `trace_id` for metrics→traces correlation | automatic |
+| Scheduled job tracing | `@Cron`, `@Interval`, `@Timeout` handlers auto-instrumented with trace context | automatic (with `@nestjs/schedule`) |
 
-Every log line automatically includes `trace_id`, `request_id`, `correlation_id`, and `span_id`.
+Every log line automatically includes `trace_id`, `request_id`, `correlation_id`, and `span_id` — including inside scheduled job handlers.
 
 ---
 
