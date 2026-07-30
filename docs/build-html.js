@@ -17,6 +17,17 @@ const pages = [
   { file: 'deployment-pm2.md', title: 'Deployment', slug: 'deployment-pm2' },
   { file: 'sdk-explained.md', title: 'SDK Internals', slug: 'sdk-explained' },
   { file: 'sdk-deployment.md', title: 'SDK Deployment', slug: 'sdk-deployment' },
+  { file: 'configuration.md', title: 'Configuration', slug: 'configuration' },
+  { file: 'logging.md', title: 'Logging', slug: 'logging' },
+  { file: 'metrics.md', title: 'Metrics & Dashboards', slug: 'metrics' },
+  { file: 'instrumentations.md', title: 'Instrumentations', slug: 'instrumentations' },
+  { file: 'error-handling.md', title: 'Error Handling', slug: 'error-handling' },
+  { file: 'alerting.md', title: 'Alerting & Monitoring', slug: 'alerting' },
+  { file: 'standalone.md', title: 'Standalone Usage', slug: 'standalone' },
+  { file: 'testing.md', title: 'Testing', slug: 'testing' },
+  { file: 'troubleshooting.md', title: 'Troubleshooting', slug: 'troubleshooting' },
+  { file: 'infrastructure.md', title: 'Infrastructure', slug: 'infrastructure' },
+  { file: 'CHANGELOG.md', title: 'Changelog', slug: 'CHANGELOG' },
 ];
 
 const nav = pages.map(p =>
