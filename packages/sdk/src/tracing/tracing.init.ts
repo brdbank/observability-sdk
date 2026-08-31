@@ -8,6 +8,8 @@ import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { ObservabilityConfig, ResolvedConfig, InstrumentationPlugin } from '../core/types';
 import { resolveConfig } from '../core/config';
 import { createSampler } from './sampling';
+import { OutgoingHttpMetricsProcessor } from '../metrics/outgoing-http-metrics.processor';
+import { DbMetricsProcessor } from '../metrics/db-metrics.processor';
 
 // @opentelemetry/resources 2.x exports resourceFromAttributes(), 1.x exports Resource class
 function createResource(attributes: Record<string, string>) {
@@ -18,6 +20,10 @@ function createResource(attributes: Record<string, string>) {
 }
 
 let provider: NodeTracerProvider | null = null;
+
+// Operational metrics processors — created during init, bound to metrics later
+let outgoingHttpProcessor: OutgoingHttpMetricsProcessor | null = null;
+let dbProcessor: DbMetricsProcessor | null = null;
 
 export function setupTracing(config: ObservabilityConfig): void {
   const resolved = resolveConfig(config);
@@ -46,6 +52,17 @@ export function initTracing(config: ResolvedConfig): NodeTracerProvider | null {
       ]
     : [];
 
+  // Create operational metrics processors (metrics bound later via bindOperationalMetrics)
+  if (config.metrics.enabled && config.metrics.httpClientMetrics) {
+    outgoingHttpProcessor = new OutgoingHttpMetricsProcessor();
+    spanProcessors.push(outgoingHttpProcessor);
+  }
+
+  if (config.metrics.enabled && config.metrics.dbQueryMetrics) {
+    dbProcessor = new DbMetricsProcessor();
+    spanProcessors.push(dbProcessor);
+  }
+
   provider = new NodeTracerProvider({
     resource,
     sampler: createSampler(config.tracing.sampling),
@@ -65,11 +82,26 @@ export function initTracing(config: ResolvedConfig): NodeTracerProvider | null {
   return provider;
 }
 
+/**
+ * Bind Prometheus metrics to operational span processors.
+ * Called by ObservabilityModule after ObservabilityMetrics is created.
+ */
+export function bindOperationalMetrics(metrics: import('../metrics/metrics.service').ObservabilityMetrics): void {
+  if (outgoingHttpProcessor) {
+    outgoingHttpProcessor.setMetrics(metrics);
+  }
+  if (dbProcessor) {
+    dbProcessor.setMetrics(metrics);
+  }
+}
+
 export async function shutdownTracing(): Promise<void> {
   if (provider) {
     await provider.shutdown();
     provider = null;
   }
+  outgoingHttpProcessor = null;
+  dbProcessor = null;
 }
 
 function createExporter(config: ResolvedConfig): SpanExporter | null {

@@ -41,6 +41,8 @@ export { ScheduleTracingService } from './nestjs/schedule-tracing.service';
 
 // Metrics
 export { ObservabilityMetrics } from './metrics/metrics.service';
+export { CacheMetricsService } from './metrics/cache-metrics.service';
+export type { CacheLike } from './metrics/cache-metrics.service';
 
 // Instrumentations
 export { httpInstrumentation } from './instrumentations/http';

@@ -18,9 +18,10 @@ import { resolveConfig } from '../core/config';
 import { ObservabilityLogger } from '../logger/logger.service';
 import { NestPinoLogger } from '../logger/nest-logger';
 import { ObservabilityTracer } from '../tracing/tracer.service';
-import { initTracing, shutdownTracing } from '../tracing/tracing.init';
+import { initTracing, shutdownTracing, bindOperationalMetrics } from '../tracing/tracing.init';
 import { ObservabilityMetrics } from '../metrics/metrics.service';
 import { MetricsController } from '../metrics/metrics.controller';
+import { CacheMetricsService } from '../metrics/cache-metrics.service';
 import { ContextMiddleware } from './context.middleware';
 import { LoggingInterceptor } from './logging.interceptor';
 import { TracingInterceptor } from './tracing.interceptor';
@@ -84,7 +85,15 @@ export class ObservabilityModule implements NestModule, OnModuleDestroy {
         },
         {
           provide: OBSERVABILITY_METRICS,
-          useFactory: () => new ObservabilityMetrics(resolved),
+          useFactory: () => {
+            const metrics = new ObservabilityMetrics(resolved);
+
+            // Bind Prometheus metrics to operational span processors
+            // (processors were created during initTracing, now they get their metrics)
+            bindOperationalMetrics(metrics);
+
+            return metrics;
+          },
         },
         {
           provide: ObservabilityMetrics,
@@ -96,6 +105,7 @@ export class ObservabilityModule implements NestModule, OnModuleDestroy {
           useFactory: (logger: ObservabilityLogger) => new NestPinoLogger(logger),
           inject: [OBSERVABILITY_LOGGER],
         },
+        CacheMetricsService,
         ContextMiddleware,
         ...(resolved.tracing.enabled
           ? [
@@ -123,6 +133,7 @@ export class ObservabilityModule implements NestModule, OnModuleDestroy {
         ObservabilityLogger,
         ObservabilityTracer,
         ObservabilityMetrics,
+        CacheMetricsService,
         NestPinoLogger,
       ],
     };
