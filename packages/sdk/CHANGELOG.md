@@ -1,17 +1,17 @@
 # Changelog
 
-All notable changes to `@ivymurage/observability` are documented here.
+All notable changes to `@brdrwanda/observability` are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] — 2026-09-01
+## [1.1.0] - 2026-09-01
 
 ### Added
 
 #### Outgoing HTTP Metrics (automatic)
 
-Zero app code needed — hooks into existing `httpInstrumentation()` spans via OTEL SpanProcessor.
+Zero app code needed - hooks into existing `httpInstrumentation()` spans via OTEL SpanProcessor.
 
 | Metric | Type | Labels |
 |--------|------|--------|
@@ -20,11 +20,11 @@ Zero app code needed — hooks into existing `httpInstrumentation()` spans via O
 
 Answers: "Which downstream service is failing? Which is slow?"
 
-**Exemplars** included — click a metric data point → jump to the exact trace.
+**Exemplars** included - click a metric data point → jump to the exact trace.
 
 #### DB Query Metrics (automatic)
 
-Zero app code needed — observes DB spans from `sequelizeInstrumentation()`, `pgInstrumentation()`, or `mysqlInstrumentation()`.
+Zero app code needed - observes DB spans from `sequelizeInstrumentation()`, `pgInstrumentation()`, or `mysqlInstrumentation()`.
 
 | Metric | Type | Labels |
 |--------|------|--------|
@@ -40,7 +40,7 @@ Answers: "Is the database slow? Which table? Reads or writes?"
 
 #### Cache Metrics (injectable service)
 
-New `CacheMetricsService` — wrap your existing cache calls to track hit/miss rates and latency.
+New `CacheMetricsService` - wrap your existing cache calls to track hit/miss rates and latency.
 
 | Metric | Type | Labels |
 |--------|------|--------|
@@ -97,7 +97,7 @@ Set `false` to opt out. `CacheMetricsService` is always opt-in via DI injection.
 
 #### CORS Helper
 
-New `createCorsOptions()` factory — ensures Prometheus scrapes, k8s probes, and health checks are never blocked by CORS middleware.
+New `createCorsOptions()` factory - ensures Prometheus scrapes, k8s probes, and health checks are never blocked by CORS middleware.
 
 ```typescript
 import { createCorsOptions } from '@ivymurage/observability';
@@ -112,11 +112,11 @@ Replaces the manual `!origin` CORS fix that each service had to add individually
 
 All three capabilities follow the same pattern:
 
-- **No new runtime dependencies** — uses existing `prom-client` and `@opentelemetry/api`
-- **Low cardinality** — fixed label sets, no user IDs or URLs
-- **Trace correlation** — all histograms include `trace_id` exemplars
-- **Lazy binding** — SpanProcessors created during tracing init, Prometheus metrics bound after DI resolution via `bindOperationalMetrics()`
-- **Graceful degradation** — if tracing disabled, span processors are no-op; if cache-manager not used, `CacheMetricsService` is never injected
+- **No new runtime dependencies** - uses existing `prom-client` and `@opentelemetry/api`
+- **Low cardinality** - fixed label sets, no user IDs or URLs
+- **Trace correlation** - all histograms include `trace_id` exemplars
+- **Lazy binding** - SpanProcessors created during tracing init, Prometheus metrics bound after DI resolution via `bindOperationalMetrics()`
+- **Graceful degradation** - if tracing disabled, span processors are no-op; if cache-manager not used, `CacheMetricsService` is never injected
 
 ### Storage Impact
 
@@ -124,16 +124,16 @@ All three capabilities follow the same pattern:
 
 ---
 
-## [1.0.0] — 2026-08-15
+## [1.0.0] - 2026-08-15
 
 ### Initial Release
 
-- `ObservabilityModule.forRoot()` — NestJS dynamic module
-- `MetricsInterceptor` — auto HTTP request count + duration histogram
-- `ContextMiddleware` — requestId, correlationId, traceId propagation
-- `NestPinoLogger` — structured JSON logging
-- `ObservabilityTracer` — distributed tracing with OTEL
-- `ObservabilityMetrics` — Prometheus counter/histogram/gauge factories
+- `ObservabilityModule.forRoot()` - NestJS dynamic module
+- `MetricsInterceptor` - auto HTTP request count + duration histogram
+- `ContextMiddleware` - requestId, correlationId, traceId propagation
+- `NestPinoLogger` - structured JSON logging
+- `ObservabilityTracer` - distributed tracing with OTEL
+- `ObservabilityMetrics` - Prometheus counter/histogram/gauge factories
 - Health endpoint (`/health`) and metrics endpoint (`/metrics`)
 - Instrumentations: `httpInstrumentation`, `kafkaInstrumentation`, `redisInstrumentation`, `sequelizeInstrumentation`, `mysqlInstrumentation`, `pgInstrumentation`
 - `@Span()` decorator for custom tracing
