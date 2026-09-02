@@ -26,10 +26,41 @@ export class ObservabilityLogger {
           return { level: label };
         },
       },
-      transport: config.logger.prettyPrint
-        ? { target: 'pino-pretty', options: { colorize: true } }
-        : undefined,
+      transport: this.buildTransport(config),
     });
+  }
+
+  private buildTransport(config: ResolvedConfig): pino.TransportSingleOptions | pino.TransportMultiOptions | undefined {
+    const targets: pino.TransportTargetOptions[] = [];
+
+    if (config.logger.otlpExport) {
+      targets.push({
+        target: 'pino-opentelemetry-transport',
+        options: {
+          resourceAttributes: {
+            'service.name': config.serviceName,
+            'deployment.environment': config.environment,
+            'service.version': config.version,
+          },
+        },
+      });
+    }
+
+    if (config.logger.prettyPrint) {
+      targets.push({
+        target: 'pino-pretty',
+        options: { colorize: true },
+      });
+    }
+
+    // No transports — write to stdout directly (fastest)
+    if (targets.length === 0) return undefined;
+
+    // Single transport
+    if (targets.length === 1) return { target: targets[0].target, options: targets[0].options };
+
+    // Multiple transports
+    return { targets };
   }
 
   debug(message: string, meta?: Record<string, unknown>): void {

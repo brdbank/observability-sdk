@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controller and handler names in request lifecycle logs
 - Consistent `request_start` / `request_complete` / `request_error` message format
 
+## [1.0.2] - 2026-09-02
+
+### Added
+- **OTEL log transport**: logs are now sent to OpenTelemetry Collector via `pino-opentelemetry-transport`, enabling structured log ingestion into Loki/Grafana with full trace correlation
+- `otlpExport` option on `LoggerConfig` — auto-enabled when `OTEL_EXPORTER_OTLP_ENDPOINT` env var is set, can be explicitly controlled via `logger.otlpExport: true | false`
+- Multi-transport support: SDK can simultaneously write to stdout (PM2 capture) and OTEL Collector
+
+### How it works
+- **Zero service-side changes** — services only need `OTEL_EXPORTER_OTLP_ENDPOINT` in `.env` (already required for tracing)
+- SDK auto-detects the env var and enables OTEL log export
+- Logs flow: `Service → SDK Logger → Pino → pino-opentelemetry-transport → OTEL Collector → Loki → Grafana`
+- Trace correlation is automatic — `trace_id` and `span_id` are attached to every log entry, enabling click-through from traces to logs in Grafana
+
 ## [1.0.0] - 2026-06-29
 
 ### Changed
