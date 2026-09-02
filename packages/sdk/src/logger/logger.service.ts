@@ -41,6 +41,7 @@ export class ObservabilityLogger {
             'service.name': config.serviceName,
             'deployment.environment': config.environment,
             'service.version': config.version,
+            'log.pipeline': 'otlp',
           },
         },
       });
