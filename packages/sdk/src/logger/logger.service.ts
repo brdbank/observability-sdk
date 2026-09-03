@@ -7,7 +7,11 @@ export class ObservabilityLogger {
   private pino: pino.Logger;
 
   constructor(private config: ResolvedConfig) {
-    this.pino = pino({
+    this.pino = this.createLogger(config);
+  }
+
+  private createLogger(config: ResolvedConfig): pino.Logger {
+    const baseOptions: pino.LoggerOptions = {
       name: config.serviceName,
       level: config.logger.level,
       redact: {
@@ -26,8 +30,29 @@ export class ObservabilityLogger {
           return { level: label };
         },
       },
-      transport: this.buildTransport(config),
-    });
+    };
+
+    const transport = this.buildTransport(config);
+    if (!transport) return pino(baseOptions);
+
+    try {
+      const logger = pino({ ...baseOptions, transport });
+
+      // Listen for worker thread errors — if OTLP transport crashes,
+      // fall back to stdout-only logger instead of taking down the service
+      const dest = (logger as unknown as Record<symbol, NodeJS.WritableStream>)[pino.symbols.streamSym];
+      if (dest?.on) {
+        dest.on('error', (err: Error) => {
+          console.error(`[observability] Transport worker error, falling back to stdout: ${err.message}`);
+          this.pino = pino(baseOptions);
+        });
+      }
+
+      return logger;
+    } catch (err) {
+      console.error(`[observability] Failed to init transport, falling back to stdout: ${(err as Error).message}`);
+      return pino(baseOptions);
+    }
   }
 
   private buildTransport(config: ResolvedConfig): pino.TransportSingleOptions | pino.TransportMultiOptions | undefined {

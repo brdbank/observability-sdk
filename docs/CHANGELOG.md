@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controller and handler names in request lifecycle logs
 - Consistent `request_start` / `request_complete` / `request_error` message format
 
+## [1.0.5] - 2026-09-03
+
+### Fixed
+- **Transport worker crash resilience**: OTLP transport worker thread exit no longer crashes the service — SDK catches the error and falls back to stdout-only logging automatically
+- Graceful error handling on transport init failure
+
 ## [1.0.4] - 2026-09-03
 
 ### Fixed
