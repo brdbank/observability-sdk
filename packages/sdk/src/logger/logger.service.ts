@@ -55,12 +55,25 @@ export class ObservabilityLogger {
     }
   }
 
+  /**
+   * Resolve transport module to absolute path so Pino's worker thread
+   * can find it — worker thread resolution differs from main thread and
+   * fails to locate transitive dependencies by package name alone.
+   */
+  private resolveTransport(name: string): string {
+    try {
+      return require.resolve(name);
+    } catch {
+      return name; // fall back to name, let Pino try
+    }
+  }
+
   private buildTransport(config: ResolvedConfig): pino.TransportSingleOptions | pino.TransportMultiOptions | undefined {
     const targets: pino.TransportTargetOptions[] = [];
 
     if (config.logger.otlpExport) {
       targets.push({
-        target: 'pino-opentelemetry-transport',
+        target: this.resolveTransport('pino-opentelemetry-transport'),
         options: {
           resourceAttributes: {
             'service.name': config.serviceName,
@@ -74,7 +87,7 @@ export class ObservabilityLogger {
 
     if (config.logger.prettyPrint) {
       targets.push({
-        target: 'pino-pretty',
+        target: this.resolveTransport('pino-pretty'),
         options: { colorize: true },
       });
     }
