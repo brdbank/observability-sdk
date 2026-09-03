@@ -1,6 +1,6 @@
 {
   "name": "@brdrwanda/observability",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Internal observability platform SDK for NestJS distributed services",
   "repository": {
     "type": "git",
@@ -49,6 +49,7 @@
     "@opentelemetry/sdk-trace-node": "^2.8.0",
     "@opentelemetry/semantic-conventions": "^1.25.0",
     "pino": "^9.0.0",
+    "pino-opentelemetry-transport": "^0.6.0",
     "prom-client": "^15.0.0"
   },
   "peerDependencies": {
